@@ -32,9 +32,7 @@ export const useRolesManagement = (
     if (pendingRoleChange) {
       console.log("Setting primary role to:", pendingRoleChange);
       setPrimaryRole(pendingRoleChange);
-      // Clear additional roles when becoming Admin (exclusive role)
-      setAdditionalRoles([]);
-      console.log("Cleared additional roles for Admin");
+      // No longer clear additional roles for Admin since it's not exclusive
     }
     console.log("Closing admin alert dialog");
     setShowAdminAlert(false);
@@ -53,13 +51,13 @@ export const useRolesManagement = (
         // Remove role
         return prev.filter(r => r !== role);
       } else {
-        // Add role - but first check if it's an exclusive role
-        if (role === "Admin") {
-          // Admin is exclusive - replace all roles
+        // Add role - check if it's an exclusive role
+        if (role === "Creator") {
+          // Creator is exclusive - replace all roles
           return [role];
         } else {
-          // Regular role - add to existing roles (but remove Admin if present)
-          const filteredRoles = prev.filter(r => r !== "Admin");
+          // Regular role - add to existing roles (but remove Creator if present since it's exclusive)
+          const filteredRoles = prev.filter(r => r !== "Creator");
           return [...filteredRoles, role];
         }
       }

@@ -173,6 +173,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
   const { userRole, userRoles, isCreator } = useAuth();
   
   const shouldShowItem = (item: NavItem): boolean => {
+    // CRITICAL: Admin users can see ALL modules regardless of other restrictions
+    // This must be the FIRST check and return immediately
+    if (userRole === 'Admin' || userRoles?.includes('Admin')) {
+      return !item.hidden; // Only skip completely hidden items
+    }
+    
     // Skip items that are completely hidden
     if (item.hidden) return false;
     
@@ -181,20 +187,20 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
       return item.path === '/marketing-files' || item.path === '/creators-data';
     }
     
-    // Chatter employees should ONLY see Chatting Team items
+    // Chatter employees should ONLY see Chatting Team items (this won't affect Admin-Chatter users)
     if (userRole === 'Chatter' || userRoles?.includes('Chatter')) {
       return item.path === '/creators-data' || item.path === '/customs-tracker' || item.path === '/voice-generation' || item.path === '/sales-tracker';
     }
     
-    // VA employees should see Chatting Team items + Marketing Files + Shared Files + Sales Tracker (but not Customs Tracker)
+    // VA employees should see specific items
     if (userRole === 'VA' || userRoles?.includes('VA')) {
       return item.path === '/creators-data' || item.path === '/voice-generation' || item.path === '/sales-tracker' ||
              item.path === '/marketing-files' || item.path === '/shared-files';
     }
     
-    // HR / Work Force employees should see Sales Tracker and Shared Files
+    // HR / Work Force employees should see everything like Admin
     if (userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force')) {
-      return item.path === '/sales-tracker' || item.path === '/shared-files';
+      return !item.hidden;
     }
     
     // Skip adminOnly items if user is not admin
@@ -208,9 +214,6 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
     // Skip items that should be hidden for creators if the user is a creator
     if (item.hideForCreator && isCreator) return false;
     
-    // Skip items that should be hidden for chatters if the user is a chatter
-    if (item.hideForChatter && (userRole === 'Chatter' || userRoles?.includes('Chatter'))) return false;
-    
     // Check specific roles if defined
     if (item.roles) {
       const hasRequiredRole = item.roles.some(role => 
@@ -223,9 +226,14 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
   };
 
   const shouldShowGroup = (groupTitle: string): boolean => {
-    // Admin and Developer can see everything
-    if (userRole === 'Admin' || userRoles?.includes('Admin') || 
-        userRole === 'Developer' || userRoles?.includes('Developer')) {
+    // CRITICAL: Admin users can see ALL groups - this must be first
+    if (userRole === 'Admin' || userRoles?.includes('Admin')) {
+      return true;
+    }
+
+    // Developer and HR / Work Force can see everything
+    if (userRole === 'Developer' || userRoles?.includes('Developer') ||
+        userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force')) {
       return true;
     }
 
@@ -242,11 +250,6 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
     // VA employees see Chatting Team + Marketing Team (Shared Files is handled separately)
     if (userRole === 'VA' || userRoles?.includes('VA')) {
       return groupTitle === 'Chatting Team' || groupTitle === 'Marketing Team';
-    }
-    
-    // HR / Work Force employees see Chatting Team (for Sales Tracker)
-    if (userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force')) {
-      return groupTitle === 'Chatting Team';
     }
 
     return true;
@@ -278,11 +281,14 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
     </SidebarMenuItem>
   );
 
-  const isAdminOrDeveloper = userRole === 'Admin' || userRoles?.includes('Admin') || 
-                           userRole === 'Developer' || userRoles?.includes('Developer');
+  // Check if user should get admin-style navigation with grouped categories
+  const shouldShowAdminNavigation = userRole === 'Admin' || userRoles?.includes('Admin') || 
+                                   userRole === 'Developer' || userRoles?.includes('Developer') ||
+                                   userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force') ||
+                                   isAdmin; // Use the isAdmin prop as final authority
 
   // For non-admin users, collect all visible items into a single group to avoid spacing issues
-  if (!isAdminOrDeveloper) {
+  if (!shouldShowAdminNavigation) {
     const allVisibleItems: NavItem[] = [];
     
     navGroups.forEach((group) => {
@@ -295,8 +301,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
         visibleItems = visibleItems.filter(item => item.path === '/shared-files');
       } else if (group.title === 'Administrative Team' && (
         userRole === 'Marketing Team' || userRoles?.includes('Marketing Team') ||
-        userRole === 'Chatter' || userRoles?.includes('Chatter') ||
-        userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force')
+        userRole === 'Chatter' || userRoles?.includes('Chatter')
       )) {
         // Marketing Team and Chatter shouldn't see Administrative Team items at all
         return;
@@ -332,8 +337,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
           visibleItems = visibleItems.filter(item => item.path === '/shared-files');
         } else if (group.title === 'Administrative Team' && (
           userRole === 'Marketing Team' || userRoles?.includes('Marketing Team') ||
-          userRole === 'Chatter' || userRoles?.includes('Chatter') ||
-          userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force')
+          userRole === 'Chatter' || userRoles?.includes('Chatter')
         )) {
           // Marketing Team and Chatter shouldn't see Administrative Team items at all
           return null;

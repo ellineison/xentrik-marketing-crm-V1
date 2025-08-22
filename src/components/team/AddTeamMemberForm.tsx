@@ -40,38 +40,27 @@ const AddTeamMemberForm = () => {
   };
 
   const handlePrimaryRoleChange = (value: string) => {
-    // If Admin is selected as primary role, clear additional roles
-    if (value === "Admin") {
-      setForm((prev) => ({
-        ...prev,
-        primaryRole: value,
-        additionalRoles: [],
-      }));
-    } else {
-      setForm((prev) => ({
-        ...prev,
-        primaryRole: value,
-      }));
-    }
+    setForm((prev) => ({
+      ...prev,
+      primaryRole: value,
+    }));
   };
 
   const handleAdditionalRoleToggle = (role: string) => {
     setForm((prev) => {
-      // If Admin is selected, clear all other roles
-      if (role === "Admin") {
+      // If Creator is selected, clear all other roles (Creator is exclusive)
+      if (role === "Creator") {
         return {
           ...prev,
-          additionalRoles: prev.additionalRoles.includes("Admin") ? [] : ["Admin"],
-          // Also set primary role to Admin for consistency
-          primaryRole: prev.additionalRoles.includes("Admin") ? "Employee" : "Admin",
+          additionalRoles: prev.additionalRoles.includes("Creator") ? [] : ["Creator"],
         };
       }
       
-      // If trying to add a non-Admin role but Admin is already selected, don't allow it
-      if (prev.additionalRoles.includes("Admin")) {
+      // If trying to add a non-Creator role but Creator is already selected, don't allow it
+      if (prev.additionalRoles.includes("Creator")) {
         toast({
           title: "Cannot combine roles",
-          description: "Admin cannot be combined with other roles",
+          description: "Creator cannot be combined with other roles",
           variant: "destructive",
         });
         return prev;
@@ -109,8 +98,8 @@ const AddTeamMemberForm = () => {
       }
 
       // Get the final roles to use
-      const rolesToUse = form.additionalRoles.includes("Admin") 
-        ? ["Admin"] 
+      const rolesToUse = form.additionalRoles.includes("Creator") 
+        ? ["Creator"] 
         : form.additionalRoles;
       
       // Create the team member with default password
@@ -142,8 +131,8 @@ const AddTeamMemberForm = () => {
     }
   };
 
-  // Check if Admin is selected (either as primary role or in additional roles)
-  const isAdminSelected = form.primaryRole === "Admin" || form.additionalRoles.includes("Admin");
+  // Check if Creator is selected (Creator is exclusive)
+  const isCreatorSelected = form.additionalRoles.includes("Creator");
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -213,7 +202,7 @@ const AddTeamMemberForm = () => {
           <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
             <h2 className="text-xl font-semibold mb-4">Additional Roles</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Admin is an exclusive role and cannot be combined with other roles
+              Creator is an exclusive role and cannot be combined with other roles
             </p>
             
             <div className="grid grid-cols-2 gap-4">
@@ -226,7 +215,7 @@ const AddTeamMemberForm = () => {
                     id={`role-additional-${role}`}
                     checked={form.additionalRoles.includes(role)}
                     onCheckedChange={() => handleAdditionalRoleToggle(role)}
-                    disabled={isAdminSelected && role !== "Admin"}
+                    disabled={isCreatorSelected && role !== "Creator"}
                   />
                   <Label 
                     htmlFor={`role-additional-${role}`}

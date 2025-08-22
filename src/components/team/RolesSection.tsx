@@ -56,7 +56,7 @@ const RolesSection: React.FC<Props> = ({ selected, onChange }) => {
     <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
       <h2 className="text-xl font-bold mb-4 text-white">Additional Roles</h2>
       <p className="text-xs mb-3 text-amber-400">
-        Note: Creator and Admin are exclusive roles and cannot be combined with others
+        Note: Creator is an exclusive role and cannot be combined with others
       </p>
       <div className="grid grid-cols-2 gap-3">
         {AVAILABLE_ROLES.map((role) => (

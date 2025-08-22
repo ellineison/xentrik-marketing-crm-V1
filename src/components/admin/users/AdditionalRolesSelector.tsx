@@ -30,7 +30,7 @@ const AdditionalRolesSelector: React.FC<AdditionalRolesSelectorProps> = ({
           Select all roles that apply to this user
         </p>
         <p className="text-xs text-amber-500">
-          Note: Admin is an exclusive role and cannot be combined with other roles
+          Note: Creator is an exclusive role and cannot be combined with other roles
         </p>
       </div>
       
