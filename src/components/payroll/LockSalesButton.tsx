@@ -1,30 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, XCircle, Check } from 'lucide-react';
+import { Lock, XCircle, Check, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { PayrollConfirmationModal } from './PayrollConfirmationModal';
+import { generatePayslipPDF } from './PayslipGenerator';
 
 interface LockSalesButtonProps {
   chatterId?: string;
   selectedWeek: Date;
   isSalesLocked: boolean;
+  isAdminConfirmed: boolean;
   isCurrentWeek: boolean;
   canEdit: boolean;
   onDataRefresh: () => void;
+  onRenderApprovedState?: (approvedStateElement: React.ReactNode) => void;
 }
 
 export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
   chatterId,
   selectedWeek,
   isSalesLocked,
+  isAdminConfirmed,
   isCurrentWeek,
   canEdit,
-  onDataRefresh
+  onDataRefresh,
+  onRenderApprovedState
 }) => {
   const { user, userRole, userRoles } = useAuth();
   const { toast } = useToast();
+  const [showPayrollModal, setShowPayrollModal] = useState(false);
+  const [totalSales, setTotalSales] = useState(0);
+  const [currentHourlyRate, setCurrentHourlyRate] = useState(0);
+  const [chatterName, setChatterName] = useState('');
   
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -87,7 +97,7 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
-  const approvePayroll = async () => {
+  const openPayrollModal = async () => {
     if (!effectiveChatterId || !canApprovePayroll) {
       toast({
         title: "Access Denied",
@@ -100,27 +110,38 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       
-      // Approve payroll by setting admin_confirmed to true
-      const { error } = await supabase
+      // Fetch sales data to calculate total and get chatter info
+      const { data: salesData, error: salesError } = await supabase
         .from('sales_tracker')
-        .update({ 
-          admin_confirmed: true
-        })
+        .select('earnings')
         .eq('chatter_id', effectiveChatterId)
         .eq('week_start_date', weekStartStr);
 
-      if (error) throw error;
+      if (salesError) throw salesError;
 
-      onDataRefresh(); // Refresh data
-      toast({
-        title: "Payroll Approved",
-        description: "Sales and attendance have been approved and confirmed.",
-      });
+      // Get chatter profile info  
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('name, hourly_rate')
+        .eq('id', effectiveChatterId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const calculatedTotalSales = salesData?.reduce((sum, entry) => sum + (entry.earnings || 0), 0) || 0;
+      console.log('LockSalesButton: salesData:', salesData);
+      console.log('LockSalesButton: calculatedTotalSales:', calculatedTotalSales);
+      
+      setTotalSales(calculatedTotalSales);
+      setCurrentHourlyRate(profileData?.hourly_rate || 0);
+      setChatterName(profileData?.name || '');
+      setShowPayrollModal(true);
+      
     } catch (error) {
-      console.error('Error approving payroll:', error);
+      console.error('Error preparing payroll modal:', error);
       toast({
         title: "Error",
-        description: "Failed to approve payroll",
+        description: "Failed to load payroll data",
         variant: "destructive",
       });
     }
@@ -172,53 +193,151 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
+  const downloadPayslip = async () => {
+    if (!effectiveChatterId) return;
+
+    try {
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      
+      // Fetch sales data and payroll details
+      const { data: salesData, error: salesError } = await supabase
+        .from('sales_tracker')
+        .select('*')
+        .eq('chatter_id', effectiveChatterId)
+        .eq('week_start_date', weekStartStr);
+
+      if (salesError) throw salesError;
+
+      // Get chatter profile info
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('name, hourly_rate')
+        .eq('id', effectiveChatterId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      if (!salesData?.length || !profileData) {
+        toast({
+          title: "Error",
+          description: "No payroll data found for this week",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const firstEntry = salesData[0];
+      const totalSales = salesData.reduce((sum, entry) => sum + (entry.earnings || 0), 0);
+      
+      // Calculate commission amount and total payout
+      const commissionRate = firstEntry.confirmed_commission_rate || 0;
+      const hoursWorked = firstEntry.confirmed_hours_worked || 0;
+      const hourlyRate = profileData.hourly_rate || 0;
+      const overtimePay = firstEntry.overtime_pay || 0;
+      const deductionAmount = firstEntry.deduction_amount || 0;
+      
+      const commissionAmount = (totalSales * commissionRate) / 100;
+      const hourlyPay = hoursWorked * hourlyRate;
+      const totalPayout = hourlyPay + commissionAmount + overtimePay - deductionAmount;
+
+      // Prepare payslip data
+      const payslipData = {
+        chatterName: profileData.name,
+        weekStart: weekStart,
+        weekEnd: new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000),
+        salesData: salesData.map(entry => ({
+          model_name: entry.model_name,
+          day_of_week: entry.day_of_week,
+          earnings: entry.earnings
+        })),
+        totalSales: totalSales,
+        hoursWorked: hoursWorked,
+        hourlyRate: hourlyRate,
+        commissionRate: commissionRate,
+        commissionAmount: commissionAmount,
+        overtimePay: overtimePay,
+        overtimeNotes: firstEntry.overtime_notes || '',
+        deductionAmount: deductionAmount,
+        deductionNotes: firstEntry.deduction_notes || '',
+        totalPayout: totalPayout
+      };
+
+      generatePayslipPDF(payslipData);
+
+      toast({
+        title: "Payslip Downloaded",
+        description: "Payslip has been generated and downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('Error generating payslip:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate payslip",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Show lock button for current week only
   if (!isCurrentWeek) return null;
 
   return (
-    <div className="mt-6 pt-6 border-t border-muted">
-      <div className="flex justify-center">
-        {isSalesLocked ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center gap-2 text-green-600">
-              <Lock className="h-4 w-4" />
-              <span className="text-sm font-medium">Sales & Attendance Locked - Waiting for HR Approval</span>
-            </div>
-            {(isAdmin || canApprovePayroll) && (
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={approvePayroll}
-                  className="flex items-center gap-2"
-                >
-                  <Check className="h-4 w-4" />
-                  Approve Payroll
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={rejectPayroll}
-                  className="flex items-center gap-2"
-                >
-                  <XCircle className="h-4 w-4" />
-                  Reject & Unlock
-                </Button>
+    <>
+      <div className="mt-6 pt-6 border-t border-muted">
+        <div className="flex justify-center">
+          {isSalesLocked && !isAdminConfirmed ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-center gap-2 text-green-600">
+                <Lock className="h-4 w-4" />
+                <span className="text-sm font-medium">Sales & Attendance Locked - Waiting for HR Approval</span>
               </div>
-            )}
-          </div>
-        ) : (
-          canEdit && (
-            <Button
-              onClick={confirmWeekSales}
-              className="flex items-center gap-2 bg-primary hover:bg-primary/90"
-            >
-              <Lock className="h-4 w-4" />
-              Lock Sales & Attendance
-            </Button>
-          )
-        )}
+              {(isAdmin || canApprovePayroll) && (
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={openPayrollModal}
+                    className="flex items-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    Approve Payroll
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={rejectPayroll}
+                    className="flex items-center gap-2"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Reject & Unlock
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            canEdit && (
+              <Button
+                onClick={confirmWeekSales}
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+              >
+                <Lock className="h-4 w-4" />
+                Lock Sales & Attendance
+              </Button>
+            )
+          )}
+        </div>
       </div>
-    </div>
+
+      <PayrollConfirmationModal
+        open={showPayrollModal}
+        onOpenChange={setShowPayrollModal}
+        chatterName={chatterName}
+        chatterId={effectiveChatterId || ''}
+        weekStart={weekStart}
+        totalSales={totalSales}
+        currentHourlyRate={currentHourlyRate}
+        onConfirmed={onDataRefresh}
+      />
+    </>
   );
 };

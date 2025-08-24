@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 
 export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date, refreshTrigger?: number) => {
   const [isSalesLocked, setIsSalesLocked] = useState(false);
+  const [isAdminConfirmed, setIsAdminConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Calculate week start (Thursday)
@@ -45,7 +46,7 @@ export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date, refr
 
         const { data, error } = await supabase
           .from('sales_tracker')
-          .select('sales_locked')
+          .select('sales_locked, admin_confirmed')
           .eq('chatter_id', chatterId)
           .eq('week_start_date', weekStartStr)
           .limit(1);
@@ -53,10 +54,13 @@ export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date, refr
         if (error) throw error;
 
         const isLocked = data && data.length > 0 ? data[0].sales_locked : false;
+        const isConfirmed = data && data.length > 0 ? data[0].admin_confirmed : false;
         setIsSalesLocked(isLocked || false);
+        setIsAdminConfirmed(isConfirmed || false);
       } catch (error) {
         console.error('Error fetching sales lock status:', error);
         setIsSalesLocked(false);
+        setIsAdminConfirmed(false);
       } finally {
         setIsLoading(false);
       }
@@ -65,5 +69,5 @@ export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date, refr
     fetchSalesLockStatus();
   }, [chatterId, selectedWeek, refreshTrigger]);
 
-  return { isSalesLocked, isLoading };
+  return { isSalesLocked, isAdminConfirmed, isLoading };
 };

@@ -8,6 +8,7 @@ import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
 import { useSalesLockStatus } from './hooks/useSalesLockStatus';
 import { LockSalesButton } from './LockSalesButton';
+import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import AdminPayrollTable from './AdminPayrollTable';
 import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
@@ -35,7 +36,7 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Get sales lock status for the selected chatter and week
-  const { isSalesLocked } = useSalesLockStatus(selectedChatterId, selectedWeek, refreshKey);
+  const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(selectedChatterId, selectedWeek, refreshKey);
 
   // Calculate week start and current week status
   const getWeekStart = (date: Date) => {
@@ -98,56 +99,66 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
 
   if (selectedChatterId && selectedChatter) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            onClick={() => onSelectChatter(null)}
-            className="flex items-center gap-2"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Back to Chatters
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{selectedChatter.name}</h1>
-            <p className="text-muted-foreground">{selectedChatter.email}</p>
+      <>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => onSelectChatter(null)}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back to Chatters
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">{selectedChatter.name}</h1>
+              <p className="text-muted-foreground">{selectedChatter.email}</p>
+            </div>
           </div>
+
+          <Card className="bg-secondary/10 border-muted">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  Weekly Sales Tracker
+                  <span className="text-sm text-muted-foreground font-normal">
+                    (Thursday to Wednesday)
+                  </span>
+                </CardTitle>
+                <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+              </div>
+              <GoogleSheetsLinkManager chatterId={selectedChatterId} isAdminView />
+            </CardHeader>
+            <CardContent>
+              <PayrollTable chatterId={selectedChatterId} selectedWeek={selectedWeek} key={refreshKey} />
+            </CardContent>
+          </Card>
+
+          <AttendanceTable 
+            chatterId={selectedChatterId} 
+            selectedWeek={selectedWeek}
+            isSalesLocked={isSalesLocked}
+            key={refreshKey}
+          />
+
+          <LockSalesButton
+            chatterId={selectedChatterId}
+            selectedWeek={selectedWeek}
+            isSalesLocked={isSalesLocked}
+            isAdminConfirmed={isAdminConfirmed}
+            isCurrentWeek={isCurrentWeek}
+            canEdit={true}
+            onDataRefresh={handleDataRefresh}
+          />
         </div>
 
-        <Card className="bg-secondary/10 border-muted">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-foreground flex items-center gap-2">
-                Weekly Sales Tracker
-                <span className="text-sm text-muted-foreground font-normal">
-                  (Thursday to Wednesday)
-                </span>
-              </CardTitle>
-              <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
-            </div>
-            <GoogleSheetsLinkManager chatterId={selectedChatterId} isAdminView />
-          </CardHeader>
-          <CardContent>
-            <PayrollTable chatterId={selectedChatterId} selectedWeek={selectedWeek} key={refreshKey} />
-          </CardContent>
-        </Card>
-
-        <AttendanceTable 
-          chatterId={selectedChatterId} 
-          selectedWeek={selectedWeek}
-          isSalesLocked={isSalesLocked}
-          key={refreshKey}
-        />
-
-        <LockSalesButton
+        <ApprovedPayrollStatus
           chatterId={selectedChatterId}
           selectedWeek={selectedWeek}
-          isSalesLocked={isSalesLocked}
-          isCurrentWeek={isCurrentWeek}
-          canEdit={true}
-          onDataRefresh={handleDataRefresh}
+          isAdminConfirmed={isAdminConfirmed}
+          show={isSalesLocked && isAdminConfirmed}
         />
-      </div>
+      </>
     );
   }
 

@@ -47,7 +47,20 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
   const [hoursWorked, setHoursWorked] = useState<number>(0);
   const [overtimePay, setOvertimePay] = useState<number>(0);
   const [overtimeNotes, setOvertimeNotes] = useState<string>('');
-  const [commissionRate, setCommissionRate] = useState<number>(getCommissionRate(totalSales));
+  const [commissionRate, setCommissionRate] = useState<number>(() => {
+    console.log('PayrollModal: Initial totalSales:', totalSales);
+    const rate = getCommissionRate(totalSales);
+    console.log('PayrollModal: Initial commission rate:', rate);
+    return rate;
+  });
+
+  // Update commission rate when total sales changes
+  useEffect(() => {
+    console.log('PayrollModal: totalSales changed to:', totalSales);
+    const newRate = getCommissionRate(totalSales);
+    console.log('PayrollModal: Setting commission rate to:', newRate);
+    setCommissionRate(newRate);
+  }, [totalSales]);
   const [deductionAmount, setDeductionAmount] = useState<number>(0);
   const [deductionNotes, setDeductionNotes] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
