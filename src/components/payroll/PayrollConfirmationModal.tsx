@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -44,13 +44,56 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
   onConfirmed,
 }) => {
   const { toast } = useToast();
-  const [hoursWorked, setHoursWorked] = useState<number>(40);
+  const [hoursWorked, setHoursWorked] = useState<number>(0);
   const [overtimePay, setOvertimePay] = useState<number>(0);
   const [overtimeNotes, setOvertimeNotes] = useState<string>('');
   const [commissionRate, setCommissionRate] = useState<number>(getCommissionRate(totalSales));
   const [deductionAmount, setDeductionAmount] = useState<number>(0);
   const [deductionNotes, setDeductionNotes] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingAttendance, setIsLoadingAttendance] = useState(false);
+
+  // Fetch attendance data and calculate hours worked when modal opens
+  useEffect(() => {
+    if (open && chatterId) {
+      fetchAttendanceAndCalculateHours();
+    }
+  }, [open, chatterId, weekStart]);
+
+  const fetchAttendanceAndCalculateHours = async () => {
+    setIsLoadingAttendance(true);
+    try {
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      
+      // Fetch attendance data for the week
+      const { data: salesData, error } = await supabase
+        .from('sales_tracker')
+        .select('day_of_week, attendance')
+        .eq('chatter_id', chatterId)
+        .eq('week_start_date', weekStartStr);
+
+      if (error) throw error;
+
+      // Count unique days with attendance = true
+      const daysWithAttendance = new Set();
+      salesData?.forEach(entry => {
+        if (entry.attendance) {
+          daysWithAttendance.add(entry.day_of_week);
+        }
+      });
+
+      // Calculate hours: 8 hours per day with attendance
+      const calculatedHours = daysWithAttendance.size * 8;
+      setHoursWorked(calculatedHours);
+
+    } catch (error) {
+      console.error('Error fetching attendance data:', error);
+      // Fallback to default 40 hours if error
+      setHoursWorked(40);
+    } finally {
+      setIsLoadingAttendance(false);
+    }
+  };
 
   const commissionAmount = (totalSales * commissionRate) / 100;
   const hourlyPay = hoursWorked * currentHourlyRate;
@@ -121,14 +164,23 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
 
           <div className="space-y-2">
             <Label htmlFor="hours">Hours Worked</Label>
-            <Input
-              id="hours"
-              type="number"
-              min="0"
-              step="0.5"
-              value={hoursWorked}
-              onChange={(e) => setHoursWorked(parseFloat(e.target.value) || 0)}
-            />
+            <div className="space-y-1">
+              <Input
+                id="hours"
+                type="number"
+                min="0"
+                step="0.5"
+                value={hoursWorked}
+                onChange={(e) => setHoursWorked(parseFloat(e.target.value) || 0)}
+                disabled={isLoadingAttendance}
+              />
+              <p className="text-xs text-muted-foreground">
+                {isLoadingAttendance 
+                  ? "Calculating from attendance..." 
+                  : "Auto-calculated from attendance (8 hours per day worked). You can adjust if needed."
+                }
+              </p>
+            </div>
            </div>
 
            <div className="space-y-2">

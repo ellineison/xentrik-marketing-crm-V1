@@ -8,18 +8,18 @@ interface Chatter {
   role: string;
 }
 
-interface EmployeeSalesTableProps {
+interface ManagerPayrollTableProps {
   users: Chatter[];
   onSelectChatter: (chatterId: string) => void;
 }
 
-const EmployeeSalesTable: React.FC<EmployeeSalesTableProps> = ({ 
+const ManagerPayrollTable: React.FC<ManagerPayrollTableProps> = ({ 
   users,
   onSelectChatter
 }) => {
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">Employee Users ({users.length})</h3>
+      <h3 className="text-lg font-semibold mb-4">Manager Users ({users.length})</h3>
       {users.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {users.map((user) => (
@@ -31,7 +31,7 @@ const EmployeeSalesTable: React.FC<EmployeeSalesTableProps> = ({
               <CardContent className="p-4">
                 <h3 className="font-semibold text-foreground mb-1">{user.name}</h3>
                 <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
-                <span className="text-xs bg-green-500/10 text-green-600 px-2 py-1 rounded">
+                <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded">
                   {user.role}
                 </span>
               </CardContent>
@@ -40,11 +40,11 @@ const EmployeeSalesTable: React.FC<EmployeeSalesTableProps> = ({
         </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
-          No employee users found
+          No manager users found
         </div>
       )}
     </div>
   );
 };
 
-export default EmployeeSalesTable;
+export default ManagerPayrollTable;

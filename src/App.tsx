@@ -31,6 +31,7 @@ import MarketingFiles from './pages/MarketingFiles';
 import CreatorFiles from './pages/CreatorFiles';
 import TeamMemberEdit from './pages/TeamMemberEdit';
 import VoiceGeneration from './pages/VoiceGeneration';
+import VoiceClone from './pages/VoiceClone';
 import CreatorUpload from './pages/CreatorUpload';
 import AccessControlPanel from './pages/AccessControlPanel';
 import CreatorInviteOnboarding from './pages/CreatorOnboarding/CreatorInviteOnboarding';
@@ -38,7 +39,7 @@ import CreatorOnboardForm from './pages/CreatorOnboardForm';
 import CreatorOnboardQueue from './pages/CreatorOnboardQueue';
 import CreatorsData from './pages/CreatorsData';
 import CustomsTracker from './pages/CustomsTracker';
-import SalesTracker from './pages/SalesTracker';
+import Payroll from './pages/Payroll';
 import Invitation from './pages/Invitation';
 
 // Call the function to ensure our storage bucket exists
@@ -121,10 +122,11 @@ const AppRoutes = () => {
       <Route path="/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
       <Route path="/shared/:shareCode" element={<SharedFiles />} />
       <Route path="/voice-generation" element={<ProtectedRoute><VoiceGeneration /></ProtectedRoute>} />
+      <Route path="/voice-clone" element={<ProtectedRoute><VoiceClone /></ProtectedRoute>} />
       <Route path="/upload/:id" element={<CreatorUpload />} />
       <Route path="/customs-tracker" element={<ProtectedRoute><CustomsTracker /></ProtectedRoute>} />
-      <Route path="/sales-tracker" element={<ProtectedRoute><SalesTracker /></ProtectedRoute>} />
-      <Route path="/sales-tracker/:id" element={<ProtectedRoute><SalesTracker /></ProtectedRoute>} />
+      <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
+      <Route path="/payroll/:id" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
       
       {/* Add redirects for old route patterns */}
       

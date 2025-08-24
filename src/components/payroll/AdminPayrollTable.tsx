@@ -8,12 +8,12 @@ interface Chatter {
   role: string;
 }
 
-interface AdminSalesTableProps {
+interface AdminPayrollTableProps {
   users: Chatter[];
   onSelectChatter: (chatterId: string) => void;
 }
 
-const AdminSalesTable: React.FC<AdminSalesTableProps> = ({ 
+const AdminPayrollTable: React.FC<AdminPayrollTableProps> = ({ 
   users,
   onSelectChatter
 }) => {
@@ -47,4 +47,4 @@ const AdminSalesTable: React.FC<AdminSalesTableProps> = ({
   );
 };
 
-export default AdminSalesTable;
+export default AdminPayrollTable;

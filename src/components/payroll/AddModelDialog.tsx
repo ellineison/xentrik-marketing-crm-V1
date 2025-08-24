@@ -103,7 +103,7 @@ export const AddModelDialog: React.FC<AddModelDialogProps> = ({
 
       toast({
         title: "Success",
-        description: `${selectedCreator.modelName} added to sales tracker`,
+        description: `${selectedCreator.modelName} added to payroll`,
       });
 
       onModelAdded();
@@ -131,7 +131,7 @@ export const AddModelDialog: React.FC<AddModelDialogProps> = ({
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Model to Sales Tracker</DialogTitle>
+          <DialogTitle>Add Model to Payroll</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">

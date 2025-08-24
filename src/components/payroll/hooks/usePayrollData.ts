@@ -16,7 +16,7 @@ interface SalesModel {
   created_at: string;
 }
 
-export const useSalesData = (selectedWeekStart?: string) => {
+export const usePayrollData = (selectedWeekStart?: string) => {
   const [salesData, setSalesData] = useState<SalesEntry[]>([]);
   const [models, setModels] = useState<SalesModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);

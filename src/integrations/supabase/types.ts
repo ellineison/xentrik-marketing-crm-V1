@@ -714,6 +714,7 @@ export type Database = {
       sales_tracker: {
         Row: {
           admin_confirmed: boolean
+          attendance: boolean | null
           chatter_id: string | null
           confirmed_commission_rate: number | null
           confirmed_hours_worked: number | null
@@ -733,6 +734,7 @@ export type Database = {
         }
         Insert: {
           admin_confirmed?: boolean
+          attendance?: boolean | null
           chatter_id?: string | null
           confirmed_commission_rate?: number | null
           confirmed_hours_worked?: number | null
@@ -752,6 +754,7 @@ export type Database = {
         }
         Update: {
           admin_confirmed?: boolean
+          attendance?: boolean | null
           chatter_id?: string | null
           confirmed_commission_rate?: number | null
           confirmed_hours_worked?: number | null
@@ -913,6 +916,33 @@ export type Database = {
           created_at?: string | null
           id?: string
           team_name?: string
+        }
+        Relationships: []
+      }
+      voice_sources: {
+        Row: {
+          bucket_key: string
+          created_at: string
+          emotion: string
+          id: string
+          model_name: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_key: string
+          created_at?: string
+          emotion: string
+          id?: string
+          model_name: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_key?: string
+          created_at?: string
+          emotion?: string
+          id?: string
+          model_name?: string
+          updated_at?: string
         }
         Relationships: []
       }

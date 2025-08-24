@@ -177,6 +177,15 @@ verify_jwt = true
 [functions.media-upload-webhook]
 verify_jwt = true
 
+[functions.voice-upload]
+verify_jwt = false
+
+[functions.voice-sources]
+verify_jwt = false
+
+[functions.voice-generate]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 ip_version = "ipv4"

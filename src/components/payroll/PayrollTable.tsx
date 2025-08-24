@@ -26,13 +26,14 @@ interface SalesEntry {
   overtime_notes?: string;
   deduction_amount?: number;
   deduction_notes?: string;
+  attendance?: boolean;
 }
 
 interface SalesModel {
   model_name: string;
 }
 
-interface SalesTrackerTableProps {
+interface PayrollTableProps {
   chatterId?: string;
   selectedWeek?: Date;
 }
@@ -47,7 +48,7 @@ const DAYS_OF_WEEK = [
   { label: 'Wed', value: 3 },
 ];
 
-export const SalesTrackerTable: React.FC<SalesTrackerTableProps> = ({
+export const PayrollTable: React.FC<PayrollTableProps> = ({
   chatterId,
   selectedWeek = new Date()
 }) => {
@@ -381,6 +382,7 @@ export const SalesTrackerTable: React.FC<SalesTrackerTableProps> = ({
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       
+      // Lock both sales and attendance
       const { error } = await supabase
         .from('sales_tracker')
         .update({ sales_locked: true })
@@ -391,14 +393,14 @@ export const SalesTrackerTable: React.FC<SalesTrackerTableProps> = ({
 
       await fetchData(); // Refresh data
       toast({
-        title: "Sales Confirmed",
-        description: "Your weekly sales have been locked and submitted for review.",
+        title: "Sales & Attendance Confirmed",
+        description: "Your weekly sales and attendance have been locked and submitted for review.",
       });
     } catch (error) {
       console.error('Error confirming sales:', error);
       toast({
         title: "Error",
-        description: "Failed to confirm sales",
+        description: "Failed to confirm sales and attendance",
         variant: "destructive",
       });
     }
@@ -417,6 +419,7 @@ export const SalesTrackerTable: React.FC<SalesTrackerTableProps> = ({
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       
+      // When rejecting payroll, reset sales_locked which also unlocks attendance
       const { error } = await supabase
         .from('sales_tracker')
         .update({ 
@@ -437,7 +440,7 @@ export const SalesTrackerTable: React.FC<SalesTrackerTableProps> = ({
       await fetchData(); // Refresh data
       toast({
         title: "Payroll Rejected",
-        description: "Sales have been unlocked for the chatter to review and resubmit.",
+        description: "Sales and attendance have been unlocked for the chatter to review and resubmit.",
       });
     } catch (error) {
       console.error('Error rejecting payroll:', error);
@@ -737,7 +740,7 @@ export const SalesTrackerTable: React.FC<SalesTrackerTableProps> = ({
                   variant="default"
                 >
                   <Lock className="h-4 w-4" />
-                  Lock Weekly Sales
+                  Lock Weekly Sales & Attendance
                 </Button>
               );
             }

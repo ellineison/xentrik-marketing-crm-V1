@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { AdminSalesView } from '@/components/sales-tracker/AdminSalesView';
-import { ChatterSalesView } from '@/components/sales-tracker/ChatterSalesView';
+import { AdminPayrollView } from '@/components/payroll/AdminPayrollView';
+import { ChatterPayrollView } from '@/components/payroll/ChatterPayrollView';
 import { useAuth } from '@/context/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock } from 'lucide-react';
 
-const SalesTracker: React.FC = () => {
+const Payroll: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { userRole, userRoles, isAuthenticated, user } = useAuth();
   const [selectedChatterId, setSelectedChatterId] = useState<string | null>(null);
@@ -18,7 +18,7 @@ const SalesTracker: React.FC = () => {
     }
   }, [id]);
 
-  // Check if user has access to Sales Tracker
+  // Check if user has access to Payroll
   const hasAccess = isAuthenticated && (
     userRole === 'Admin' || 
     userRoles?.includes('Admin') ||
@@ -41,7 +41,7 @@ const SalesTracker: React.FC = () => {
         <Alert className="max-w-md">
           <Lock className="h-4 w-4" />
           <AlertDescription>
-            You don't have permission to access the Sales Tracker.
+            You don't have permission to access the Payroll.
           </AlertDescription>
         </Alert>
       </div>
@@ -52,16 +52,16 @@ const SalesTracker: React.FC = () => {
     <div className="min-h-screen bg-premium-dark">
       <div className="container mx-auto p-4">
         {(isAdmin || isVA || isHR) ? (
-          <AdminSalesView 
+          <AdminPayrollView 
             selectedChatterId={selectedChatterId}
             onSelectChatter={setSelectedChatterId}
           />
         ) : (
-          <ChatterSalesView />
+          <ChatterPayrollView />
         )}
       </div>
     </div>
   );
 };
 
-export default SalesTracker;
+export default Payroll;

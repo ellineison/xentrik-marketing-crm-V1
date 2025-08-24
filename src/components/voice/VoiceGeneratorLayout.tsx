@@ -70,6 +70,7 @@ interface VoiceGeneratorLayoutProps {
 
 const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) => {
   const [selectedModel, setSelectedModel] = useState<string>('');
+  const [selectedEmotion, setSelectedEmotion] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [aiTone, setAiTone] = useState<string>('normal');
   const [ambience, setAmbience] = useState<string>('none');
@@ -79,10 +80,54 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  // New state for voice sources from database
+  const [voiceSources, setVoiceSources] = useState<any[]>([]);
+  const [groupedSources, setGroupedSources] = useState<Record<string, Record<string, any[]>>>({});
+  const [isLoadingSources, setIsLoadingSources] = useState<boolean>(true);
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
 
-  // Get available tones for the selected voice
+  // Fetch voice sources from database
+  React.useEffect(() => {
+    fetchVoiceSources();
+  }, []);
+
+  const fetchVoiceSources = async () => {
+    try {
+      setIsLoadingSources(true);
+      console.log('Fetching voice sources from database...');
+      
+      const { data, error } = await supabase.functions.invoke('voice-sources', {
+        method: 'GET'
+      });
+
+      console.log('Voice sources response:', { data, error });
+
+      if (error) throw error;
+
+      console.log('Setting voice sources:', data.voiceSources);
+      console.log('Setting grouped sources:', data.groupedSources);
+      
+      setVoiceSources(data.voiceSources || []);
+      setGroupedSources(data.groupedSources || {});
+    } catch (error) {
+      console.error('Error fetching voice sources:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch voice sources",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingSources(false);
+    }
+  };
+
+  // Get available emotions for the selected model
+  const availableModels = Object.keys(groupedSources);
+  const availableEmotions = selectedModel ? Object.keys(groupedSources[selectedModel] || {}) : [];
+
+  // Get available tones for the selected voice (keeping existing ElevenLabs logic for now)
   const getAvailableTonesForVoice = (voiceId: string) => {
     const voice = ELEVENLABS_VOICES.find(v => v.id === voiceId);
     if (!voice) return [];
@@ -90,11 +135,14 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
     return VOICE_TONES.filter(tone => voice.availableTones.includes(tone.id));
   };
 
-  // Handle voice selection change
+  // Updated voice selection handler
   const handleVoiceChange = (voiceId: string) => {
+    console.log('Model selected:', voiceId);
+    console.log('Available emotions for model:', Object.keys(groupedSources[voiceId] || {}));
     setSelectedModel(voiceId);
+    setSelectedEmotion(''); // Reset emotion when model changes
     
-    // Get available tones for the new voice
+    // Get available tones for the new voice (ElevenLabs fallback)
     const availableTones = getAvailableTonesForVoice(voiceId);
     
     // If current tone is not available for the new voice, reset to the first available tone
@@ -141,6 +189,15 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
       return;
     }
 
+    if (!selectedEmotion) {
+      toast({
+        title: "Error",
+        description: "Please select an emotion",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const textToGenerate = message.trim();
     if (!textToGenerate) {
       toast({
@@ -165,12 +222,11 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
     try {
       console.log('Generating voice...');
       
-      const { data, error } = await supabase.functions.invoke('generate-voice', {
+      const { data, error } = await supabase.functions.invoke('voice-generate', {
         body: {
-          voiceId: selectedModel,
-          message: textToGenerate,
-          tone: aiTone,
-          ambience: ambience
+          text: textToGenerate,
+          modelName: selectedModel,
+          emotion: selectedEmotion
         }
       });
 
@@ -316,23 +372,53 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
         <div className="space-y-8">
           {/* Step 1: Voice Model Selection */}
           <div className="w-full">
-            <Label className="text-sm font-medium block">Step 1: Select Voice</Label>
-            <Select 
-              value={selectedModel} 
-              onValueChange={handleVoiceChange}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a voice" />
-              </SelectTrigger>
-              <SelectContent>
-                {ELEVENLABS_VOICES.map(voice => (
-                  <SelectItem key={voice.id} value={voice.id}>
-                    {voice.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="text-sm font-medium block">Step 1: Select Voice Model</Label>
+            {isLoadingSources ? (
+              <div className="flex items-center justify-center h-10 border border-premium-border/30 rounded-md">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="ml-2">Loading models...</span>
+              </div>
+            ) : (
+              <Select 
+                value={selectedModel} 
+                onValueChange={handleVoiceChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose a voice model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableModels.map(model => (
+                    <SelectItem key={model} value={model}>
+                      {model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
+
+          {/* Step 2: Emotion Selection */}
+          {selectedModel && (
+            <div className="w-full">
+              <Label className="text-sm font-medium block">Step 2: Select Emotion</Label>
+              <Select
+                value={selectedEmotion}
+                onValueChange={setSelectedEmotion}
+                disabled={!selectedModel}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an emotion" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableEmotions.map((emotion) => (
+                    <SelectItem key={emotion} value={emotion}>
+                      {emotion.charAt(0).toUpperCase() + emotion.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {selectedModel && (
             <Tabs defaultValue="generate" className="w-full">
@@ -343,10 +429,10 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
 
               <TabsContent value="generate" className="space-y-6">
                 <div className="space-y-6 w-full">
-                  {/* Step 2: AI Tone Selection */}
+                  {/* Step 3: AI Tone Selection */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium block">Step 2: AI Tone</Label>
+                      <Label className="text-sm font-medium block">Step 3: AI Tone</Label>
                       <Select 
                         value={aiTone}
                         onValueChange={setAiTone}
@@ -384,9 +470,9 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
                     </div>
                   </div>
 
-                  {/* Step 3: Message Input */}
+                  {/* Step 4: Message Input */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium block">Step 3: Message for AI Voice</Label>
+                    <Label className="text-sm font-medium block">Step 4: Message for AI Voice</Label>
                     <Input 
                       value={message} 
                       onChange={(e) => setMessage(e.target.value)} 

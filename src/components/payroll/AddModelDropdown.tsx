@@ -109,7 +109,7 @@ export const AddModelDropdown: React.FC<AddModelDropdownProps> = ({
 
       toast({
         title: "Success",
-        description: `${selectedCreator.modelName} added to sales tracker`,
+        description: `${selectedCreator.modelName} added to payroll`,
       });
 
       onModelAdded();

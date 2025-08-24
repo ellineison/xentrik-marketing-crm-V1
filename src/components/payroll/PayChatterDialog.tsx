@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
-import { useSalesData } from './hooks/useSalesData';
+import { usePayrollData } from './hooks/usePayrollData';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -21,7 +21,7 @@ export const PayChatterDialog: React.FC<PayChatterDialogProps> = ({
   onOpenChange,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { salesData, models } = useSalesData();
+  const { salesData, models } = usePayrollData();
 
   const getWeekStartDate = (): string => {
     const today = new Date();

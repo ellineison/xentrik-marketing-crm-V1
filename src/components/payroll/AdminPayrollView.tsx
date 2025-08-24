@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Users } from 'lucide-react';
-import { SalesTrackerTable } from './SalesTrackerTable';
+import { PayrollTable } from './PayrollTable';
+import { AttendanceTable } from './AttendanceTable';
 import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
-import AdminSalesTable from './AdminSalesTable';
-import ManagerSalesTable from './ManagerSalesTable';
-import EmployeeSalesTable from './EmployeeSalesTable';
+import { useSalesLockStatus } from './hooks/useSalesLockStatus';
+import AdminPayrollTable from './AdminPayrollTable';
+import ManagerPayrollTable from './ManagerPayrollTable';
+import EmployeePayrollTable from './EmployeePayrollTable';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Chatter {
@@ -17,18 +19,21 @@ interface Chatter {
   role: string;
 }
 
-interface AdminSalesViewProps {
+interface AdminPayrollViewProps {
   selectedChatterId: string | null;
   onSelectChatter: (chatterId: string | null) => void;
 }
 
-export const AdminSalesView: React.FC<AdminSalesViewProps> = ({
+export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
   selectedChatterId,
   onSelectChatter,
 }) => {
   const [chatters, setChatters] = useState<Chatter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState(new Date());
+  
+  // Get sales lock status for the selected chatter and week
+  const { isSalesLocked } = useSalesLockStatus(selectedChatterId, selectedWeek);
 
   // Separate users by role
   const adminUsers = chatters.filter(user => user.role === 'Admin');
@@ -86,7 +91,7 @@ export const AdminSalesView: React.FC<AdminSalesViewProps> = ({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-foreground flex items-center gap-2">
-                Weekly Sales Tracker
+                Weekly Payroll
                 <span className="text-sm text-muted-foreground font-normal">
                   (Thursday to Wednesday)
                 </span>
@@ -96,9 +101,15 @@ export const AdminSalesView: React.FC<AdminSalesViewProps> = ({
             <GoogleSheetsLinkManager chatterId={selectedChatterId} isAdminView />
           </CardHeader>
           <CardContent>
-            <SalesTrackerTable chatterId={selectedChatterId} selectedWeek={selectedWeek} />
+            <PayrollTable chatterId={selectedChatterId} selectedWeek={selectedWeek} />
           </CardContent>
         </Card>
+
+        <AttendanceTable 
+          chatterId={selectedChatterId} 
+          selectedWeek={selectedWeek}
+          isSalesLocked={isSalesLocked}
+        />
       </div>
     );
   }
@@ -107,7 +118,7 @@ export const AdminSalesView: React.FC<AdminSalesViewProps> = ({
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Users className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Sales Tracker - Select Chatter</h1>
+        <h1 className="text-2xl font-bold text-foreground">Payroll - Select Chatter</h1>
       </div>
 
       {isLoading ? (
@@ -137,9 +148,9 @@ export const AdminSalesView: React.FC<AdminSalesViewProps> = ({
         </Card>
       ) : (
         <div className="space-y-8">
-          <AdminSalesTable users={adminUsers} onSelectChatter={onSelectChatter} />
-          <ManagerSalesTable users={managerUsers} onSelectChatter={onSelectChatter} />
-          <EmployeeSalesTable users={employeeUsers} onSelectChatter={onSelectChatter} />
+          <AdminPayrollTable users={adminUsers} onSelectChatter={onSelectChatter} />
+          <ManagerPayrollTable users={managerUsers} onSelectChatter={onSelectChatter} />
+          <EmployeePayrollTable users={employeeUsers} onSelectChatter={onSelectChatter} />
         </div>
       )}
     </div>
