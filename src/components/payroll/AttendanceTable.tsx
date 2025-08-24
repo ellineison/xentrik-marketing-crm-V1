@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { Users } from 'lucide-react';
+import { Users, Edit3, Check, X, DollarSign } from 'lucide-react';
 
 interface AttendanceEntry {
   id: string;
@@ -40,6 +40,9 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const { toast } = useToast();
   const [attendanceData, setAttendanceData] = useState<Record<number, string>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [hourlyRate, setHourlyRate] = useState<number>(0);
+  const [editingHourlyRate, setEditingHourlyRate] = useState(false);
+  const [tempHourlyRate, setTempHourlyRate] = useState<number>(0);
 
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -100,6 +103,15 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
 
       if (error) throw error;
 
+      // Fetch chatter's hourly rate
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('hourly_rate')
+        .eq('id', effectiveChatterId)
+        .single();
+
+      if (profileError) throw profileError;
+
       // Create a map of day_of_week to model names for attendance
       const attendanceMap: Record<number, string> = {};
       
@@ -115,6 +127,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
       });
 
       setAttendanceData(attendanceMap);
+      setHourlyRate(profileData?.hourly_rate || 0);
     } catch (error) {
       console.error('Error fetching attendance data:', error);
       toast({
@@ -206,6 +219,49 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
     }
   };
 
+  const updateHourlyRate = async (newRate: number) => {
+    if (!effectiveChatterId || !isAdmin) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ hourly_rate: newRate })
+        .eq('id', effectiveChatterId);
+
+      if (error) throw error;
+
+      setHourlyRate(newRate);
+      toast({
+        title: "Success",
+        description: "Hourly rate updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating hourly rate:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update hourly rate",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const startEditingHourlyRate = () => {
+    setTempHourlyRate(hourlyRate);
+    setEditingHourlyRate(true);
+  };
+
+  const saveHourlyRate = async () => {
+    await updateHourlyRate(tempHourlyRate);
+    setEditingHourlyRate(false);
+  };
+
+  const cancelEditingHourlyRate = () => {
+    setTempHourlyRate(hourlyRate);
+    setEditingHourlyRate(false);
+  };
+
   if (isLoading) {
     return (
       <Card className="bg-secondary/10 border-muted">
@@ -237,6 +293,44 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
             </span>
           )}
         </CardTitle>
+        <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Hourly Rate:</span>
+            {editingHourlyRate ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={tempHourlyRate}
+                  onChange={(e) => setTempHourlyRate(parseFloat(e.target.value) || 0)}
+                  className="w-20 h-8 text-sm"
+                  step="0.01"
+                  min="0"
+                />
+                <div className="flex items-center gap-1">
+                  <Check
+                    className="h-4 w-4 text-green-600 cursor-pointer hover:text-green-800"
+                    onClick={saveHourlyRate}
+                  />
+                  <X
+                    className="h-4 w-4 text-red-600 cursor-pointer hover:text-red-800"
+                    onClick={cancelEditingHourlyRate}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">${hourlyRate.toFixed(2)}</span>
+                {isAdmin && (
+                  <Edit3
+                    className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground"
+                    onClick={startEditingHourlyRate}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
@@ -250,8 +344,8 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {DAYS_OF_WEEK.map((day) => {
-                const dayDate = addDays(weekStart, day.value === 0 ? 3 : day.value - 4);
+              {DAYS_OF_WEEK.map((day, index) => {
+                const dayDate = addDays(weekStart, index);
                 const hasAttendance = Boolean(attendanceData[day.value]?.trim());
                 
                 return (

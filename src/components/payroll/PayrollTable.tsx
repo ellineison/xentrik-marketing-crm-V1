@@ -58,9 +58,6 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   const [models, setModels] = useState<SalesModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
-  const [hourlyRate, setHourlyRate] = useState<number>(0);
-  const [editingHourlyRate, setEditingHourlyRate] = useState(false);
-  const [tempHourlyRate, setTempHourlyRate] = useState<number>(0);
   const [chatterName, setChatterName] = useState<string>('');
 
   const effectiveChatterId = chatterId || user?.id;
@@ -181,10 +178,10 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
 
       if (modelsError) throw modelsError;
 
-      // Fetch chatter's hourly rate and name
+      // Fetch chatter's name
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('hourly_rate, name')
+        .select('name')
         .eq('id', effectiveChatterId)
         .single();
 
@@ -196,7 +193,6 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
 
       setSalesData(salesData || []);
       setModels(uniqueModels);
-      setHourlyRate(profileData?.hourly_rate || 0);
       setChatterName(profileData?.name || '');
     } catch (error) {
       console.error('Error fetching sales data:', error);
@@ -318,139 +314,6 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
     return salesData.reduce((sum, s) => sum + s.earnings, 0);
   };
 
-  const updateHourlyRate = async (newRate: number) => {
-    if (!effectiveChatterId || !isAdmin) {
-      console.log('Hourly rate update blocked:', { effectiveChatterId, isAdmin, userRole });
-      return;
-    }
-
-    console.log('Attempting to update hourly rate:', { 
-      effectiveChatterId, 
-      newRate, 
-      isAdmin, 
-      userRole,
-      currentRate: hourlyRate 
-    });
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ hourly_rate: newRate })
-        .eq('id', effectiveChatterId)
-        .select();
-
-      if (error) {
-        console.error('Supabase error details:', error);
-        throw error;
-      }
-
-      console.log('Hourly rate update successful:', data);
-
-      setHourlyRate(newRate);
-      toast({
-        title: "Success",
-        description: "Hourly rate updated successfully",
-      });
-    } catch (error) {
-      console.error('Error updating hourly rate:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update hourly rate",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const startEditingHourlyRate = () => {
-    setTempHourlyRate(hourlyRate);
-    setEditingHourlyRate(true);
-  };
-
-  const saveHourlyRate = async () => {
-    await updateHourlyRate(tempHourlyRate);
-    setEditingHourlyRate(false);
-  };
-
-  const cancelEditingHourlyRate = () => {
-    setTempHourlyRate(hourlyRate);
-    setEditingHourlyRate(false);
-  };
-
-  const confirmWeekSales = async () => {
-    if (!effectiveChatterId || !isCurrentWeek) return;
-
-    try {
-      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-      
-      // Lock both sales and attendance
-      const { error } = await supabase
-        .from('sales_tracker')
-        .update({ sales_locked: true })
-        .eq('chatter_id', effectiveChatterId)
-        .eq('week_start_date', weekStartStr);
-
-      if (error) throw error;
-
-      await fetchData(); // Refresh data
-      toast({
-        title: "Sales & Attendance Confirmed",
-        description: "Your weekly sales and attendance have been locked and submitted for review.",
-      });
-    } catch (error) {
-      console.error('Error confirming sales:', error);
-      toast({
-        title: "Error",
-        description: "Failed to confirm sales and attendance",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const rejectPayroll = async () => {
-    if (!effectiveChatterId || !canApprovePayroll) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to reject payroll.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-      
-      // When rejecting payroll, reset sales_locked which also unlocks attendance
-      const { error } = await supabase
-        .from('sales_tracker')
-        .update({ 
-          sales_locked: false,
-          admin_confirmed: false,
-          confirmed_hours_worked: null,
-          confirmed_commission_rate: null,
-          overtime_pay: null,
-          overtime_notes: null,
-          deduction_amount: null,
-          deduction_notes: null
-        })
-        .eq('chatter_id', effectiveChatterId)
-        .eq('week_start_date', weekStartStr);
-
-      if (error) throw error;
-
-      await fetchData(); // Refresh data
-      toast({
-        title: "Payroll Rejected",
-        description: "Sales and attendance have been unlocked for the chatter to review and resubmit.",
-      });
-    } catch (error) {
-      console.error('Error rejecting payroll:', error);
-      toast({
-        title: "Error",
-        description: "Failed to reject payroll",
-        variant: "destructive",
-      });
-    }
-  };
 
   const downloadPayslip = () => {
     if (!chatterName || !isAdminConfirmed) return;
@@ -458,7 +321,9 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
     const weekEnd = addDays(weekStart, 6);
     const totalSales = getWeekTotal();
     const commissionAmount = (totalSales * confirmedCommissionRate) / 100;
-    const hourlyPay = confirmedHours * hourlyRate;
+    
+    // Get hourly rate from the attendance table (we don't store it here anymore)
+    const hourlyPay = confirmedHours * 0; // Will be calculated elsewhere
     const totalPayout = hourlyPay + commissionAmount + overtimePay - deductionAmount;
 
     const payslipData = {
@@ -472,7 +337,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
       })),
       totalSales,
       hoursWorked: confirmedHours,
-      hourlyRate,
+      hourlyRate: 0, // Will be fetched from profiles table
       commissionRate: confirmedCommissionRate,
       commissionAmount,
       overtimePay,
@@ -596,70 +461,6 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                 )}
               </TableRow>
             )}
-            {models.length > 0 && (
-              <TableRow className="border-t-2 bg-muted/20">
-                <TableCell className="font-bold">Hourly Rate</TableCell>
-                <TableCell 
-                  colSpan={DAYS_OF_WEEK.length} 
-                  className="text-center"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {editingHourlyRate ? (
-                      <>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={tempHourlyRate}
-                          onChange={(e) => setTempHourlyRate(parseFloat(e.target.value) || 0)}
-                          className="w-[120px] text-center"
-                          placeholder="$0.00/hr"
-                          autoFocus
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={saveHourlyRate}
-                          className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={cancelEditingHourlyRate}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="min-w-[120px] text-center">
-                          ${hourlyRate.toFixed(2)}/hr
-                        </span>
-                        {isAdmin && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={startEditingHourlyRate}
-                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                          >
-                            <Edit3 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-center font-bold">
-                  ${hourlyRate.toFixed(2)}/hr
-                </TableCell>
-                {isAdmin && isWeekEditable && (
-                  <TableCell></TableCell>
-                )}
-              </TableRow>
-            )}
             {models.length === 0 && (
               <TableRow>
                 <TableCell 
@@ -674,161 +475,30 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
         </Table>
       </div>
 
-      {/* Action Buttons */}
-      {models.length > 0 && (
+      {/* Admin and HR buttons */}
+      {models.length > 0 && canApprovePayroll && isSalesLocked && !isAdminConfirmed && (
         <div className="flex gap-2 justify-end pt-4 border-t">
-          {/* Debug logging for lock button visibility */}
-          {(() => {
-            const hasChatterRole = userRole === 'Chatter' || userRoles?.includes('Chatter');
-            const isOwnData = effectiveChatterId === user?.id;
-            const showLockButton = hasChatterRole && isOwnData && isCurrentWeek && !isSalesLocked;
-            
-            console.log('Lock button visibility check:', {
-              hasChatterRole,
-              userRole,
-              userRoles,
-              isOwnData,
-              effectiveChatterId,
-              userId: user?.id,
-              isCurrentWeek,
-              isSalesLocked,
-              modelsLength: models.length,
-              finalCondition: showLockButton && models.length > 0
-            });
-            
-            return null;
-          })()}
-          
-          {/* Lock Sales button - Chatters and Non-HR Admins can lock their own sales */}
-          {(() => {
-            const hasChatterRole = userRole === 'Chatter' || userRoles?.includes('Chatter');
-            const hasAdminRole = userRole === 'Admin' || userRoles?.includes('Admin');
-            const isHRWorkforce = userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force');
-            
-            // HR/Workforce users should not be able to lock sales, only approve/reject
-            const canLockSales = hasChatterRole || (hasAdminRole && !isHRWorkforce);
-            const isOwnData = effectiveChatterId === user?.id;
-            const shouldShowLockButton = canLockSales && isOwnData && isCurrentWeek && !isSalesLocked;
-            
-            console.log('DETAILED Lock button check:', {
-              hasChatterRole,
-              hasAdminRole,
-              isHRWorkforce,
-              canLockSales,
-              userRole,
-              userRoles,
-              isOwnData,
-              effectiveChatterId,
-              userId: user?.id,
-              isCurrentWeek,
-              isSalesLocked,
-              shouldShowLockButton,
-              'userRole === Chatter': userRole === 'Chatter',
-              'userRoles?.includes(Chatter)': userRoles?.includes('Chatter'),
-              'userRole === Admin': userRole === 'Admin',
-              'userRoles?.includes(Admin)': userRoles?.includes('Admin'),
-              'userRole === HR / Work Force': userRole === 'HR / Work Force',
-              'userRoles?.includes(HR / Work Force)': userRoles?.includes('HR / Work Force'),
-              'effectiveChatterId === user?.id': effectiveChatterId === user?.id
-            });
-            
-            if (shouldShowLockButton) {
-              return (
-                <Button 
-                  onClick={confirmWeekSales}
-                  className="flex items-center gap-2"
-                  variant="default"
-                >
-                  <Lock className="h-4 w-4" />
-                  Lock Weekly Sales & Attendance
-                </Button>
-              );
-            }
-            return null;
-          })()}
-          
-          {/* Status messages for Chatters and Non-HR Admins */}
-          {(() => {
-            const hasChatterRole = userRole === 'Chatter' || userRoles?.includes('Chatter');
-            const hasAdminRole = userRole === 'Admin' || userRoles?.includes('Admin');
-            const isHRWorkforce = userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force');
-            const canSeeStatus = hasChatterRole || (hasAdminRole && !isHRWorkforce);
-            
-            if (canSeeStatus && effectiveChatterId === user?.id && isSalesLocked && !isAdminConfirmed) {
-              return (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <CheckCircle className="h-4 w-4" />
-                  Sales locked - awaiting HR/Admin approval
-                </div>
-              );
-            }
-            return null;
-          })()}
-          
-          {/* Payslip download for Chatters and Non-HR Admins */}
-          {(() => {
-            const hasChatterRole = userRole === 'Chatter' || userRoles?.includes('Chatter');
-            const hasAdminRole = userRole === 'Admin' || userRoles?.includes('Admin');
-            const isHRWorkforce = userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force');
-            const canDownloadPayslip = hasChatterRole || (hasAdminRole && !isHRWorkforce);
-            
-            if (canDownloadPayslip && effectiveChatterId === user?.id && isAdminConfirmed) {
-              return (
-                <Button 
-                  onClick={downloadPayslip}
-                  className="flex items-center gap-2"
-                  variant="default"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Payslip (PDF)
-                </Button>
-              );
-            }
-            return null;
-          })()}
-
-          {/* Admin and HR buttons */}
-          {canApprovePayroll && isSalesLocked && !isAdminConfirmed && (
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setShowPayrollModal(true)}
-                className="flex items-center gap-2"
-                variant="default"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Approve Payroll
-              </Button>
-              <Button 
-                onClick={rejectPayroll}
-                className="flex items-center gap-2"
-                variant="destructive"
-              >
-                <XCircle className="h-4 w-4" />
-                Reject Payroll
-              </Button>
-            </div>
-          )}
-          
-          {canApprovePayroll && isAdminConfirmed && (
-            <div className="flex gap-2">
-              <Button 
-                onClick={downloadPayslip}
-                className="flex items-center gap-2"
-                variant="outline"
-              >
-                <Download className="h-4 w-4" />
-                Download Payslip (PDF)
-              </Button>
-              <Button 
-                onClick={rejectPayroll}
-                className="flex items-center gap-2"
-                variant="destructive"
-              >
-                <XCircle className="h-4 w-4" />
-                Reject Payroll
-              </Button>
-            </div>
-          )}
+          <Button 
+            onClick={() => setShowPayrollModal(true)}
+            className="flex items-center gap-2"
+            variant="default"
+          >
+            <CheckCircle className="h-4 w-4" />
+            Approve Payroll
+          </Button>
+        </div>
+      )}
+      
+      {models.length > 0 && canApprovePayroll && isAdminConfirmed && (
+        <div className="flex gap-2 justify-end pt-4 border-t">
+          <Button 
+            onClick={downloadPayslip}
+            className="flex items-center gap-2"
+            variant="outline"
+          >
+            <Download className="h-4 w-4" />
+            Download Payslip (PDF)
+          </Button>
         </div>
       )}
 
@@ -839,7 +509,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
         chatterId={effectiveChatterId || ''}
         weekStart={weekStart}
         totalSales={getWeekTotal()}
-        currentHourlyRate={hourlyRate}
+        currentHourlyRate={0}
         onConfirmed={fetchData}
       />
     </div>

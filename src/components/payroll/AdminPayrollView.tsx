@@ -7,6 +7,7 @@ import { AttendanceTable } from './AttendanceTable';
 import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
 import { useSalesLockStatus } from './hooks/useSalesLockStatus';
+import { LockSalesButton } from './LockSalesButton';
 import AdminPayrollTable from './AdminPayrollTable';
 import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
@@ -31,9 +32,35 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
   const [chatters, setChatters] = useState<Chatter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Get sales lock status for the selected chatter and week
   const { isSalesLocked } = useSalesLockStatus(selectedChatterId, selectedWeek);
+
+  // Calculate week start and current week status
+  const getWeekStart = (date: Date) => {
+    const day = date.getDay();
+    const thursday = new Date(date);
+    thursday.setHours(0, 0, 0, 0);
+    
+    if (day === 0) thursday.setDate(date.getDate() - 3);
+    else if (day === 1) thursday.setDate(date.getDate() - 4);
+    else if (day === 2) thursday.setDate(date.getDate() - 5);
+    else if (day === 3) thursday.setDate(date.getDate() - 6);
+    else if (day === 4) thursday.setDate(date.getDate());
+    else if (day === 5) thursday.setDate(date.getDate() - 1);
+    else if (day === 6) thursday.setDate(date.getDate() - 2);
+    
+    return thursday;
+  };
+
+  const weekStart = getWeekStart(selectedWeek);
+  const currentWeekStart = getWeekStart(new Date());
+  const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
+
+  const handleDataRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   // Separate users by role
   const adminUsers = chatters.filter(user => user.role === 'Admin');
@@ -91,7 +118,7 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-foreground flex items-center gap-2">
-                Weekly Payroll
+                Weekly Sales Tracker
                 <span className="text-sm text-muted-foreground font-normal">
                   (Thursday to Wednesday)
                 </span>
@@ -101,7 +128,7 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
             <GoogleSheetsLinkManager chatterId={selectedChatterId} isAdminView />
           </CardHeader>
           <CardContent>
-            <PayrollTable chatterId={selectedChatterId} selectedWeek={selectedWeek} />
+            <PayrollTable chatterId={selectedChatterId} selectedWeek={selectedWeek} key={refreshKey} />
           </CardContent>
         </Card>
 
@@ -109,6 +136,16 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
           chatterId={selectedChatterId} 
           selectedWeek={selectedWeek}
           isSalesLocked={isSalesLocked}
+          key={refreshKey}
+        />
+
+        <LockSalesButton
+          chatterId={selectedChatterId}
+          selectedWeek={selectedWeek}
+          isSalesLocked={isSalesLocked}
+          isCurrentWeek={isCurrentWeek}
+          canEdit={true}
+          onDataRefresh={handleDataRefresh}
         />
       </div>
     );
