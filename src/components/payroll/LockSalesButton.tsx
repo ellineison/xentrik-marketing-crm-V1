@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, XCircle } from 'lucide-react';
+import { Lock, XCircle, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,6 +87,45 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
+  const approvePayroll = async () => {
+    if (!effectiveChatterId || !canApprovePayroll) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to approve payroll.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      
+      // Approve payroll by setting admin_confirmed to true
+      const { error } = await supabase
+        .from('sales_tracker')
+        .update({ 
+          admin_confirmed: true
+        })
+        .eq('chatter_id', effectiveChatterId)
+        .eq('week_start_date', weekStartStr);
+
+      if (error) throw error;
+
+      onDataRefresh(); // Refresh data
+      toast({
+        title: "Payroll Approved",
+        description: "Sales and attendance have been approved and confirmed.",
+      });
+    } catch (error) {
+      console.error('Error approving payroll:', error);
+      toast({
+        title: "Error",
+        description: "Failed to approve payroll",
+        variant: "destructive",
+      });
+    }
+  };
+
   const rejectPayroll = async () => {
     if (!effectiveChatterId || !canApprovePayroll) {
       toast({
@@ -140,21 +179,32 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     <div className="mt-6 pt-6 border-t border-muted">
       <div className="flex justify-center">
         {isSalesLocked ? (
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-2 text-green-600">
               <Lock className="h-4 w-4" />
-              <span className="text-sm font-medium">Sales & Attendance Locked</span>
+              <span className="text-sm font-medium">Sales & Attendance Locked - Waiting for HR Approval</span>
             </div>
             {(isAdmin || canApprovePayroll) && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={rejectPayroll}
-                className="flex items-center gap-2"
-              >
-                <XCircle className="h-4 w-4" />
-                Reject & Unlock
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={approvePayroll}
+                  className="flex items-center gap-2"
+                >
+                  <Check className="h-4 w-4" />
+                  Approve Payroll
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={rejectPayroll}
+                  className="flex items-center gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Reject & Unlock
+                </Button>
+              </div>
             )}
           </div>
         ) : (

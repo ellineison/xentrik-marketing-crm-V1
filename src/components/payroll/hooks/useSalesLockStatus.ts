@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
-export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date) => {
+export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date, refreshTrigger?: number) => {
   const [isSalesLocked, setIsSalesLocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -63,7 +63,7 @@ export const useSalesLockStatus = (chatterId?: string, selectedWeek?: Date) => {
     };
 
     fetchSalesLockStatus();
-  }, [chatterId, selectedWeek]);
+  }, [chatterId, selectedWeek, refreshTrigger]);
 
   return { isSalesLocked, isLoading };
 };
