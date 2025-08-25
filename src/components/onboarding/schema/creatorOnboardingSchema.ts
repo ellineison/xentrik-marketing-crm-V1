@@ -16,32 +16,28 @@ export const creatorOnboardingSchema = z.object({
   whatsappNumber: z.string().min(1, "WhatsApp number is required"),
   
   // Social Media
-  instagram: z.string().min(1, "Instagram is required"),
-  tiktok: z.string().min(1, "TikTok is required"),
-  twitter: z.string().min(1, "Twitter is required"),
-  reddit: z.string().min(1, "Reddit is required"),
-  youtube: z.string().min(1, "YouTube is required"),
+  instagram: z.string().optional(),
+  tiktok: z.string().optional(),
+  twitter: z.string().optional(),
+  reddit: z.string().optional(),
+  youtube: z.string().optional(),
   
   // Custom Social Links (can be extended)
   customSocialLinks: z.array(
     z.object({
-      platform: z.string().min(1, "Platform name is required"),
-      url: z.string().url("Please enter a valid URL"),
+      platform: z.string().optional(),
+      url: z.string().optional(),
     })
-  ).min(1, "At least one custom social link is required"),
+  ).optional(),
   
   // Profile Picture
-  profilePicture: z.any().refine(val => val !== undefined && val !== null, {
-    message: "Profile picture is required",
-  }),
+  profilePicture: z.any().optional(),
   
   // Additional Information
-  notes: z.string().min(1, "Notes are required"),
+  notes: z.string().optional(),
   
   // Consent
-  termsAccepted: z.boolean().refine(val => val === true, {
-    message: "You must accept the terms to continue",
-  }),
+  termsAccepted: z.boolean().default(false),
 });
 
 export type CreatorOnboardingFormValues = z.infer<typeof creatorOnboardingSchema>;

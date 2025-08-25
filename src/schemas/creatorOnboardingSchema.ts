@@ -23,12 +23,12 @@ export const personalInfoSchema = z.object({
   hasPets: z.boolean().default(false),
   pets: z.array(
     z.object({
-      type: z.string().min(1, "Pet type is required"),
-      breed: z.string().min(1, "Pet breed is required"),
-      age: z.string().min(1, "Pet age is required"),
-      name: z.string().min(1, "Pet name is required"),
+      type: z.string().optional(),
+      breed: z.string().optional(),
+      age: z.string().optional(),
+      name: z.string().optional(),
     })
-  ).min(1, "Pet details are required when you have pets"),
+  ).optional(),
   hasKids: z.boolean().default(false),
   numberOfKids: z.number().min(0, "Number of kids is required"),
   occupation: z.string().min(1, "Occupation is required"),
@@ -38,22 +38,18 @@ export const personalInfoSchema = z.object({
 });
 
 export const physicalAttributesSchema = z.object({
-  weight: z.string().min(1, "Weight is required"),
-  height: z.string().min(1, "Height is required"),
-  bodyType: z.string().min(1, "Body type is required"),
-  favoriteColor: z.string().min(1, "Favorite color is required"),
-  dislikedColor: z.string().min(1, "Disliked color is required"),
-  allergies: z.string().min(1, "Allergies information is required"),
+  weight: z.string().optional(),
+  height: z.string().optional(),
+  bodyType: z.string().optional(),
+  favoriteColor: z.string().optional(),
+  dislikedColor: z.string().optional(),
+  allergies: z.string().optional(),
   hasTattoos: z.boolean().default(false),
-  tattooDetails: z.string().min(1, "Tattoo details are required"),
-  bustWaistHip: z.string().min(1, "Bust/Waist/Hip measurements are required"),
-  dickSize: z.string().min(1, "Dick size is required"),
-  isCircumcised: z.boolean({
-    required_error: "Circumcision status is required",
-  }),
-  isTopOrBottom: z.enum(["Top", "Bottom", "Versatile"], {
-    required_error: "Top/Bottom preference is required",
-  }),
+  tattooDetails: z.string().optional(),
+  bustWaistHip: z.string().optional(),
+  dickSize: z.string().optional(),
+  isCircumcised: z.boolean().optional(),
+  isTopOrBottom: z.enum(["Top", "Bottom", "Versatile"]).optional(),
 });
 
 export const personalPreferencesSchema = z.object({
@@ -74,7 +70,7 @@ export const personalPreferencesSchema = z.object({
 export const contentAndServiceSchema = z.object({
   bodyCount: z.number().min(0, "Body count is required"),
   hasFetish: z.boolean().default(false),
-  fetishDetails: z.string().min(1, "Fetish details are required"),
+  fetishDetails: z.string().optional(),
   doesAnal: z.boolean().default(false),
   hasTriedOrgy: z.boolean().default(false),
   sexToysCount: z.string().min(1, "Sex toys count is required"),
@@ -92,23 +88,23 @@ export const contentAndServiceSchema = z.object({
   underwearSellingPrice: z.number().min(0, "Underwear selling price is required"),
   underwearSellingNotes: z.string().min(1, "Underwear selling notes are required"),
   socialMediaHandles: z.object({
-    instagram: z.string().min(1, "Instagram handle is required"),
-    twitter: z.string().min(1, "Twitter handle is required"),
-    tiktok: z.string().min(1, "TikTok handle is required"),
-    onlyfans: z.string().min(1, "OnlyFans handle is required"),
-    snapchat: z.string().min(1, "Snapchat handle is required"),
+    instagram: z.string().optional(),
+    twitter: z.string().optional(),
+    tiktok: z.string().optional(),
+    onlyfans: z.string().optional(),
+    snapchat: z.string().optional(),
     other: z.array(
       z.object({
-        platform: z.string().min(1, "Platform name is required"),
-        handle: z.string().min(1, "Handle is required"),
+        platform: z.string().optional(),
+        handle: z.string().optional(),
       })
-    ).min(1, "At least one other social media handle is required"),
-  }),
+    ).optional(),
+  }).optional(),
 });
 
 export const creatorOnboardingSchema = z.object({
   personalInfo: personalInfoSchema,
-  physicalAttributes: physicalAttributesSchema,
+  physicalAttributes: physicalAttributesSchema.optional(),
   personalPreferences: personalPreferencesSchema,
   contentAndService: contentAndServiceSchema,
 });

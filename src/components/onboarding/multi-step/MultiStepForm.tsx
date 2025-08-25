@@ -34,10 +34,14 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   const methods = useForm<CreatorOnboardingFormValues>({
     resolver: zodResolver(creatorOnboardingSchema),
     defaultValues: defaultOnboardingValues,
-    mode: "onChange"
+    mode: "onSubmit"
   });
 
-  const { formState: { isValid, errors } } = methods;
+  const { formState: { errors, isValid } } = methods;
+  
+  // Debug form state
+  console.log("Form errors:", errors);
+  console.log("Form isValid:", isValid);
 
   // Validate token on component mount
   useEffect(() => {
@@ -117,6 +121,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   };
 
   const handleFinalSubmit = async (data: CreatorOnboardingFormValues) => {
+    console.log("handleFinalSubmit called with data:", data);
     try {
       setIsSubmitting(true);
       console.log("Form data being submitted:", data);
@@ -230,7 +235,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-4 sm:space-y-6 lg:space-y-8">
+      <form onSubmit={methods.handleSubmit(handleFinalSubmit)} className="space-y-4 sm:space-y-6 lg:space-y-8">
         <Card className="w-full bg-[#1a1a33]/70 border-[#252538]/50 shadow-xl">
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Creator Onboarding</CardTitle>
@@ -293,11 +298,11 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
               </Button>
             ) : (
               <Button
-                type="button" 
+                type="submit" 
                 variant="premium"
-                disabled={isSubmitting || !isValid}
+                disabled={isSubmitting}
+                onClick={() => console.log("Submit button clicked!")}
                 className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
-                onClick={() => methods.handleSubmit(handleFinalSubmit)()}
               >
                 {isSubmitting ? (
                   <>
