@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          attendance: boolean
+          chatter_id: string
+          created_at: string
+          day_of_week: number
+          id: string
+          model_name: string
+          updated_at: string
+          week_start_date: string
+        }
+        Insert: {
+          attendance?: boolean
+          chatter_id: string
+          created_at?: string
+          day_of_week: number
+          id?: string
+          model_name: string
+          updated_at?: string
+          week_start_date: string
+        }
+        Update: {
+          attendance?: boolean
+          chatter_id?: string
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          model_name?: string
+          updated_at?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
       creator_invitations: {
         Row: {
           created_at: string

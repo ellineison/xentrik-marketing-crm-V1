@@ -79,8 +79,8 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       
       // Fetch attendance data for the week
-      const { data: salesData, error } = await supabase
-        .from('sales_tracker')
+      const { data: attendanceData, error } = await supabase
+        .from('attendance')
         .select('day_of_week, attendance')
         .eq('chatter_id', chatterId)
         .eq('week_start_date', weekStartStr);
@@ -89,7 +89,7 @@ export const PayrollConfirmationModal: React.FC<PayrollConfirmationModalProps> =
 
       // Count unique days with attendance = true
       const daysWithAttendance = new Set();
-      salesData?.forEach(entry => {
+      attendanceData?.forEach(entry => {
         if (entry.attendance) {
           daysWithAttendance.add(entry.day_of_week);
         }

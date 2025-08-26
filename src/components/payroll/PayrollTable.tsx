@@ -315,6 +315,52 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   };
 
 
+  const rejectPayroll = async () => {
+    if (!effectiveChatterId || !canApprovePayroll) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to reject payroll.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      
+      // When rejecting payroll, reset sales_locked which also unlocks attendance
+      const { error } = await supabase
+        .from('sales_tracker')
+        .update({ 
+          sales_locked: false,
+          admin_confirmed: false,
+          confirmed_hours_worked: null,
+          confirmed_commission_rate: null,
+          overtime_pay: null,
+          overtime_notes: null,
+          deduction_amount: null,
+          deduction_notes: null
+        })
+        .eq('chatter_id', effectiveChatterId)
+        .eq('week_start_date', weekStartStr);
+
+      if (error) throw error;
+
+      fetchData(); // Refresh data
+      toast({
+        title: "Payroll Rejected",
+        description: "Sales and attendance have been unlocked for the chatter to review and resubmit.",
+      });
+    } catch (error) {
+      console.error('Error rejecting payroll:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reject payroll",
+        variant: "destructive",
+      });
+    }
+  };
+
   const downloadPayslip = () => {
     if (!chatterName || !isAdminConfirmed) return;
 
@@ -475,19 +521,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
         </Table>
       </div>
 
-      {/* Admin and HR buttons */}
-      {models.length > 0 && canApprovePayroll && isSalesLocked && !isAdminConfirmed && (
-        <div className="flex gap-2 justify-end pt-4 border-t">
-          <Button 
-            onClick={() => setShowPayrollModal(true)}
-            className="flex items-center gap-2"
-            variant="default"
-          >
-            <CheckCircle className="h-4 w-4" />
-            Approve Payroll
-          </Button>
-        </div>
-      )}
+      {/* Download payslip button for confirmed payroll */}
       
       {models.length > 0 && canApprovePayroll && isAdminConfirmed && (
         <div className="flex gap-2 justify-end pt-4 border-t">
