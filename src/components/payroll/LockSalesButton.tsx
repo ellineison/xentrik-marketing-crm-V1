@@ -278,8 +278,8 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
-  // Show lock button for current week only
-  if (!isCurrentWeek) return null;
+  // Show component for current week OR if sales are locked but not admin confirmed
+  if (!isCurrentWeek && !(isSalesLocked && !isAdminConfirmed)) return null;
 
   return (
     <>
