@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -10,44 +10,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { supabase } from '@/integrations/supabase/client';
 
-// Your custom ElevenLabs voices with their available tones
-const ELEVENLABS_VOICES = [
-  { 
-    id: 'puU1eXVwhHYVUrgX2AMX', 
-    name: 'Maddy',
-    availableTones: ['normal', 'seductive']
-  },
-  { 
-    id: 'aEO01A4wXwd1O8GPgGlF', 
-    name: 'Tash',
-    availableTones: ['normal']
-  },
-  { 
-    id: 'gXh9cw4Q1mk45fJJeQQC', 
-    name: 'Molly',
-    availableTones: ['normal']
-  },
-];
+// ElevenLabs configuration
+const ELEVENLABS_API_KEY = 'sk_ac245bd4e35ea3976298913a1202a82d8db5975534c00f3e';
+const MADDY_VOICE_ID = 'puU1eXVwhHYVUrgX2AMX';
 
-const VOICE_TONES = [
-  { id: 'normal', name: 'Normal' },
-  { id: 'tired', name: 'Tired' },
-  { id: 'sexy', name: 'Sexy' },
-  { id: 'excited', name: 'Excited' },
-  { id: 'whisper', name: 'Whisper' },
-  { id: 'casual', name: 'Casual' },
+const EMOTION_OPTIONS = [
   { id: 'seductive', name: 'Seductive' },
-];
-
-const AMBIENCE_OPTIONS = [
-  { id: 'none', name: 'None' },
-  { id: 'coffee_shop', name: 'Coffee Shop' },
-  { id: 'street', name: 'Street Noise' },
-  { id: 'nature', name: 'Nature Sounds' },
-  { id: 'room', name: 'Room Ambience' },
-  { id: 'fan', name: 'Fan Background' },
-  { id: 'party', name: 'Party Atmosphere' },
-  { id: 'crowd', name: 'Crowd Murmur' },
+  { id: 'casual', name: 'Casual' },
 ];
 
 interface VoiceNote {
@@ -55,11 +24,8 @@ interface VoiceNote {
   text: string;
   audio: string;
   settings: {
-    model: string;
-    ambience: string;
-    aiTone?: string;
+    emotion: string;
     message?: string;
-    quality?: number;
   };
   createdAt: string;
 }
@@ -69,104 +35,24 @@ interface VoiceGeneratorLayoutProps {
 }
 
 const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) => {
-  const [selectedModel, setSelectedModel] = useState<string>('');
-  const [selectedEmotion, setSelectedEmotion] = useState<string>('');
   const [message, setMessage] = useState<string>('');
-  const [aiTone, setAiTone] = useState<string>('normal');
-  const [ambience, setAmbience] = useState<string>('none');
+  const [emotion, setEmotion] = useState<string>('seductive');
   const [generatedAudio, setGeneratedAudio] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [voiceNotes, setVoiceNotes] = useState<VoiceNote[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  // New state for voice sources from database
-  const [voiceSources, setVoiceSources] = useState<any[]>([]);
-  const [groupedSources, setGroupedSources] = useState<Record<string, Record<string, any[]>>>({});
-  const [isLoadingSources, setIsLoadingSources] = useState<boolean>(true);
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
 
-  // Fetch voice sources from database
-  React.useEffect(() => {
-    fetchVoiceSources();
+  useEffect(() => {
+    loadVoiceNotes();
   }, []);
 
-  const fetchVoiceSources = async () => {
-    try {
-      setIsLoadingSources(true);
-      console.log('Fetching voice sources from database...');
-      
-      const { data, error } = await supabase.functions.invoke('voice-sources', {
-        method: 'GET'
-      });
-
-      console.log('Voice sources response:', { data, error });
-
-      if (error) throw error;
-
-      console.log('Setting voice sources:', data.voiceSources);
-      console.log('Setting grouped sources:', data.groupedSources);
-      
-      setVoiceSources(data.voiceSources || []);
-      setGroupedSources(data.groupedSources || {});
-    } catch (error) {
-      console.error('Error fetching voice sources:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch voice sources",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingSources(false);
-    }
-  };
-
-  // Get available emotions for the selected model
-  const availableModels = Object.keys(groupedSources);
-  const availableEmotions = selectedModel ? Object.keys(groupedSources[selectedModel] || {}) : [];
-
-  // Get available tones for the selected voice (keeping existing ElevenLabs logic for now)
-  const getAvailableTonesForVoice = (voiceId: string) => {
-    const voice = ELEVENLABS_VOICES.find(v => v.id === voiceId);
-    if (!voice) return [];
-    
-    return VOICE_TONES.filter(tone => voice.availableTones.includes(tone.id));
-  };
-
-  // Updated voice selection handler
-  const handleVoiceChange = (voiceId: string) => {
-    console.log('Model selected:', voiceId);
-    console.log('Available emotions for model:', Object.keys(groupedSources[voiceId] || {}));
-    setSelectedModel(voiceId);
-    setSelectedEmotion(''); // Reset emotion when model changes
-    
-    // Get available tones for the new voice (ElevenLabs fallback)
-    const availableTones = getAvailableTonesForVoice(voiceId);
-    
-    // If current tone is not available for the new voice, reset to the first available tone
-    if (availableTones.length > 0 && !availableTones.some(tone => tone.id === aiTone)) {
-      setAiTone(availableTones[0].id);
-    }
-  };
-
-  React.useEffect(() => {
-    if (selectedModel) {
-      setIsLoading(true);
-      setTimeout(() => {
-        loadVoiceNotes(selectedModel);
-        setIsLoading(false);
-      }, 500);
-    } else {
-      setVoiceNotes([]);
-    }
-  }, [selectedModel]);
-
-  const loadVoiceNotes = (modelId: string) => {
+  const loadVoiceNotes = () => {
     try {
       const voiceGenerationCache = JSON.parse(localStorage.getItem('voiceGenerationCache') || '{}');
-      const modelCache = voiceGenerationCache[modelId] || [];
+      const modelCache = voiceGenerationCache['maddy'] || [];
       setVoiceNotes(modelCache);
     } catch (error) {
       console.error('Error loading voice notes:', error);
@@ -180,24 +66,6 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
   };
 
   const handleVoiceGeneration = async () => {
-    if (!selectedModel) {
-      toast({
-        title: "Error",
-        description: "Please select a voice model",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!selectedEmotion) {
-      toast({
-        title: "Error",
-        description: "Please select an emotion",
-        variant: "destructive",
-      });
-      return;
-    }
-
     const textToGenerate = message.trim();
     if (!textToGenerate) {
       toast({
@@ -220,40 +88,40 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
     setIsGenerating(true);
 
     try {
-      console.log('Generating voice...');
+      console.log('Generating voice with ElevenLabs...');
       
-      const { data, error } = await supabase.functions.invoke('voice-generate', {
+      const { data, error } = await supabase.functions.invoke('elevenlabs-generate', {
         body: {
           text: textToGenerate,
-          modelName: selectedModel,
-          emotion: selectedEmotion
+          voiceId: MADDY_VOICE_ID,
+          apiKey: ELEVENLABS_API_KEY
         }
       });
 
       if (error) {
-        console.error('Supabase function error:', error);
+        console.error('ElevenLabs generation error:', error);
         throw new Error(error.message || 'Failed to generate voice');
       }
 
-      if (!data || !data.audio) {
+      if (!data || !data.audioContent) {
         throw new Error('No audio data received from voice generation service');
       }
 
-      const audioBase64 = data.audio;
-      setGeneratedAudio(audioBase64);
+      // Convert base64 to blob URL for playback
+      const audioBlob = new Blob([Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setGeneratedAudio(audioUrl);
       
       // Store in local cache
       const voiceGenerationCache = JSON.parse(localStorage.getItem('voiceGenerationCache') || '{}');
-      const modelCache = voiceGenerationCache[selectedModel] || [];
+      const modelCache = voiceGenerationCache['maddy'] || [];
       
       const voiceNote = {
         id: `voice-${Date.now()}`,
         text: textToGenerate,
-        audio: audioBase64,
+        audio: audioUrl,
         settings: {
-          model: selectedModel,
-          ambience: ambience,
-          aiTone: aiTone,
+          emotion: emotion,
           message: message,
         },
         createdAt: new Date().toISOString()
@@ -262,14 +130,14 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
       modelCache.unshift(voiceNote);
       if (modelCache.length > 30) modelCache.pop();
       
-      voiceGenerationCache[selectedModel] = modelCache;
+      voiceGenerationCache['maddy'] = modelCache;
       localStorage.setItem('voiceGenerationCache', JSON.stringify(voiceGenerationCache));
       
       setVoiceNotes(modelCache);
       
       toast({
         title: "Success",
-        description: "Voice note generated successfully!",
+        description: data.message || "Voice note generated successfully with Maddy's voice!",
       });
     } catch (error) {
       console.error('Error generating voice:', error);
@@ -309,9 +177,9 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
   const deleteVoiceNote = (id: string) => {
     try {
       const voiceGenerationCache = JSON.parse(localStorage.getItem('voiceGenerationCache') || '{}');
-      const modelCache = voiceGenerationCache[selectedModel] || [];
+      const modelCache = voiceGenerationCache['maddy'] || [];
       const updatedCache = modelCache.filter((note: VoiceNote) => note.id !== id);
-      voiceGenerationCache[selectedModel] = updatedCache;
+      voiceGenerationCache['maddy'] = updatedCache;
       localStorage.setItem('voiceGenerationCache', JSON.stringify(voiceGenerationCache));
       
       setVoiceNotes(updatedCache);
@@ -330,19 +198,9 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
     }
   };
 
-  const getAiToneName = (aiToneId: string) => {
-    const tone = VOICE_TONES.find(t => t.id === aiToneId);
-    return tone ? tone.name : aiToneId;
-  };
-
-  const getAmbienceName = (ambienceId: string) => {
-    const ambience = AMBIENCE_OPTIONS.find(a => a.id === ambienceId);
-    return ambience ? ambience.name : ambienceId;
-  };
-
-  const getVoiceName = (voiceId: string) => {
-    const voice = ELEVENLABS_VOICES.find(v => v.id === voiceId);
-    return voice ? voice.name : voiceId;
+  const getEmotionName = (emotionId: string) => {
+    const emotion = EMOTION_OPTIONS.find(a => a.id === emotionId);
+    return emotion ? emotion.name : emotionId;
   };
 
   const filteredNotes = searchTerm 
@@ -359,306 +217,202 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
     }
   };
 
-  // Get available tones for the currently selected voice
-  const availableTones = selectedModel ? getAvailableTonesForVoice(selectedModel) : [];
-
   return (
     <>
       <CardHeader className="border-b border-premium-border/30">
-        <CardTitle className="text-2xl font-semibold">Voice Generator</CardTitle>
+        <CardTitle className="text-2xl font-semibold">Voice Generator - Maddy</CardTitle>
       </CardHeader>
       
       <CardContent className="p-6">
         <div className="space-y-8">
-          {/* Step 1: Voice Model Selection */}
-          <div className="w-full">
-            <Label className="text-sm font-medium block">Step 1: Select Voice Model</Label>
-            {isLoadingSources ? (
-              <div className="flex items-center justify-center h-10 border border-premium-border/30 rounded-md">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="ml-2">Loading models...</span>
-              </div>
-            ) : (
-              <Select 
-                value={selectedModel} 
-                onValueChange={handleVoiceChange}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose a voice model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableModels.map(model => (
-                    <SelectItem key={model} value={model}>
-                      {model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+          <Tabs defaultValue="generate" className="w-full">
+            <TabsList className="w-full mb-6">
+              <TabsTrigger value="generate" className="flex-1">Generate Voice</TabsTrigger>
+              <TabsTrigger value="library" className="flex-1">Voice Library</TabsTrigger>
+            </TabsList>
 
-          {/* Step 2: Emotion Selection */}
-          {selectedModel && (
-            <div className="w-full">
-              <Label className="text-sm font-medium block">Step 2: Select Emotion</Label>
-              <Select
-                value={selectedEmotion}
-                onValueChange={setSelectedEmotion}
-                disabled={!selectedModel}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select an emotion" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableEmotions.map((emotion) => (
-                    <SelectItem key={emotion} value={emotion}>
-                      {emotion.charAt(0).toUpperCase() + emotion.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {selectedModel && (
-            <Tabs defaultValue="generate" className="w-full">
-              <TabsList className="w-full mb-6">
-                <TabsTrigger value="generate" className="flex-1">Generate Voice</TabsTrigger>
-                <TabsTrigger value="library" className="flex-1">Voice Library</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="generate" className="space-y-6">
-                <div className="space-y-6 w-full">
-                  {/* Step 3: AI Tone Selection */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium block">Step 3: AI Tone</Label>
-                      <Select 
-                        value={aiTone}
-                        onValueChange={setAiTone}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select AI tone" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableTones.map(tone => (
-                            <SelectItem key={tone.id} value={tone.id}>
-                              {tone.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium block">Background Ambience</Label>
-                      <Select 
-                        value={ambience}
-                        onValueChange={setAmbience}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select ambience" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {AMBIENCE_OPTIONS.map(option => (
-                            <SelectItem key={option.id} value={option.id}>
-                              {option.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Step 4: Message Input */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium block">Step 4: Message for AI Voice</Label>
-                    <Input 
-                      value={message} 
-                      onChange={(e) => setMessage(e.target.value)} 
-                      placeholder="Enter the message you want to convert to speech..."
-                      className="w-full"
-                      maxLength={2500}
-                    />
-                    <div className="text-xs text-muted-foreground">
-                      {message.length}/2500 characters
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={handleVoiceGeneration} 
-                    className="w-full" 
-                    disabled={isGenerating}
+            <TabsContent value="generate" className="space-y-6">
+              <div className="space-y-6 w-full">
+                {/* Voice Emotion */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium block">Voice Emotion</Label>
+                  <Select 
+                    value={emotion}
+                    onValueChange={setEmotion}
                   >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="mr-2 h-4 w-4" />
-                        Generate Voice
-                      </>
-                    )}
-                  </Button>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select emotion" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EMOTION_OPTIONS.map(option => (
+                        <SelectItem key={option.id} value={option.id}>
+                          {option.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  <div className="w-full">
-                    {generatedAudio && !isGenerating ? (
-                      <PremiumCard className="h-full flex flex-col">
-                        <div className="p-5 flex-1">
-                          <h3 className="font-semibold mb-4 text-lg">Preview Generated Voice Note</h3>
-                          <ScrollArea className="h-[160px] w-full">
-                            <p className="text-sm text-muted-foreground mb-4">{message}</p>
-                          </ScrollArea>
-                          
-                          <div className="flex flex-col gap-3">
-                            <Button onClick={() => playAudio("preview", generatedAudio)} variant="outline" className="w-full">
-                              <Play className="mr-2 h-4 w-4" />
-                              {playingId === "preview" ? "Playing..." : "Play"}
-                            </Button>
-                            <Button onClick={copyAudioToClipboard} variant="outline" className="w-full">
-                              <Copy className="mr-2 h-4 w-4" />
-                              Copy
-                            </Button>
-                            <Button onClick={() => downloadAudio(generatedAudio, message)} variant="outline" className="w-full">
-                              <Download className="mr-2 h-4 w-4" />
-                              Download
-                            </Button>
-                          </div>
-                          
-                          <audio ref={audioRef} src={generatedAudio} className="hidden" />
-                        </div>
-                      </PremiumCard>
-                    ) : (
-                      <div className="h-full flex items-center justify-center p-6 border border-dashed border-premium-border/30 rounded-xl bg-accent/5 text-muted-foreground">
-                        {isGenerating ? (
-                          <div className="text-center">
-                            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
-                            <p>Generating voice note...</p>
-                          </div>
-                        ) : (
-                          <div className="text-center">
-                            <Mic className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>Follow the steps above to generate a voice note</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                {/* Message Input */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium block">Message for Maddy's Voice</Label>
+                  <Input 
+                    value={message} 
+                    onChange={(e) => setMessage(e.target.value)} 
+                    placeholder="Enter the message you want to convert to speech..."
+                    className="w-full"
+                    maxLength={2500}
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    {message.length}/2500 characters
                   </div>
+                </div>
+
+                <Button 
+                  onClick={handleVoiceGeneration} 
+                  className="w-full" 
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Maddy's Voice...
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="mr-2 h-4 w-4" />
+                      Generate Voice with Maddy
+                    </>
+                  )}
+                </Button>
+
+                  {/* Generated Audio Preview */}
+                  {generatedAudio && (
+                    <PremiumCard className="border-premium-accent/20">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => playAudio('generated', generatedAudio)}
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
+                            <span className="text-sm text-muted-foreground">Generated Audio</span>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={copyAudioToClipboard}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadAudio(generatedAudio, message)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </PremiumCard>
+                  )}
                 </div>
               </TabsContent>
 
-              <TabsContent value="library" className="space-y-6">
-                <div className="space-y-6">
-                  <div>
-                    <Label className="text-sm font-medium block">Search Voice Notes</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search by content..."
-                        className="pl-10"
-                      />
-                    </div>
+              <TabsContent value="library" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search voice notes..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="flex-1"
+                    />
                   </div>
 
-                  <div className="mt-6">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    ) : filteredNotes.length > 0 ? (
-                      <ScrollArea className="h-[400px]">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {filteredNotes.map((note) => (
-                            <PremiumCard key={note.id} className="transition-all hover:shadow-md">
-                              <div className="p-4 space-y-3">
-                                <div className="flex justify-between items-start">
-                                  <div className="w-4/5">
-                                    <p className="line-clamp-2 text-sm font-medium mb-2">{note.text}</p>
-                                    {note.settings.message && note.settings.message !== note.text && (
-                                      <p className="text-xs text-muted-foreground mb-2">
-                                        Original message: {note.settings.message}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => deleteVoiceNote(note.id)}
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                                
-                                <div className="space-y-1">
-                                  <div className="flex justify-between text-xs text-muted-foreground">
-                                    <span>Voice: {getVoiceName(note.settings.model)}</span>
-                                    <span>Ambience: {getAmbienceName(note.settings.ambience)}</span>
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    <span>AI Tone: {getAiToneName(note.settings.aiTone || 'normal')}</span>
+                   {false ? (
+                     <div className="flex items-center justify-center py-8">
+                       <Loader2 className="h-6 w-6 animate-spin" />
+                       <span className="ml-2">Loading voice notes...</span>
+                     </div>
+                   ) : filteredNotes.length === 0 ? (
+                     <div className="text-center py-8 text-muted-foreground">
+                       No voice notes found.
+                     </div>
+                   ) : (
+                    <ScrollArea className="h-[400px]">
+                      <div className="space-y-3">
+                        {filteredNotes.map((note) => (
+                          <PremiumCard key={note.id} className="border-premium-border/30">
+                            <CardContent className="p-4">
+                              <div className="space-y-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1 space-y-1">
+                                    <p className="text-sm font-medium line-clamp-2">{note.text}</p>
+                                     <div className="flex flex-wrap gap-2">
+                                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-premium-muted">
+                                         Maddy
+                                       </span>
+                                        {note.settings.emotion && (
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-premium-muted">
+                                            {getEmotionName(note.settings.emotion)}
+                                          </span>
+                                        )}
+                                     </div>
+                                    <p className="text-xs text-muted-foreground">{formatDate(note.createdAt)}</p>
                                   </div>
                                 </div>
-                                
-                                <p className="text-xs text-muted-foreground">
-                                  {formatDate(note.createdAt)}
-                                </p>
-                                
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  <Button 
-                                    variant="outline" 
+                                <div className="flex items-center justify-between">
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => playAudio(note.id, note.audio)}
-                                    className="flex-1"
+                                    className="flex items-center space-x-1"
                                   >
-                                    {playingId === note.id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                                    ) : (
-                                      <Play className="h-4 w-4 mr-1" />
-                                    )}
-                                    {playingId === note.id ? "Playing" : "Play"}
+                                    <Play className="h-3 w-3" />
+                                    <span>Play</span>
                                   </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => copyAudioToClipboard()}
-                                    className="flex-1"
-                                  >
-                                    <Copy className="h-4 w-4 mr-1" />
-                                    Copy
-                                  </Button>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={() => downloadAudio(note.audio, note.text)}
-                                    className="flex-1"
-                                  >
-                                    <Download className="h-4 w-4 mr-1" />
-                                    Download
-                                  </Button>
+                                  <div className="flex space-x-1">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={copyAudioToClipboard}
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => downloadAudio(note.audio, note.text)}
+                                    >
+                                      <Download className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => deleteVoiceNote(note.id)}
+                                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </PremiumCard>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    ) : (
-                      <div className="text-center py-12 bg-accent/5 rounded-xl border border-dashed border-premium-border/30">
-                        <p className="text-muted-foreground">No voice notes found for this voice.</p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Generate some voice notes in the "Generate Voice" tab.
-                        </p>
+                            </CardContent>
+                          </PremiumCard>
+                        ))}
                       </div>
-                    )}
-                  </div>
+                    </ScrollArea>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
-          )}
         </div>
       </CardContent>
     </>
