@@ -63,21 +63,21 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
                 brand: {
-                    yellow: "#FFEB3B", // Banana yellow color
-                    dark: "#121212",   // Dark shade for backgrounds
-                    light: "#FFFFFF",  // Light shade for text on dark backgrounds
-                    highlight: "#FFD54F", // Lighter yellow for highlights
-                    muted: "#FFFDE7"   // Very light yellow for subtle backgrounds
+                    yellow: "54 100% 60%", // Banana yellow color (HSL)
+                    dark: "0 0% 7%",   // Dark shade for backgrounds (HSL)
+                    light: "0 0% 100%",  // Light shade for text on dark backgrounds (HSL)
+                    highlight: "45 100% 67%", // Lighter yellow for highlights (HSL)
+                    muted: "60 100% 97%"   // Very light yellow for subtle backgrounds (HSL)
                 },
                 premium: {
-                    dark: "#141428",      // Dark purple-blue for backgrounds
-                    darker: "#0E0E1C",    // Even darker shade for contrast
-                    card: "#1A1A2E",      // Slightly lighter shade for cards
-                    highlight: "#2D2D44", // Highlight color for hover states
-                    border: "#252538",    // Border color
-                    accent1: "#614FE0",   // Purple accent
-                    accent2: "#7166F9",   // Lighter purple accent
-                    accent3: "#30A8C5",   // Teal accent
+                    dark: "240 20% 12%",      // Dark purple-blue for backgrounds (HSL)
+                    darker: "240 29% 6%",    // Even darker shade for contrast (HSL)
+                    card: "240 24% 15%",      // Slightly lighter shade for cards (HSL)
+                    highlight: "240 20% 20%", // Highlight color for hover states (HSL)
+                    border: "240 20% 18%",    // Border color (HSL)
+                    accent1: "254 76% 60%",   // Purple accent (HSL)
+                    accent2: "251 95% 70%",   // Lighter purple accent (HSL)
+                    accent3: "195 56% 48%",   // Teal accent (HSL)
                 }
 			},
 			borderRadius: {
@@ -169,21 +169,21 @@ export default {
                 '800': '800ms',
             },
             backgroundImage: {
-                'gradient-premium': 'linear-gradient(to bottom, rgba(26, 26, 46, 0.7), rgba(14, 14, 28, 0.9))',
-                'gradient-card': 'linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(38, 38, 66, 0.8) 100%)',
-                'gradient-highlight': 'linear-gradient(135deg, #614FE0 0%, #7166F9 100%)',
-                'gradient-sidebar': 'linear-gradient(180deg, rgba(20, 20, 40, 1) 0%, rgba(14, 14, 28, 1) 100%)',
-                'gradient-accent': 'linear-gradient(135deg, #30A8C5 0%, #614FE0 100%)',
-                'gradient-premium-yellow': 'linear-gradient(135deg, #FFF176 0%, #FFD54F 100%)',
+                'gradient-premium': 'linear-gradient(to bottom, hsl(240 24% 15% / 0.7), hsl(240 29% 6% / 0.9))',
+                'gradient-card': 'linear-gradient(135deg, hsl(240 24% 15% / 0.8) 0%, hsl(240 20% 20% / 0.8) 100%)',
+                'gradient-highlight': 'linear-gradient(135deg, hsl(254 76% 60%) 0%, hsl(251 95% 70%) 100%)',
+                'gradient-sidebar': 'linear-gradient(180deg, hsl(240 20% 12%) 0%, hsl(240 29% 6%) 100%)',
+                'gradient-accent': 'linear-gradient(135deg, hsl(195 56% 48%) 0%, hsl(254 76% 60%) 100%)',
+                'gradient-premium-yellow': 'linear-gradient(135deg, hsl(56 100% 72%) 0%, hsl(45 100% 67%) 100%)',
             },
             boxShadow: {
                 'premium-sm': '0 2px 8px rgba(0, 0, 0, 0.25)',
                 'premium-md': '0 4px 12px rgba(0, 0, 0, 0.3)',
                 'premium-lg': '0 8px 20px rgba(0, 0, 0, 0.35)',
-                'premium-highlight': '0 0 15px rgba(255, 213, 79, 0.5)',
-                'premium-glow': '0 0 25px rgba(255, 235, 59, 0.3)',
+                'premium-highlight': '0 0 15px hsl(45 100% 67% / 0.5)',
+                'premium-glow': '0 0 25px hsl(54 100% 60% / 0.3)',
                 'premium-inner': 'inset 0 2px 4px rgba(0, 0, 0, 0.25)',
-                'premium-yellow': '0 2px 8px rgba(255, 235, 59, 0.3)',
+                'premium-yellow': '0 2px 8px hsl(54 100% 60% / 0.3)',
             }
 		}
 	},

@@ -23,6 +23,9 @@ serve(async (req) => {
       {
         auth: {
           persistSession: false,
+        },
+        global: {
+          headers: authHeader ? { Authorization: authHeader } : {}
         }
       }
     );
@@ -77,22 +80,38 @@ serve(async (req) => {
     if (req.method === 'DELETE') {
       // Get the authorization header
       if (!authHeader) {
+        console.error('No auth header for DELETE request');
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Set the auth token
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+      // Create a client with the user's auth token for user verification
+      const userSupabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        {
+          auth: {
+            persistSession: false,
+          },
+          global: {
+            headers: { Authorization: authHeader }
+          }
+        }
+      );
+
+      const { data: { user }, error: authError } = await userSupabase.auth.getUser();
       
       if (authError || !user) {
+        console.error('Auth error in DELETE:', authError);
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      console.log('User authenticated for DELETE:', user.id);
 
       // Check if user is admin
       const { data: profile } = await supabase
@@ -101,14 +120,30 @@ serve(async (req) => {
         .eq('id', user.id)
         .single();
 
+      console.log('User profile for DELETE:', profile);
+
       if (!profile || (profile.role !== 'Admin' && !profile.roles?.includes('Admin'))) {
+        console.error('User not admin for DELETE:', profile);
         return new Response(
           JSON.stringify({ error: 'Admin access required' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      const { id } = await req.json();
+      let requestBody;
+      try {
+        requestBody = await req.json();
+      } catch (error) {
+        console.error('Error parsing request body:', error);
+        return new Response(
+          JSON.stringify({ error: 'Invalid request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { id } = requestBody;
+      console.log('Deleting voice source with ID:', id);
+      
       if (!id) {
         return new Response(
           JSON.stringify({ error: 'Voice source ID is required' }),
@@ -117,29 +152,46 @@ serve(async (req) => {
       }
 
       // Get the voice source to delete the file
-      const { data: voiceSource } = await supabase
+      console.log('Fetching voice source for deletion...');
+      const { data: voiceSource, error: fetchError } = await supabase
         .from('voice_sources')
         .select('bucket_key')
         .eq('id', id)
         .single();
 
+      if (fetchError) {
+        console.error('Error fetching voice source:', fetchError);
+        return new Response(
+          JSON.stringify({ error: 'Error fetching voice source' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       if (!voiceSource) {
+        console.error('Voice source not found:', id);
         return new Response(
           JSON.stringify({ error: 'Voice source not found' }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      console.log('Voice source found, bucket_key:', voiceSource.bucket_key);
+
       // Delete from storage
+      console.log('Deleting from storage...');
       const { error: storageError } = await supabase.storage
         .from('voices')
         .remove([voiceSource.bucket_key]);
 
       if (storageError) {
         console.error('Storage deletion error:', storageError);
+        // Continue with database deletion even if storage fails
+      } else {
+        console.log('Successfully deleted from storage');
       }
 
       // Delete from database
+      console.log('Deleting from database...');
       const { error: dbError } = await supabase
         .from('voice_sources')
         .delete()
@@ -148,11 +200,12 @@ serve(async (req) => {
       if (dbError) {
         console.error('Database deletion error:', dbError);
         return new Response(
-          JSON.stringify({ error: 'Failed to delete voice source' }),
+          JSON.stringify({ error: 'Failed to delete voice source from database' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      console.log('Successfully deleted voice source:', id);
       return new Response(
         JSON.stringify({ message: 'Voice source deleted successfully' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -24,7 +24,7 @@ import {
   Database,
   Kanban,
   DollarSign,
-  VolumeX
+  Bot
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -137,10 +137,10 @@ const navGroups: NavGroup[] = [
         adminOnly: true,
       },
       {
-        path: '/voice-clone',
-        label: 'Voice Clone',
-        icon: <VolumeX className="h-5 w-5" />,
-        adminOnly: true,
+        path: '/ai-voice',
+        label: 'AI Clone',
+        icon: <Bot className="h-5 w-5" />,
+        roles: ['Admin', 'VA', 'Chatter'],
       },
     ]
   },
@@ -196,7 +196,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
     
     // Chatter employees should ONLY see Chatting Team items (this won't affect Admin-Chatter users)
     if (userRole === 'Chatter' || userRoles?.includes('Chatter')) {
-      return item.path === '/creators-data' || item.path === '/customs-tracker' || item.path === '/payroll';
+      return item.path === '/creators-data' || item.path === '/customs-tracker' || item.path === '/payroll' || item.path === '/ai-voice';
     }
     
     // VA employees should see specific items

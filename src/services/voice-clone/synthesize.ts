@@ -11,6 +11,9 @@ export interface SynthesizeResult {
   audioUrl: string;
   audioBuffer?: ArrayBuffer;
   generatedPath?: string;
+  jobId?: string;
+  status?: string;
+  message?: string;
 }
 
 /**
@@ -21,33 +24,84 @@ export interface SynthesizeResult {
  * @returns Promise<SynthesizeResult> - Generated audio result
  */
 export async function synthesize(params: SynthesizeParams): Promise<SynthesizeResult> {
-  const { text, modelName, emotion, sourceKey } = params;
+  const { text, modelName, emotion } = params;
 
   try {
-    // Call the voice generation edge function
+    console.log('Starting voice synthesis:', { text, modelName, emotion });
+    
+    // Step 1: Create pending record and generate job_id
+    const jobId = `voice-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+    
+    const { data: pendingRecord, error: insertError } = await supabase
+      .from('generated_voice_clones')
+      .insert({
+        model_name: modelName,
+        emotion: emotion,
+        generated_text: text,
+        generated_by: user.id,
+        job_id: jobId,
+        status: 'Pending',
+        bucket_key: '',
+        audio_url: ''
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('❌ Failed to create pending record:', insertError);
+      throw new Error(`Failed to create pending record: ${insertError.message}`);
+    }
+
+    console.log('✅ Pending record created:', pendingRecord.id, 'Job ID:', jobId);
+
+    // Step 2: Call the voice generation edge function with job_id
+    console.log('🔄 Calling edge function with params:', {
+      text,
+      modelName,
+      emotion,
+      jobId
+    });
+
     const { data, error } = await supabase.functions.invoke('voice-generate', {
       body: {
         text,
         modelName,
-        emotion
+        emotion,
+        jobId
       }
     });
 
+    console.log('📨 Edge function response:', { data, error });
+
     if (error) {
-      throw new Error(`Voice synthesis failed: ${error.message}`);
+      console.error('❌ Voice synthesis error:', error);
+      // Update the pending record to failed status
+      await supabase
+        .from('generated_voice_clones')
+        .update({ 
+          status: 'Failed',
+          error_message: error.message || 'Unknown error'
+        })
+        .eq('job_id', jobId);
+        
+      throw new Error(`Voice synthesis failed: ${error.message || 'Unknown error'}`);
     }
 
-    // TODO: Integrate with the actual voice cloning engine from the higgs_audio folder
-    // For now, we return the mock response from the edge function
-    // In a real implementation, this would:
-    // 1. Load the HiggsAudioModel from the services/voice-clone/higgs_audio folder
-    // 2. Process the source audio file
-    // 3. Generate new audio using the text input
-    // 4. Return the generated audio buffer or URL
+    console.log('✅ Voice generation started successfully:', data);
 
+    // Return immediate response - the API will handle the rest in background
     return {
-      audioUrl: data.audioUrl,
-      generatedPath: data.generatedPath
+      audioUrl: '', // Will be populated by the API when complete
+      generatedPath: '',
+      jobId: jobId,
+      status: 'processing',
+      message: data?.message || 'Voice generation started in background. This may take 2-3 minutes.'
     };
 
   } catch (error) {

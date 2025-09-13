@@ -483,6 +483,56 @@ export type Database = {
           },
         ]
       }
+      generated_voice_clones: {
+        Row: {
+          audio_url: string | null
+          bucket_key: string
+          created_at: string
+          emotion: string
+          generated_by: string
+          generated_text: string
+          id: string
+          job_id: string | null
+          model_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          bucket_key: string
+          created_at?: string
+          emotion: string
+          generated_by: string
+          generated_text: string
+          id?: string
+          job_id?: string | null
+          model_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          bucket_key?: string
+          created_at?: string
+          emotion?: string
+          generated_by?: string
+          generated_text?: string
+          id?: string
+          job_id?: string | null
+          model_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_generated_voice_clones_generated_by"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_media: {
         Row: {
           bucket_key: string

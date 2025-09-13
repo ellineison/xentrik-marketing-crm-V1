@@ -165,13 +165,36 @@ const VoiceGeneratorLayout: React.FC<VoiceGeneratorLayoutProps> = ({ toast }) =>
     });
   };
 
-  const downloadAudio = (audioSrc: string, text: string) => {
-    const link = document.createElement('a');
-    link.href = audioSrc;
-    link.download = `voice-note-${text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '-')}.mp3`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadAudio = async (audioSrc: string, text: string) => {
+    try {
+      // Fetch the audio blob from the src
+      const response = await fetch(audioSrc);
+      const blob = await response.blob();
+      
+      // Create a blob URL for download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `voice-note-${text.substring(0, 20).replace(/[^a-zA-Z0-9]/g, '-')}.wav`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Audio downloaded successfully!",
+      });
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download audio",
+        variant: "destructive",
+      });
+    }
   };
 
   const deleteVoiceNote = (id: string) => {

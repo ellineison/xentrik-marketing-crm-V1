@@ -52,10 +52,13 @@ serve(async (req) => {
     // Get the audio data
     const audioBuffer = await response.arrayBuffer();
     
-    // Convert to base64 for response
-    const base64Audio = btoa(
-      String.fromCharCode(...new Uint8Array(audioBuffer))
-    );
+    // Convert to base64 for response using a more efficient method
+    const uint8Array = new Uint8Array(audioBuffer);
+    let binaryString = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binaryString += String.fromCharCode(uint8Array[i]);
+    }
+    const base64Audio = btoa(binaryString);
 
     console.log('Voice generated successfully');
 
