@@ -63,21 +63,21 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
                 brand: {
-                    yellow: "54 100% 60%", // Banana yellow color (HSL)
-                    dark: "0 0% 7%",   // Dark shade for backgrounds (HSL)
-                    light: "0 0% 100%",  // Light shade for text on dark backgrounds (HSL)
-                    highlight: "45 100% 67%", // Lighter yellow for highlights (HSL)
-                    muted: "60 100% 97%"   // Very light yellow for subtle backgrounds (HSL)
+                    yellow: "hsl(54 100% 60%)", // Banana yellow color
+                    dark: "hsl(0 0% 7%)",   // Dark shade for backgrounds
+                    light: "hsl(0 0% 100%)",  // Light shade for text on dark backgrounds
+                    highlight: "hsl(45 100% 67%)", // Lighter yellow for highlights
+                    muted: "hsl(60 100% 97%)"   // Very light yellow for subtle backgrounds
                 },
                 premium: {
-                    dark: "240 20% 12%",      // Dark purple-blue for backgrounds (HSL)
-                    darker: "240 29% 6%",    // Even darker shade for contrast (HSL)
-                    card: "240 24% 15%",      // Slightly lighter shade for cards (HSL)
-                    highlight: "240 20% 20%", // Highlight color for hover states (HSL)
-                    border: "240 20% 18%",    // Border color (HSL)
-                    accent1: "254 76% 60%",   // Purple accent (HSL)
-                    accent2: "251 95% 70%",   // Lighter purple accent (HSL)
-                    accent3: "195 56% 48%",   // Teal accent (HSL)
+                    dark: "hsl(240 20% 12%)",      // Dark purple-blue for backgrounds
+                    darker: "hsl(240 29% 6%)",    // Even darker shade for contrast
+                    card: "hsl(240 24% 15%)",      // Slightly lighter shade for cards
+                    highlight: "hsl(240 20% 20%)", // Highlight color for hover states
+                    border: "hsl(240 20% 18%)",    // Border color
+                    accent1: "hsl(254 76% 60%)",   // Purple accent
+                    accent2: "hsl(251 95% 70%)",   // Lighter purple accent
+                    accent3: "hsl(195 56% 48%)",   // Teal accent
                 }
 			},
 			borderRadius: {

@@ -1,0 +1,1 @@
+DELETE FROM voice_sources WHERE model_name = 'Leanna';
