@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Edit3, Check, X, DollarSign } from 'lucide-react';
+import { Users, Edit3, Check, X, DollarSign, Send } from 'lucide-react';
 
 interface AttendanceEntry {
   id: string;
   model_name: string;
   day_of_week: number;
   attendance: boolean;
+  submitted_at?: string;
 }
 
 interface AttendanceTableProps {
@@ -39,6 +41,8 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const { user, userRole, userRoles } = useAuth();
   const { toast } = useToast();
   const [attendanceData, setAttendanceData] = useState<Record<number, string>>({});
+  const [submissionData, setSubmissionData] = useState<Record<number, string>>({});
+  const [tempInputs, setTempInputs] = useState<Record<number, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [hourlyRate, setHourlyRate] = useState<number>(0);
   const [editingHourlyRate, setEditingHourlyRate] = useState(false);
@@ -94,10 +98,10 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       
-      // Fetch attendance data for the week
+      // Fetch attendance data for the week including submission timestamps
       const { data: attendanceData, error } = await supabase
         .from('attendance')
-        .select('day_of_week, model_name, attendance')
+        .select('day_of_week, model_name, attendance, submitted_at')
         .eq('chatter_id', effectiveChatterId)
         .eq('week_start_date', weekStartStr);
 
@@ -112,8 +116,10 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
 
       if (profileError) throw profileError;
 
-      // Create a map of day_of_week to model names for attendance
+      // Create maps for attendance data and submission timestamps
       const attendanceMap: Record<number, string> = {};
+      const submissionMap: Record<number, string> = {};
+      const tempInputMap: Record<number, string> = {};
       
       attendanceData?.forEach(entry => {
         if (entry.attendance) {
@@ -124,9 +130,21 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
             attendanceMap[entry.day_of_week] = entry.model_name;
           }
         }
+        
+        // Store submission timestamp if available
+        if (entry.submitted_at) {
+          submissionMap[entry.day_of_week] = entry.submitted_at;
+        }
+      });
+
+      // Initialize temp inputs with current attendance data
+      DAYS_OF_WEEK.forEach(day => {
+        tempInputMap[day.value] = attendanceMap[day.value] || '';
       });
 
       setAttendanceData(attendanceMap);
+      setSubmissionData(submissionMap);
+      setTempInputs(tempInputMap);
       setHourlyRate(profileData?.hourly_rate || 0);
     } catch (error) {
       console.error('Error fetching attendance data:', error);
@@ -140,11 +158,12 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
     }
   };
 
-  const updateAttendance = async (dayOfWeek: number, modelNames: string) => {
+  const submitAttendance = async (dayOfWeek: number) => {
     if (!effectiveChatterId || !isWeekEditable) return;
 
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      const modelNames = tempInputs[dayOfWeek] || '';
       
       // First, delete all attendance entries for this day
       await supabase
@@ -154,9 +173,10 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
         .eq('week_start_date', weekStartStr)
         .eq('day_of_week', dayOfWeek);
 
-      // If there are model names provided, create attendance entries
+      // If there are model names provided, create attendance entries with submission timestamp
       if (modelNames.trim()) {
         const modelList = modelNames.split(',').map(name => name.trim()).filter(name => name);
+        const submittedAt = new Date().toISOString();
         
         for (const modelName of modelList) {
           const { error: insertError } = await supabase
@@ -166,40 +186,55 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
               week_start_date: weekStartStr,
               day_of_week: dayOfWeek,
               model_name: modelName,
-              attendance: true
+              attendance: true,
+              submitted_at: submittedAt
             });
 
           if (insertError) throw insertError;
         }
-      }
 
-      // Update local state
-      setAttendanceData(prev => ({
-        ...prev,
-        [dayOfWeek]: modelNames.trim()
-      }));
+        // Update local state
+        setAttendanceData(prev => ({
+          ...prev,
+          [dayOfWeek]: modelNames.trim()
+        }));
+        setSubmissionData(prev => ({
+          ...prev,
+          [dayOfWeek]: submittedAt
+        }));
+      } else {
+        // If no models, clear the attendance for this day
+        setAttendanceData(prev => {
+          const newData = { ...prev };
+          delete newData[dayOfWeek];
+          return newData;
+        });
+        setSubmissionData(prev => {
+          const newData = { ...prev };
+          delete newData[dayOfWeek];
+          return newData;
+        });
+      }
 
       toast({
         title: "Success",
-        description: "Attendance updated successfully",
+        description: "Attendance submitted successfully",
       });
     } catch (error) {
-      console.error('Error updating attendance:', error);
+      console.error('Error submitting attendance:', error);
       toast({
         title: "Error",
-        description: "Failed to update attendance",
+        description: "Failed to submit attendance",
         variant: "destructive",
       });
     }
   };
 
-  const handleInputBlur = async (dayOfWeek: number, inputValue: string) => {
-    const currentValue = attendanceData[dayOfWeek] || '';
-    
-    // Only update if value changed
-    if (inputValue !== currentValue) {
-      await updateAttendance(dayOfWeek, inputValue);
-    }
+  const handleInputChange = (dayOfWeek: number, value: string) => {
+    setTempInputs(prev => ({
+      ...prev,
+      [dayOfWeek]: value
+    }));
   };
 
   const updateHourlyRate = async (newRate: number) => {
@@ -243,6 +278,11 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const cancelEditingHourlyRate = () => {
     setTempHourlyRate(hourlyRate);
     setEditingHourlyRate(false);
+  };
+
+  const formatSubmissionTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return format(date, 'h:mm a MMM dd');
   };
 
   if (isLoading) {
@@ -323,13 +363,16 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
                 <TableHead className="w-[100px]">Day</TableHead>
                 <TableHead className="w-[120px]">Date</TableHead>
                 <TableHead className="min-w-[300px]">Models Worked (comma separated)</TableHead>
-                <TableHead className="w-[100px] text-center">Status</TableHead>
+                <TableHead className="w-[150px] text-center">Action/Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {DAYS_OF_WEEK.map((day, index) => {
                 const dayDate = addDays(weekStart, index);
                 const hasAttendance = Boolean(attendanceData[day.value]?.trim());
+                const isSubmitted = Boolean(submissionData[day.value]);
+                const currentInput = tempInputs[day.value] || '';
+                const hasChanges = currentInput !== (attendanceData[day.value] || '');
                 
                 return (
                   <TableRow key={day.value}>
@@ -340,23 +383,38 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
                     <TableCell>
                       <Input
                         type="text"
-                        defaultValue={attendanceData[day.value] || ''}
-                        onBlur={(e) => {
-                          handleInputBlur(day.value, e.target.value);
-                        }}
+                        value={currentInput}
+                        onChange={(e) => handleInputChange(day.value, e.target.value)}
                         className="w-full"
-                        disabled={!isWeekEditable}
+                        disabled={!isWeekEditable || isSubmitted}
                         placeholder="e.g., Model1, Model2, Model3"
                       />
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        hasAttendance 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-                          : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                      }`}>
-                        {hasAttendance ? 'Present' : 'Absent'}
-                      </div>
+                      {isSubmitted ? (
+                        <div className="text-xs text-muted-foreground">
+                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-1 ${
+                            hasAttendance 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                              : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                          }`}>
+                            {hasAttendance ? 'Present' : 'Absent'}
+                          </div>
+                          <div>
+                            {formatSubmissionTime(submissionData[day.value])}
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={() => submitAttendance(day.value)}
+                          disabled={!isWeekEditable || !hasChanges}
+                          size="sm"
+                          className="h-8"
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Submit
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -368,7 +426,8 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
         <div className="mt-4 p-3 bg-muted/30 rounded-lg">
           <p className="text-sm text-muted-foreground">
             <strong>Instructions:</strong> Enter the names of models you worked with for each day, separated by commas. 
-            Leave empty for days you were absent. Attendance is automatically locked when you lock your weekly sales.
+            Click "Submit" to save your attendance for that day. Once submitted, the timestamp will show when you submitted your attendance.
+            Leave empty for days you were absent.
           </p>
         </div>
       </CardContent>

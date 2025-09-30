@@ -22,6 +22,7 @@ export type Database = {
           day_of_week: number
           id: string
           model_name: string
+          submitted_at: string | null
           updated_at: string
           week_start_date: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           day_of_week: number
           id?: string
           model_name: string
+          submitted_at?: string | null
           updated_at?: string
           week_start_date: string
         }
@@ -42,6 +44,7 @@ export type Database = {
           day_of_week?: number
           id?: string
           model_name?: string
+          submitted_at?: string | null
           updated_at?: string
           week_start_date?: string
         }

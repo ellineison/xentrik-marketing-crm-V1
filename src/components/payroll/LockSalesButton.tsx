@@ -73,14 +73,46 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       
-      // Lock both sales and attendance
-      const { error } = await supabase
+      // First, check if any sales data exists for this week
+      const { data: existingData, error: checkError } = await supabase
         .from('sales_tracker')
-        .update({ sales_locked: true })
+        .select('id')
         .eq('chatter_id', effectiveChatterId)
-        .eq('week_start_date', weekStartStr);
+        .eq('week_start_date', weekStartStr)
+        .limit(1);
 
-      if (error) throw error;
+      if (checkError) throw checkError;
+
+      // If no sales data exists, create placeholder entries for each day to enable locking
+      if (!existingData || existingData.length === 0) {
+        const placeholderEntries = [];
+        for (let dayOfWeek = 0; dayOfWeek <= 6; dayOfWeek++) {
+          placeholderEntries.push({
+            chatter_id: effectiveChatterId,
+            week_start_date: weekStartStr,
+            day_of_week: dayOfWeek,
+            model_name: 'No Models',
+            earnings: 0,
+            working_day: true,
+            sales_locked: true
+          });
+        }
+
+        const { error: insertError } = await supabase
+          .from('sales_tracker')
+          .insert(placeholderEntries);
+
+        if (insertError) throw insertError;
+      } else {
+        // Lock existing sales data
+        const { error } = await supabase
+          .from('sales_tracker')
+          .update({ sales_locked: true })
+          .eq('chatter_id', effectiveChatterId)
+          .eq('week_start_date', weekStartStr);
+
+        if (error) throw error;
+      }
 
       onDataRefresh(); // Refresh data
       toast({
