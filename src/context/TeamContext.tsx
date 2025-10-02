@@ -59,16 +59,13 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           createdAt: profile.created_at,
           geographicRestrictions: profile.geographic_restrictions || []
         }))
-        // Filter out team members who only have the "Creator" role
+        // Filter out team members who have the "Creator" role (whether it's their only role or not)
         .filter((member: TeamMember) => {
           // If they have no roles or roles is empty, keep them
           if (!member.roles || member.roles.length === 0) return true;
           
-          // If they have only one role and it's "Creator", exclude them
-          if (member.roles.length === 1 && member.roles[0] === "Creator") return false;
-          
-          // Otherwise, keep them
-          return true;
+          // Exclude anyone who has "Creator" in their roles array
+          return !member.roles.includes("Creator");
         });
       
       setTeamMembers(formattedTeamMembers);

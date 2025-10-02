@@ -19,7 +19,7 @@ const AdminPayrollTable: React.FC<AdminPayrollTableProps> = ({
 }) => {
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">Admin Users ({users.length})</h3>
+      <h3 className="text-lg font-semibold mb-4 text-center">Admin Users ({users.length})</h3>
       {users.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {users.map((user) => (
@@ -31,9 +31,11 @@ const AdminPayrollTable: React.FC<AdminPayrollTableProps> = ({
               <CardContent className="p-4">
                 <h3 className="font-semibold text-foreground mb-1">{user.name}</h3>
                 <p className="text-sm text-muted-foreground mb-2">{user.email}</p>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                  {user.role}
-                </span>
+                <div className="flex justify-center">
+                  <span className="text-xs bg-red-500/10 text-red-600 px-2 py-1 rounded">
+                    {user.role}
+                  </span>
+                </div>
               </CardContent>
             </Card>
           ))}

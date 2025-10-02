@@ -1,8 +1,10 @@
 
+
 import React from 'react';
 import { Control } from "react-hook-form";
 import { FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TeamMemberFormValues } from '@/schemas/teamMemberSchema';
 
 interface TeamBasicInfoSectionProps {
@@ -59,9 +61,19 @@ const TeamBasicInfoSection: React.FC<TeamBasicInfoSectionProps> = ({ control }) 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Department</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter department" {...field} />
-              </FormControl>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select shift" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="6AM">6AM</SelectItem>
+                  <SelectItem value="2PM">2PM</SelectItem>
+                  <SelectItem value="10PM">10PM</SelectItem>
+                  <SelectItem value="Social Media Team">Social Media Team</SelectItem>
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />

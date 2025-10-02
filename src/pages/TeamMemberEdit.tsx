@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTeam } from '@/context/TeamContext';
 import { useAuth } from '@/context/AuthContext';
@@ -10,16 +10,83 @@ import { TeamMemberRole } from '@/types/employee';
 import TeamMemberEditHeader from '@/components/team/TeamMemberEditHeader';
 import TeamMemberEditForm from '@/components/team/TeamMemberEditForm';
 import { teamMemberFormSchema, TeamMemberFormValues } from '@/schemas/teamMemberSchema';
+import { supabase } from '@/integrations/supabase/client';
+import { TeamMember } from '@/types/team';
+import { Loader2 } from 'lucide-react';
 
 const TeamMemberEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { teamMembers, updateTeamMember } = useTeam();
+  const { updateTeamMember } = useTeam();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [teamMember, setTeamMember] = useState<TeamMember | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  const teamMember = id ? teamMembers.find(member => member.id === id) : null;
   const isCurrentUser = user?.id === id;
+
+  // Fetch team member directly from database
+  useEffect(() => {
+    const fetchTeamMember = async () => {
+      if (!id) {
+        setError('No team member ID provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+          setError('Team member not found');
+          setLoading(false);
+          return;
+        }
+
+        // Check if this person has the Creator role
+        const roles = data.roles || [];
+        if (roles.includes('Creator')) {
+          setError('Cannot edit creator profiles in the Teams module');
+          setLoading(false);
+          return;
+        }
+
+        // Format the data
+        const formattedMember: TeamMember = {
+          id: data.id,
+          name: data.name || '',
+          email: data.email || '',
+          roles: (data.roles || []) as TeamMemberRole[],
+          status: (data.status || 'Active') as "Active" | "Inactive" | "Paused" | "Suspended",
+          teams: [],
+          telegram: data.telegram,
+          phoneNumber: data.phone_number,
+          lastLogin: data.last_login || 'Never',
+          profileImage: data.profile_image,
+          department: data.department,
+          createdAt: data.created_at,
+          geographicRestrictions: data.geographic_restrictions || []
+        };
+
+        setTeamMember(formattedMember);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error fetching team member:', err);
+        setError(err.message || 'Failed to load team member');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamMember();
+  }, [id]);
 
   const form = useForm<TeamMemberFormValues>({
     resolver: zodResolver(teamMemberFormSchema),
@@ -36,10 +103,35 @@ const TeamMemberEdit = () => {
     }
   });
 
-  if (!teamMember) {
+  // Update form when teamMember loads
+  useEffect(() => {
+    if (teamMember) {
+      form.reset({
+        name: teamMember.name,
+        email: teamMember.email,
+        role: (teamMember.roles?.[0] || 'Employee') as any,
+        roles: teamMember.roles,
+        status: teamMember.status,
+        department: teamMember.department || '',
+        telegram: teamMember.telegram || '',
+        phoneNumber: teamMember.phoneNumber || '',
+        profileImage: teamMember.profileImage || '',
+      });
+    }
+  }, [teamMember, form]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !teamMember) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold">Team member not found</h1>
+        <h1 className="text-2xl font-bold">{error || 'Team member not found'}</h1>
       </div>
     );
   }
