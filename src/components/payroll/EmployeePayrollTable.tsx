@@ -18,12 +18,12 @@ const EmployeePayrollTable: React.FC<EmployeePayrollTableProps> = ({
   users,
   onSelectChatter
 }) => {
-  // Group employees by department
-  const shift6AM = users.filter(user => user.department === '6AM');
-  const shift2PM = users.filter(user => user.department === '2PM');
-  const shift10PM = users.filter(user => user.department === '10PM');
-  const socialMediaTeam = users.filter(user => user.department === 'Social Media Team');
-  const noShift = users.filter(user => !user.department || !['6AM', '2PM', '10PM', 'Social Media Team'].includes(user.department));
+  // Group employees by department and sort alphabetically
+  const shift6AM = users.filter(user => user.department === '6AM').sort((a, b) => a.name.localeCompare(b.name));
+  const shift2PM = users.filter(user => user.department === '2PM').sort((a, b) => a.name.localeCompare(b.name));
+  const shift10PM = users.filter(user => user.department === '10PM').sort((a, b) => a.name.localeCompare(b.name));
+  const socialMediaTeam = users.filter(user => user.department === 'Social Media Team').sort((a, b) => a.name.localeCompare(b.name));
+  const noShift = users.filter(user => !user.department || !['6AM', '2PM', '10PM', 'Social Media Team'].includes(user.department)).sort((a, b) => a.name.localeCompare(b.name));
 
   const renderUserGroup = (title: string, groupUsers: Chatter[], shiftType?: '6AM' | '2PM' | '10PM' | 'social-media' | 'none') => {
     if (groupUsers.length === 0) return null;

@@ -17,12 +17,14 @@ const ManagerPayrollTable: React.FC<ManagerPayrollTableProps> = ({
   users,
   onSelectChatter
 }) => {
+  const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name));
+  
   return (
     <div>
       <h3 className="text-lg font-semibold mb-4 text-center">Manager Users ({users.length})</h3>
       {users.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {users.map((user) => (
+          {sortedUsers.map((user) => (
             <Card 
               key={user.id} 
               className="bg-secondary/10 border-muted hover:border-primary/50 cursor-pointer transition-colors"
