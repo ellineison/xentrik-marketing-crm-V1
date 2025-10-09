@@ -109,7 +109,10 @@ export const useUserRoles = () => {
           .update({ status: 'Suspended' })
           .eq('id', selectedUser.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Suspend error:', error);
+          throw new Error(`Failed to suspend user: ${error.message}`);
+        }
 
         toast({
           title: "Success",
@@ -117,11 +120,20 @@ export const useUserRoles = () => {
         });
       } else if (pendingAction === 'delete') {
         // Call the edge function to delete the user
-        const { error } = await supabase.functions.invoke('delete-team-member', {
+        const { data, error } = await supabase.functions.invoke('delete-team-member', {
           body: { userId: selectedUser.id }
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Delete error:', error);
+          throw new Error(`Failed to delete user: ${error.message}`);
+        }
+
+        // Check if the function returned an error in the response
+        if (data?.error) {
+          console.error('Delete function error:', data.error);
+          throw new Error(`Failed to delete user: ${data.error}`);
+        }
 
         toast({
           title: "Success",
@@ -134,9 +146,10 @@ export const useUserRoles = () => {
       
     } catch (error) {
       console.error(`Error ${pendingAction}ing user:`, error);
+      const errorMessage = error instanceof Error ? error.message : `Failed to ${pendingAction} user. Please check your permissions.`;
       toast({
         title: "Error",
-        description: `Failed to ${pendingAction} user`,
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

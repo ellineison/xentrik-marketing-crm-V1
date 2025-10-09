@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
@@ -8,24 +7,17 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Get the request body
-    const { userId } = await req.json();
+    const { email } = await req.json();
 
-    if (!userId) {
+    if (!email) {
       return new Response(
-        JSON.stringify({
-          error: "Missing userId parameter",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Missing email parameter" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -41,7 +33,29 @@ serve(async (req) => {
       }
     );
 
-    // Step 1: Delete all sales_tracker records for this user
+    // Find user by email
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (userError) {
+      console.error("Error fetching users:", userError);
+      return new Response(
+        JSON.stringify({ error: `Failed to fetch users: ${userError.message}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const user = userData.users.find(u => u.email === email);
+    
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: `User with email ${email} not found` }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = user.id;
+
+    // Delete related records in order
     const { error: salesError } = await supabaseAdmin
       .from('sales_tracker')
       .delete()
@@ -49,10 +63,8 @@ serve(async (req) => {
 
     if (salesError) {
       console.error("Error deleting sales_tracker records:", salesError);
-      // Continue anyway, might not have sales records
     }
 
-    // Step 2: Delete all attendance records for this user
     const { error: attendanceError } = await supabaseAdmin
       .from('attendance')
       .delete()
@@ -60,10 +72,8 @@ serve(async (req) => {
 
     if (attendanceError) {
       console.error("Error deleting attendance records:", attendanceError);
-      // Continue anyway, might not have attendance records
     }
 
-    // Step 3: Delete all generated_voice_clones for this user
     const { error: voiceError } = await supabaseAdmin
       .from('generated_voice_clones')
       .delete()
@@ -71,10 +81,8 @@ serve(async (req) => {
 
     if (voiceError) {
       console.error("Error deleting voice clones:", voiceError);
-      // Continue anyway
     }
 
-    // Step 4: Delete the profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .delete()
@@ -83,49 +91,34 @@ serve(async (req) => {
     if (profileError) {
       console.error("Error deleting profile:", profileError);
       return new Response(
-        JSON.stringify({
-          error: `Failed to delete profile: ${profileError.message}`,
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: `Failed to delete profile: ${profileError.message}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Step 5: Finally delete the user from auth.users
+    // Finally delete the auth user
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (authError) {
       console.error("Error deleting auth user:", authError);
       return new Response(
-        JSON.stringify({
-          error: `Failed to delete auth user: ${authError.message}`,
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: `Failed to delete auth user: ${authError.message}` }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "User deleted successfully" }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ 
+        success: true, 
+        message: `User ${email} (${userId}) deleted successfully` 
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({
-        error: `An unexpected error occurred: ${error.message}`,
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: `An unexpected error occurred: ${error.message}` }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

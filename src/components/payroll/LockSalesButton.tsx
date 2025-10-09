@@ -68,7 +68,7 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
   const weekStart = getWeekStart(selectedWeek);
 
   const confirmWeekSales = async () => {
-    if (!effectiveChatterId || !isCurrentWeek) return;
+    if (!effectiveChatterId) return;
 
     try {
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
@@ -310,8 +310,9 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
-  // Show component for current week OR if sales are locked but not admin confirmed
-  if (!isCurrentWeek && !(isSalesLocked && !isAdminConfirmed)) return null;
+  // Show component if sales are locked and awaiting approval, or if they can edit
+  // No longer restricted to current week only
+  if (!canEdit && !(isSalesLocked && !isAdminConfirmed)) return null;
 
   return (
     <>

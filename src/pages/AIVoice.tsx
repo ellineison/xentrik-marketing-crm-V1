@@ -537,7 +537,7 @@ const AIVoice: React.FC = () => {
       const [sampleRate, audioDataArray] = output.audio;
       const audioData = new Int16Array(audioDataArray);
       const wavBuffer = createWavBuffer(audioData, sampleRate);
-      const audioBlob = new Blob([wavBuffer], { type: "audio/wav" });
+      const audioBlob = new Blob([wavBuffer as unknown as BlobPart], { type: "audio/wav" });
 
       // Save to Supabase Storage
       const ts = Date.now();
