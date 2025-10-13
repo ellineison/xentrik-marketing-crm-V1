@@ -169,6 +169,14 @@ const Login = () => {
               >
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
+              
+              <div className="text-center">
+                <Link to="/forgot-password">
+                  <Button variant="link" className="text-sm">
+                    Forgot password?
+                  </Button>
+                </Link>
+              </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">

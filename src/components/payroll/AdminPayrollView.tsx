@@ -12,6 +12,7 @@ import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import AdminPayrollTable from './AdminPayrollTable';
 import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
+import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Chatter {
@@ -136,6 +137,14 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
             </CardContent>
           </Card>
 
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Attendance Tracker</h3>
+            <AttendanceExportButton 
+              selectedChatterId={selectedChatterId}
+              selectedWeek={selectedWeek}
+            />
+          </div>
+
           <AttendanceTable 
             chatterId={selectedChatterId} 
             selectedWeek={selectedWeek}
@@ -166,9 +175,17 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Users className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Payroll - Select Chatter</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground">Payroll - Select Chatter</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+          <AttendanceExportButton 
+            selectedWeek={selectedWeek}
+          />
+        </div>
       </div>
 
       {isLoading ? (

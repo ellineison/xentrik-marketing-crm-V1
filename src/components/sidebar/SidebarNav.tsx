@@ -131,12 +131,6 @@ const navGroups: NavGroup[] = [
         hideForCreator: true,
       },
       {
-        path: '/voice-generation',
-        label: 'Voice Generator',
-        icon: <Mic className="h-5 w-5" />,
-        adminOnly: true,
-      },
-      {
         path: '/ai-voice',
         label: 'AI Clone',
         icon: <Bot className="h-5 w-5" />,

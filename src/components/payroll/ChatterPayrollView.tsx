@@ -8,6 +8,7 @@ import { useSalesLockStatus } from './hooks/useSalesLockStatus';
 import { useAuth } from '@/context/AuthContext';
 import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
+import { AttendanceExportButton } from './AttendanceExportButton';
 
 export const ChatterPayrollView: React.FC = () => {
   const { user, userRole, userRoles } = useAuth();
@@ -65,6 +66,14 @@ export const ChatterPayrollView: React.FC = () => {
             <PayrollTable chatterId={user?.id} selectedWeek={selectedWeek} key={refreshKey} />
           </CardContent>
         </Card>
+
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-foreground">Attendance Tracker</h3>
+          <AttendanceExportButton 
+            selectedChatterId={user?.id}
+            selectedWeek={selectedWeek}
+          />
+        </div>
 
         <AttendanceTable 
           chatterId={user?.id} 

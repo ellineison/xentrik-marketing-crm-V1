@@ -9,6 +9,8 @@ import { TeamProvider } from './context/TeamContext';
 import { AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Creators from './pages/Creators';
 import CreatorProfile from './pages/CreatorProfile';
@@ -30,8 +32,6 @@ import SharedFiles from './pages/SharedFiles';
 import MarketingFiles from './pages/MarketingFiles';
 import CreatorFiles from './pages/CreatorFiles';
 import TeamMemberEdit from './pages/TeamMemberEdit';
-import VoiceGeneration from './pages/VoiceGeneration';
-
 import AIVoice from './pages/AIVoice';
 import CreatorUpload from './pages/CreatorUpload';
 import AccessControlPanel from './pages/AccessControlPanel';
@@ -100,6 +100,8 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/invitation" element={<Invitation />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/creators" element={<ProtectedRoute><Creators /></ProtectedRoute>} />
@@ -122,8 +124,6 @@ const AppRoutes = () => {
       <Route path="/secure-logins/:id" element={<ProtectedRoute><SecureLogins /></ProtectedRoute>} />
       <Route path="/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
       <Route path="/shared/:shareCode" element={<SharedFiles />} />
-      <Route path="/voice-generation" element={<ProtectedRoute><VoiceGeneration /></ProtectedRoute>} />
-      
       <Route path="/ai-voice" element={<ProtectedRoute><AIVoice /></ProtectedRoute>} />
       <Route path="/upload/:id" element={<CreatorUpload />} />
       <Route path="/customs-tracker" element={<ProtectedRoute><CustomsTracker /></ProtectedRoute>} />
