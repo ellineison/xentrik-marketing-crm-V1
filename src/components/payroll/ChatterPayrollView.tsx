@@ -9,11 +9,28 @@ import { useAuth } from '@/context/AuthContext';
 import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import { AttendanceExportButton } from './AttendanceExportButton';
+import { supabase } from '@/integrations/supabase/client';
+import { getWeekStart } from '@/utils/weekCalculations';
 
 export const ChatterPayrollView: React.FC = () => {
   const { user, userRole, userRoles } = useAuth();
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedWeek, setSelectedWeek] = React.useState(new Date());
+  const [refreshKey, setRefreshKey] = React.useState(0);
+  const [userDepartment, setUserDepartment] = React.useState<string | null>(null);
+  
+  // Fetch user's department
+  useEffect(() => {
+    const fetchUserDepartment = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('department')
+        .eq('id', user.id)
+        .single();
+      setUserDepartment(data?.department || null);
+    };
+    fetchUserDepartment();
+  }, [user?.id]);
   
   // Get sales lock status for the current user and week
   const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(user?.id, selectedWeek, refreshKey);
@@ -21,25 +38,9 @@ export const ChatterPayrollView: React.FC = () => {
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const canEdit = isAdmin || user?.id;
 
-  // Calculate week start and current week status
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay();
-    const thursday = new Date(date);
-    thursday.setHours(0, 0, 0, 0);
-    
-    if (day === 0) thursday.setDate(date.getDate() - 3);
-    else if (day === 1) thursday.setDate(date.getDate() - 4);
-    else if (day === 2) thursday.setDate(date.getDate() - 5);
-    else if (day === 3) thursday.setDate(date.getDate() - 6);
-    else if (day === 4) thursday.setDate(date.getDate());
-    else if (day === 5) thursday.setDate(date.getDate() - 1);
-    else if (day === 6) thursday.setDate(date.getDate() - 2);
-    
-    return thursday;
-  };
-
-  const weekStart = getWeekStart(selectedWeek);
-  const currentWeekStart = getWeekStart(new Date());
+  // Calculate week start based on user's department
+  const weekStart = getWeekStart(selectedWeek, userDepartment);
+  const currentWeekStart = getWeekStart(new Date(), userDepartment);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
 
   const handleDataRefresh = () => {
@@ -55,7 +56,7 @@ export const ChatterPayrollView: React.FC = () => {
               <CardTitle className="text-foreground flex items-center gap-2">
                 Weekly Sales Tracker
                 <span className="text-sm text-muted-foreground font-normal">
-                  (Thursday to Wednesday)
+                  {userDepartment === '10PM' ? '(Wednesday to Tuesday)' : '(Thursday to Wednesday)'}
                 </span>
               </CardTitle>
               <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />

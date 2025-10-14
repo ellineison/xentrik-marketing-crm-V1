@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Edit3, Check, X, DollarSign, Send } from 'lucide-react';
+import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
 
 interface AttendanceEntry {
   id: string;
@@ -23,16 +24,6 @@ interface AttendanceTableProps {
   isSalesLocked?: boolean;
 }
 
-const DAYS_OF_WEEK = [
-  { label: 'Thu', value: 4, fullName: 'Thursday' },
-  { label: 'Fri', value: 5, fullName: 'Friday' },
-  { label: 'Sat', value: 6, fullName: 'Saturday' },
-  { label: 'Sun', value: 0, fullName: 'Sunday' },
-  { label: 'Mon', value: 1, fullName: 'Monday' },
-  { label: 'Tue', value: 2, fullName: 'Tuesday' },
-  { label: 'Wed', value: 3, fullName: 'Wednesday' },
-];
-
 export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   chatterId,
   selectedWeek = new Date(),
@@ -47,40 +38,20 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const [hourlyRate, setHourlyRate] = useState<number>(0);
   const [editingHourlyRate, setEditingHourlyRate] = useState(false);
   const [tempHourlyRate, setTempHourlyRate] = useState<number>(0);
+  const [chatterDepartment, setChatterDepartment] = useState<string | null>(null);
 
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const canEdit = isAdmin || effectiveChatterId === user?.id;
 
-  // Calculate week start (Thursday)
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay();
-    const thursday = new Date(date);
-    thursday.setHours(0, 0, 0, 0);
-    
-    if (day === 0) { // Sunday
-      thursday.setDate(date.getDate() - 3);
-    } else if (day === 1) { // Monday
-      thursday.setDate(date.getDate() - 4);
-    } else if (day === 2) { // Tuesday
-      thursday.setDate(date.getDate() - 5);
-    } else if (day === 3) { // Wednesday
-      thursday.setDate(date.getDate() - 6);
-    } else if (day === 4) { // Thursday
-      thursday.setDate(date.getDate());
-    } else if (day === 5) { // Friday
-      thursday.setDate(date.getDate() - 1);
-    } else if (day === 6) { // Saturday
-      thursday.setDate(date.getDate() - 2);
-    }
-    
-    return thursday;
-  };
-
-  const weekStart = getWeekStart(selectedWeek);
-  const currentWeekStart = getWeekStart(new Date());
+  // Calculate week start based on department cutoff
+  const weekStart = getWeekStartUtil(selectedWeek, chatterDepartment);
+  const currentWeekStart = getWeekStartUtil(new Date(), chatterDepartment);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
+  
+  // Get days of week order based on department
+  const DAYS_OF_WEEK = getDaysOfWeek(chatterDepartment);
   
   // Week is editable if it's current week or future, user has permissions, and sales aren't locked
   const isWeekEditable = canEdit && (isCurrentWeek || isFutureWeek) && !isSalesLocked;
@@ -107,14 +78,16 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
 
       if (error) throw error;
 
-      // Fetch chatter's hourly rate
+      // Fetch chatter's hourly rate and department
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('hourly_rate')
+        .select('hourly_rate, department')
         .eq('id', effectiveChatterId)
         .single();
 
       if (profileError) throw profileError;
+      
+      setChatterDepartment(profileData?.department || null);
 
       // Create maps for attendance data and submission timestamps
       const attendanceMap: Record<number, string> = {};

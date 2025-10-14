@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
 
 interface SalesEntry {
   id: string;
@@ -38,16 +39,6 @@ interface PayrollTableProps {
   selectedWeek?: Date;
 }
 
-const DAYS_OF_WEEK = [
-  { label: 'Thu', value: 4 },
-  { label: 'Fri', value: 5 },
-  { label: 'Sat', value: 6 },
-  { label: 'Sun', value: 0 },
-  { label: 'Mon', value: 1 },
-  { label: 'Tue', value: 2 },
-  { label: 'Wed', value: 3 },
-];
-
 export const PayrollTable: React.FC<PayrollTableProps> = ({
   chatterId,
   selectedWeek = new Date()
@@ -59,6 +50,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [chatterName, setChatterName] = useState<string>('');
+  const [chatterDepartment, setChatterDepartment] = useState<string | null>(null);
 
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -66,35 +58,14 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   const isChatter = userRole === 'Chatter' || userRoles?.includes('Chatter');
   const canEdit = isAdmin || effectiveChatterId === user?.id;
 
-  // Calculate week start (Thursday) - Fixed logic
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
-    const thursday = new Date(date);
-    thursday.setHours(0, 0, 0, 0); // Reset time to start of day
-    
-    if (day === 0) { // Sunday - go back 3 days to Thursday
-      thursday.setDate(date.getDate() - 3);
-    } else if (day === 1) { // Monday - go back 4 days to Thursday  
-      thursday.setDate(date.getDate() - 4);
-    } else if (day === 2) { // Tuesday - go back 5 days to Thursday
-      thursday.setDate(date.getDate() - 5);
-    } else if (day === 3) { // Wednesday - go back 6 days to Thursday
-      thursday.setDate(date.getDate() - 6);
-    } else if (day === 4) { // Thursday - same day
-      thursday.setDate(date.getDate());
-    } else if (day === 5) { // Friday - go back 1 day to Thursday
-      thursday.setDate(date.getDate() - 1);
-    } else if (day === 6) { // Saturday - go back 2 days to Thursday
-      thursday.setDate(date.getDate() - 2);
-    }
-    
-    return thursday;
-  };
-
-  const weekStart = getWeekStart(selectedWeek);
-  const currentWeekStart = getWeekStart(new Date());
+  // Calculate week start based on department cutoff
+  const weekStart = getWeekStartUtil(selectedWeek, chatterDepartment);
+  const currentWeekStart = getWeekStartUtil(new Date(), chatterDepartment);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
+
+  // Get days of week order based on department
+  const DAYS_OF_WEEK = getDaysOfWeek(chatterDepartment);
   
   // Week is editable if it's current week or future, and user has edit permissions
   const isWeekEditable = canEdit && (isCurrentWeek || isFutureWeek);
@@ -178,10 +149,10 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
 
       if (modelsError) throw modelsError;
 
-      // Fetch chatter's name
+      // Fetch chatter's name and department
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('name')
+        .select('name, department')
         .eq('id', effectiveChatterId)
         .single();
 
@@ -194,6 +165,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
       setSalesData(salesData || []);
       setModels(uniqueModels);
       setChatterName(profileData?.name || '');
+      setChatterDepartment(profileData?.department || null);
     } catch (error) {
       console.error('Error fetching sales data:', error);
       toast({

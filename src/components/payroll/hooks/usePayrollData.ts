@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getWeekStart } from '@/utils/weekCalculations';
+import { format } from 'date-fns';
 
 interface SalesEntry {
   id: string;
@@ -23,19 +25,8 @@ export const usePayrollData = (selectedWeekStart?: string) => {
 
   const getWeekStartDate = (): string => {
     const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const daysUntilThursday = (4 - dayOfWeek + 7) % 7; // 4 = Thursday
-    const thursday = new Date(today);
-    
-    if (dayOfWeek < 4) {
-      // If today is before Thursday, go to last Thursday
-      thursday.setDate(today.getDate() - (7 - daysUntilThursday));
-    } else {
-      // If today is Thursday or after, go to this Thursday
-      thursday.setDate(today.getDate() - daysUntilThursday);
-    }
-    
-    return thursday.toISOString().split('T')[0];
+    const weekStart = getWeekStart(today);
+    return format(weekStart, 'yyyy-MM-dd');
   };
 
   const fetchData = async () => {

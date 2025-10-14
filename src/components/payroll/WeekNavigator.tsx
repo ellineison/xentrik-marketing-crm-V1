@@ -4,6 +4,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { getWeekStart, getWeekEnd } from '@/utils/weekCalculations';
 
 interface WeekNavigatorProps {
   selectedWeek?: Date;
@@ -14,25 +15,9 @@ export const WeekNavigator: React.FC<WeekNavigatorProps> = ({
   selectedWeek = new Date(),
   onWeekChange
 }) => {
-  // Calculate week start (Thursday) and end (Wednesday)
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay();
-    const thursday = new Date(date);
-    
-    if (day === 0) { // Sunday
-      thursday.setDate(date.getDate() - 3);
-    } else if (day < 4) { // Monday, Tuesday, Wednesday
-      thursday.setDate(date.getDate() - day - 3);
-    } else { // Thursday, Friday, Saturday
-      thursday.setDate(date.getDate() - day + 4);
-    }
-    
-    return thursday;
-  };
-
+  // Use standard cutoff for navigation (most common case)
   const weekStart = getWeekStart(selectedWeek);
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
+  const weekEnd = getWeekEnd(weekStart);
 
   const handlePreviousWeek = () => {
     const newWeek = subWeeks(weekStart, 1);

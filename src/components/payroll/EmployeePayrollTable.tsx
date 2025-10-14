@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardContent } from '@/components/ui/card';
+import { AttendanceExportButton } from './AttendanceExportButton';
 
 interface Chatter {
   id: string;
@@ -12,11 +13,13 @@ interface Chatter {
 interface EmployeePayrollTableProps {
   users: Chatter[];
   onSelectChatter: (chatterId: string) => void;
+  selectedWeek: Date;
 }
 
 const EmployeePayrollTable: React.FC<EmployeePayrollTableProps> = ({ 
   users,
-  onSelectChatter
+  onSelectChatter,
+  selectedWeek
 }) => {
   // Group employees by department and sort alphabetically
   const shift6AM = users.filter(user => user.department === '6AM').sort((a, b) => a.name.localeCompare(b.name));
@@ -25,7 +28,7 @@ const EmployeePayrollTable: React.FC<EmployeePayrollTableProps> = ({
   const socialMediaTeam = users.filter(user => user.department === 'Social Media Team').sort((a, b) => a.name.localeCompare(b.name));
   const noShift = users.filter(user => !user.department || !['6AM', '2PM', '10PM', 'Social Media Team'].includes(user.department)).sort((a, b) => a.name.localeCompare(b.name));
 
-  const renderUserGroup = (title: string, groupUsers: Chatter[], shiftType?: '6AM' | '2PM' | '10PM' | 'social-media' | 'none') => {
+  const renderUserGroup = (title: string, groupUsers: Chatter[], shiftType?: '6AM' | '2PM' | '10PM' | 'social-media' | 'none', teamName?: string) => {
     if (groupUsers.length === 0) return null;
     
     const getBadgeColor = () => {
@@ -44,7 +47,17 @@ const EmployeePayrollTable: React.FC<EmployeePayrollTableProps> = ({
     
     return (
       <div className="mb-6">
-        <h4 className="text-md font-medium mb-3 text-muted-foreground text-center">{title} ({groupUsers.length})</h4>
+        <div className="relative mb-3">
+          <h4 className="text-md font-medium text-muted-foreground text-center">{title} ({groupUsers.length})</h4>
+          {teamName && (
+            <div className="absolute right-0 top-0">
+              <AttendanceExportButton 
+                selectedWeek={selectedWeek}
+                selectedTeam={teamName}
+              />
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {groupUsers.map((user) => (
             <Card 
@@ -79,10 +92,10 @@ const EmployeePayrollTable: React.FC<EmployeePayrollTableProps> = ({
       <h3 className="text-lg font-semibold mb-4 text-center">Employee Users ({users.length})</h3>
       {users.length > 0 ? (
         <div className="space-y-6">
-          {renderUserGroup('6AM Shift', shift6AM, '6AM')}
-          {renderUserGroup('2PM Shift', shift2PM, '2PM')}
-          {renderUserGroup('10PM Shift', shift10PM, '10PM')}
-          {renderUserGroup('Social Media Team', socialMediaTeam, 'social-media')}
+          {renderUserGroup('6AM Shift', shift6AM, '6AM', '6AM')}
+          {renderUserGroup('2PM Shift', shift2PM, '2PM', '2PM')}
+          {renderUserGroup('10PM Shift', shift10PM, '10PM', '10PM')}
+          {renderUserGroup('Social Media Team', socialMediaTeam, 'social-media', 'Social Media Team')}
           {renderUserGroup('No Shift Assigned', noShift, 'none')}
         </div>
       ) : (

@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { generatePayslipPDF } from './PayslipGenerator';
+import { getWeekStart } from '@/utils/weekCalculations';
+import { useEffect } from 'react';
 
 interface LockSalesButtonProps {
   chatterId?: string;
@@ -35,37 +37,28 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
   const [totalSales, setTotalSales] = useState(0);
   const [currentHourlyRate, setCurrentHourlyRate] = useState(0);
   const [chatterName, setChatterName] = useState('');
+  const [chatterDepartment, setChatterDepartment] = useState<string | null>(null);
   
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const canApprovePayroll = userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force');
 
-  // Calculate week start (Thursday)
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay();
-    const thursday = new Date(date);
-    thursday.setHours(0, 0, 0, 0);
-    
-    if (day === 0) { // Sunday
-      thursday.setDate(date.getDate() - 3);
-    } else if (day === 1) { // Monday
-      thursday.setDate(date.getDate() - 4);
-    } else if (day === 2) { // Tuesday
-      thursday.setDate(date.getDate() - 5);
-    } else if (day === 3) { // Wednesday
-      thursday.setDate(date.getDate() - 6);
-    } else if (day === 4) { // Thursday
-      thursday.setDate(date.getDate());
-    } else if (day === 5) { // Friday
-      thursday.setDate(date.getDate() - 1);
-    } else if (day === 6) { // Saturday
-      thursday.setDate(date.getDate() - 2);
-    }
-    
-    return thursday;
-  };
+  // Fetch chatter's department
+  useEffect(() => {
+    const fetchDepartment = async () => {
+      if (!effectiveChatterId) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('department')
+        .eq('id', effectiveChatterId)
+        .single();
+      setChatterDepartment(data?.department || null);
+    };
+    fetchDepartment();
+  }, [effectiveChatterId]);
 
-  const weekStart = getWeekStart(selectedWeek);
+  // Calculate week start based on department
+  const weekStart = getWeekStart(selectedWeek, chatterDepartment);
 
   const confirmWeekSales = async () => {
     if (!effectiveChatterId) return;

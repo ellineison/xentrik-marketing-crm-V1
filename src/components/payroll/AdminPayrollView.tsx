@@ -14,6 +14,7 @@ import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
 import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
+import { getWeekStart } from '@/utils/weekCalculations';
 
 interface Chatter {
   id: string;
@@ -41,22 +42,7 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
   const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(selectedChatterId, selectedWeek, refreshKey);
 
   // Calculate week start and current week status
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay();
-    const thursday = new Date(date);
-    thursday.setHours(0, 0, 0, 0);
-    
-    if (day === 0) thursday.setDate(date.getDate() - 3);
-    else if (day === 1) thursday.setDate(date.getDate() - 4);
-    else if (day === 2) thursday.setDate(date.getDate() - 5);
-    else if (day === 3) thursday.setDate(date.getDate() - 6);
-    else if (day === 4) thursday.setDate(date.getDate());
-    else if (day === 5) thursday.setDate(date.getDate() - 1);
-    else if (day === 6) thursday.setDate(date.getDate() - 2);
-    
-    return thursday;
-  };
-
+  // Note: For admin view showing all users, we use standard cutoff (department passed in components)
   const weekStart = getWeekStart(selectedWeek);
   const currentWeekStart = getWeekStart(new Date());
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
@@ -125,7 +111,7 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
                 <CardTitle className="text-foreground flex items-center gap-2">
                   Weekly Sales Tracker
                   <span className="text-sm text-muted-foreground font-normal">
-                    (Thursday to Wednesday)
+                    {selectedChatter?.department === '10PM' ? '(Wednesday to Tuesday)' : '(Thursday to Wednesday)'}
                   </span>
                 </CardTitle>
                 <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
@@ -175,17 +161,9 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Payroll - Select Chatter</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
-          <AttendanceExportButton 
-            selectedWeek={selectedWeek}
-          />
-        </div>
+      <div className="flex items-center gap-2">
+        <Users className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-bold text-foreground">Payroll - Select Chatter</h1>
       </div>
 
       {isLoading ? (
@@ -215,9 +193,9 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
         </Card>
       ) : (
         <div className="space-y-8">
-          <AdminPayrollTable users={adminUsers} onSelectChatter={onSelectChatter} />
-          <ManagerPayrollTable users={managerUsers} onSelectChatter={onSelectChatter} />
-          <EmployeePayrollTable users={employeeUsers} onSelectChatter={onSelectChatter} />
+          <AdminPayrollTable users={adminUsers} onSelectChatter={onSelectChatter} selectedWeek={new Date()} />
+          <ManagerPayrollTable users={managerUsers} onSelectChatter={onSelectChatter} selectedWeek={new Date()} />
+          <EmployeePayrollTable users={employeeUsers} onSelectChatter={onSelectChatter} selectedWeek={new Date()} />
         </div>
       )}
     </div>

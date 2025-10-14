@@ -10,6 +10,8 @@ import { AlertTriangle } from 'lucide-react';
 import { usePayrollData } from './hooks/usePayrollData';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getWeekStart, getWeekEnd } from '@/utils/weekCalculations';
+import { format } from 'date-fns';
 
 interface PayChatterDialogProps {
   open: boolean;
@@ -25,17 +27,8 @@ export const PayChatterDialog: React.FC<PayChatterDialogProps> = ({
 
   const getWeekStartDate = (): string => {
     const today = new Date();
-    const dayOfWeek = today.getDay();
-    const daysUntilThursday = (4 - dayOfWeek + 7) % 7;
-    const thursday = new Date(today);
-    
-    if (dayOfWeek < 4) {
-      thursday.setDate(today.getDate() - (7 - daysUntilThursday));
-    } else {
-      thursday.setDate(today.getDate() - daysUntilThursday);
-    }
-    
-    return thursday.toISOString().split('T')[0];
+    const weekStart = getWeekStart(today);
+    return format(weekStart, 'yyyy-MM-dd');
   };
 
   const generatePDF = async (): Promise<void> => {
@@ -43,9 +36,9 @@ export const PayChatterDialog: React.FC<PayChatterDialogProps> = ({
     const { jsPDF } = await import('jspdf');
     
     const doc = new jsPDF();
-    const weekStart = getWeekStartDate();
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
+    const weekStartStr = getWeekStartDate();
+    const weekStartDate = new Date(weekStartStr);
+    const weekEndDate = getWeekEnd(weekStartDate);
     
     // Title
     doc.setFontSize(20);
@@ -53,7 +46,7 @@ export const PayChatterDialog: React.FC<PayChatterDialogProps> = ({
     
     // Week period
     doc.setFontSize(12);
-    doc.text(`Week: ${weekStart} to ${weekEnd.toISOString().split('T')[0]}`, 20, 45);
+    doc.text(`Week: ${weekStartStr} to ${format(weekEndDate, 'yyyy-MM-dd')}`, 20, 45);
     
     // Table headers
     const days = ['Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday'];
@@ -106,7 +99,7 @@ export const PayChatterDialog: React.FC<PayChatterDialogProps> = ({
     doc.text(`$${weeklyTotal.toFixed(2)}`, 190, yPos);
     
     // Save the PDF
-    doc.save(`sales-report-${weekStart}.pdf`);
+    doc.save(`sales-report-${weekStartStr}.pdf`);
   };
 
   const clearWeekData = async (): Promise<void> => {

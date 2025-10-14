@@ -113,8 +113,11 @@ export const PersonalInfoForm = () => {
                   max={100}
                   placeholder="Enter age"
                   {...field} 
-                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                  value={field.value || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value === '' ? '' : Number(value));
+                  }}
+                  value={field.value ?? ''}
                   className="min-h-[44px]"
                 />
               </FormControl>

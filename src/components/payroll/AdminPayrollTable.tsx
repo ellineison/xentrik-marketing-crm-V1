@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardContent } from '@/components/ui/card';
+import { AttendanceExportButton } from './AttendanceExportButton';
 
 interface Chatter {
   id: string;
@@ -11,15 +12,25 @@ interface Chatter {
 interface AdminPayrollTableProps {
   users: Chatter[];
   onSelectChatter: (chatterId: string) => void;
+  selectedWeek: Date;
 }
 
 const AdminPayrollTable: React.FC<AdminPayrollTableProps> = ({ 
   users,
-  onSelectChatter
+  onSelectChatter,
+  selectedWeek
 }) => {
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4 text-center">Admin Users ({users.length})</h3>
+      <div className="relative mb-4">
+        <h3 className="text-lg font-semibold text-center">Admin Users ({users.length})</h3>
+        <div className="absolute right-0 top-0">
+          <AttendanceExportButton 
+            selectedWeek={selectedWeek}
+            selectedTeam="Admin"
+          />
+        </div>
+      </div>
       {users.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {users.map((user) => (

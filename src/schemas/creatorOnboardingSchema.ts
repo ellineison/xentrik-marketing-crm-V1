@@ -7,7 +7,7 @@ export const personalInfoSchema = z.object({
   nickname: z.string().min(1, "Nickname is required"),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  age: z.number().min(1, "Age is required"),
+  age: z.number().min(1, "Age is required").optional(),
   sex: z.enum(["Female", "Male", "Transgender"], {
     required_error: "Sex is required",
   }),
@@ -121,7 +121,7 @@ export const defaultPersonalInfoValues: PersonalInfoFormValues = {
   nickname: "",
   email: "",
   dateOfBirth: "",
-  age: 18,
+  age: undefined,
   sex: "Female",
   location: "",
   additionalLocationNote: "",

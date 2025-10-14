@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { generatePayslipPDF } from './PayslipGenerator';
+import { getWeekStart } from '@/utils/weekCalculations';
+import { useState, useEffect } from 'react';
 
 interface ApprovedPayrollStatusProps {
   chatterId?: string;
@@ -22,27 +24,26 @@ export const ApprovedPayrollStatus: React.FC<ApprovedPayrollStatusProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [chatterDepartment, setChatterDepartment] = useState<string | null>(null);
   
   const effectiveChatterId = chatterId || user?.id;
 
-  // Calculate week start (Thursday)
-  const getWeekStart = (date: Date) => {
-    const day = date.getDay();
-    const thursday = new Date(date);
-    thursday.setHours(0, 0, 0, 0);
-    
-    if (day === 0) thursday.setDate(date.getDate() - 3);
-    else if (day === 1) thursday.setDate(date.getDate() - 4);
-    else if (day === 2) thursday.setDate(date.getDate() - 5);
-    else if (day === 3) thursday.setDate(date.getDate() - 6);
-    else if (day === 4) thursday.setDate(date.getDate());
-    else if (day === 5) thursday.setDate(date.getDate() - 1);
-    else if (day === 6) thursday.setDate(date.getDate() - 2);
-    
-    return thursday;
-  };
+  // Fetch chatter's department
+  useEffect(() => {
+    const fetchDepartment = async () => {
+      if (!effectiveChatterId) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('department')
+        .eq('id', effectiveChatterId)
+        .single();
+      setChatterDepartment(data?.department || null);
+    };
+    fetchDepartment();
+  }, [effectiveChatterId]);
 
-  const weekStart = getWeekStart(selectedWeek);
+  // Calculate week start based on chatter's department
+  const weekStart = getWeekStart(selectedWeek, chatterDepartment);
 
   const downloadPayslip = async () => {
     if (!effectiveChatterId) return;
