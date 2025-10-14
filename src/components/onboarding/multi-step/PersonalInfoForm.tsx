@@ -49,7 +49,7 @@ export const PersonalInfoForm = () => {
           name="personalInfo.modelName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Model Name *</FormLabel>
+              <FormLabel>Model Name</FormLabel>
               <FormControl>
                 <Input placeholder="Your model/stage name" {...field} className="min-h-[44px]" />
               </FormControl>
@@ -77,7 +77,7 @@ export const PersonalInfoForm = () => {
           name="personalInfo.email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address *</FormLabel>
+              <FormLabel>Email Address</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="Email address" {...field} className="min-h-[44px]" />
               </FormControl>

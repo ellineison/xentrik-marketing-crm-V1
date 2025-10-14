@@ -72,9 +72,6 @@ const OnboardingForm: React.FC<OnboardingFormProps> = ({ onCloseModal }) => {
         setNotes={formActions.setNotes} 
       />
       
-      <div className="mt-4 mb-2 text-sm text-gray-400">
-        <span className="text-red-500">*</span> Required fields
-      </div>
       
       <Button 
         onClick={handleSubmit} 

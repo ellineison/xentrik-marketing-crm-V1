@@ -38,7 +38,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
       <div className="grid grid-cols-1 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="flex items-center">
-            Creator Name <span className="text-red-500 ml-1">*</span>
+            Creator Name
           </Label>
           <Input 
             id="name" 
@@ -54,7 +54,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
         
         <div className="space-y-2">
           <Label htmlFor="gender" className="flex items-center">
-            Gender <span className="text-red-500 ml-1">*</span>
+            Gender
           </Label>
           <Select 
             onValueChange={(value) => setGender(value as Gender)} 
@@ -76,7 +76,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
         
         <div className="space-y-2">
           <Label htmlFor="team" className="flex items-center">
-            Team <span className="text-red-500 ml-1">*</span>
+            Team
           </Label>
           <Select 
             onValueChange={(value) => setTeam(value as Team)} 
@@ -98,7 +98,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
         
         <div className="space-y-2">
           <Label htmlFor="creatorType" className="flex items-center">
-            Creator Type <span className="text-red-500 ml-1">*</span>
+            Creator Type
           </Label>
           <Select 
             onValueChange={(value) => setCreatorType(value as CreatorType)} 
