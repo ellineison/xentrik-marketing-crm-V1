@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { AdminPayrollView } from '@/components/payroll/AdminPayrollView';
 import { ChatterPayrollView } from '@/components/payroll/ChatterPayrollView';
+import { AttendanceOnlyView } from '@/components/payroll/AttendanceOnlyView';
 import { useAuth } from '@/context/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock } from 'lucide-react';
@@ -18,22 +19,32 @@ const Payroll: React.FC = () => {
     }
   }, [id]);
 
-  // Check if user has access to Payroll
-  const hasAccess = isAuthenticated && (
-    userRole === 'Admin' || 
-    userRoles?.includes('Admin') ||
-    userRole === 'VA' || 
-    userRoles?.includes('VA') ||
-    userRole === 'Chatter' || 
-    userRoles?.includes('Chatter') ||
-    userRole === 'HR / Work Force' || 
-    userRoles?.includes('HR / Work Force')
-  );
+  // Everyone except Creators can access Payroll
+  const isCreator = userRole === 'Creator' || userRoles?.includes('Creator');
+  const hasAccess = isAuthenticated && !isCreator;
 
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
-  const isVA = userRole === 'VA' || userRoles?.includes('VA');
-  const isChatter = userRole === 'Chatter' || userRoles?.includes('Chatter');
-  const isHR = userRole === 'HR / Work Force' || userRoles?.includes('HR / Work Force');
+  const isAdmin = userRole === 'Admin' || (userRoles && userRoles.includes('Admin'));
+  const isVA = userRole === 'VA' || (userRoles && userRoles.includes('VA'));
+  const isChatter = userRole === 'Chatter' || (userRoles && userRoles.includes('Chatter'));
+  const isHR = userRole === 'HR / Work Force' || (userRoles && userRoles.includes('HR / Work Force'));
+  const isSocialMedia = userRole === 'Marketing Team' || (userRoles && userRoles.includes('Marketing Team'));
+
+  // Debug logging
+  console.log('Payroll Access Debug:', { 
+    userRole, 
+    userRoles, 
+    isVA, 
+    isAdmin, 
+    isHR,
+    hasAccess,
+    isAuthenticated 
+  });
+  
+  // Roles that need sales tracker + attendance
+  const needsSalesTracker = isChatter || isSocialMedia;
+  
+  // Roles that can manage all (Admin view)
+  const canManageAll = isAdmin || isVA || isHR;
 
   if (!hasAccess) {
     return (
@@ -51,13 +62,15 @@ const Payroll: React.FC = () => {
   return (
     <div className="min-h-screen bg-premium-dark">
       <div className="container mx-auto p-4">
-        {(isAdmin || isVA || isHR) ? (
+        {canManageAll ? (
           <AdminPayrollView 
             selectedChatterId={selectedChatterId}
             onSelectChatter={setSelectedChatterId}
           />
-        ) : (
+        ) : needsSalesTracker ? (
           <ChatterPayrollView />
+        ) : (
+          <AttendanceOnlyView />
         )}
       </div>
     </div>

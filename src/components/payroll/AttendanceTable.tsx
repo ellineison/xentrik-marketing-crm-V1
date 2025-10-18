@@ -38,7 +38,7 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const [hourlyRate, setHourlyRate] = useState<number>(0);
   const [editingHourlyRate, setEditingHourlyRate] = useState(false);
   const [tempHourlyRate, setTempHourlyRate] = useState<number>(0);
-  const [chatterDepartment, setChatterDepartment] = useState<string | null>(null);
+  const [chatterDepartment, setChatterDepartment] = useState<string | null | undefined>(undefined);
 
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -56,11 +56,29 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   // Week is editable if it's current week or future, user has permissions, and sales aren't locked
   const isWeekEditable = canEdit && (isCurrentWeek || isFutureWeek) && !isSalesLocked;
 
+  // First effect: fetch department
   useEffect(() => {
-    if (effectiveChatterId) {
+    const fetchDepartment = async () => {
+      if (!effectiveChatterId) return;
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('department')
+        .eq('id', effectiveChatterId)
+        .single();
+      
+      setChatterDepartment(profileData?.department || null);
+    };
+    
+    fetchDepartment();
+  }, [effectiveChatterId]);
+
+  // Second effect: fetch attendance data once department is known
+  useEffect(() => {
+    if (effectiveChatterId && chatterDepartment !== undefined) {
       fetchAttendanceData();
     }
-  }, [effectiveChatterId, selectedWeek]);
+  }, [effectiveChatterId, selectedWeek, chatterDepartment]);
 
   const fetchAttendanceData = async () => {
     if (!effectiveChatterId) return;
@@ -78,16 +96,14 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
 
       if (error) throw error;
 
-      // Fetch chatter's hourly rate and department
+      // Fetch chatter's hourly rate
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('hourly_rate, department')
+        .select('hourly_rate')
         .eq('id', effectiveChatterId)
         .single();
 
       if (profileError) throw profileError;
-      
-      setChatterDepartment(profileData?.department || null);
 
       // Create maps for attendance data and submission timestamps
       const attendanceMap: Record<number, string> = {};
