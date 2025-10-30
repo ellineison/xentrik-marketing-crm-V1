@@ -38,9 +38,9 @@ export const ChatterPayrollView: React.FC = () => {
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const canEdit = isAdmin || user?.id;
 
-  // Calculate week start based on user's department
-  const weekStart = getWeekStart(selectedWeek, userDepartment);
-  const currentWeekStart = getWeekStart(new Date(), userDepartment);
+  // Calculate week start based on user's department and role
+  const weekStart = getWeekStart(selectedWeek, userDepartment, userRole, userRoles);
+  const currentWeekStart = getWeekStart(new Date(), userDepartment, userRole, userRoles);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
 
   const handleDataRefresh = () => {

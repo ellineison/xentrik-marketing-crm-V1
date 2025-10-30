@@ -25,25 +25,29 @@ export const ApprovedPayrollStatus: React.FC<ApprovedPayrollStatusProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const [chatterDepartment, setChatterDepartment] = useState<string | null>(null);
+  const [chatterRole, setChatterRole] = useState<string | null>(null);
+  const [chatterRoles, setChatterRoles] = useState<string[] | null>(null);
   
   const effectiveChatterId = chatterId || user?.id;
 
-  // Fetch chatter's department
+  // Fetch chatter's department and role
   useEffect(() => {
-    const fetchDepartment = async () => {
+    const fetchDepartmentAndRole = async () => {
       if (!effectiveChatterId) return;
       const { data } = await supabase
         .from('profiles')
-        .select('department')
+        .select('department, role, roles')
         .eq('id', effectiveChatterId)
         .single();
       setChatterDepartment(data?.department || null);
+      setChatterRole(data?.role || null);
+      setChatterRoles(data?.roles || null);
     };
-    fetchDepartment();
+    fetchDepartmentAndRole();
   }, [effectiveChatterId]);
 
-  // Calculate week start based on chatter's department
-  const weekStart = getWeekStart(selectedWeek, chatterDepartment);
+  // Calculate week start based on chatter's department and role
+  const weekStart = getWeekStart(selectedWeek, chatterDepartment, chatterRole, chatterRoles);
 
   const downloadPayslip = async () => {
     if (!effectiveChatterId) return;

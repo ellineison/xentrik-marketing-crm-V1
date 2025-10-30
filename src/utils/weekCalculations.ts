@@ -6,12 +6,14 @@
  */
 
 /**
- * Get the week start date based on department
+ * Get the week start date based on department and role
  * @param date - The date to calculate from
  * @param department - Optional department name (if '10PM', uses Wednesday cutoff)
+ * @param role - Optional role (Admin/Manager always use standard cutoff)
+ * @param roles - Optional roles array (if includes Admin/Manager, uses standard cutoff)
  * @returns The start date of the week
  */
-export const getWeekStart = (date: Date, department?: string | null): Date => {
+export const getWeekStart = (date: Date, department?: string | null, role?: string | null, roles?: string[] | null): Date => {
   const day = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
   const weekStart = new Date(date);
   weekStart.setHours(0, 0, 0, 0);
@@ -84,11 +86,13 @@ export const getDaysOfWeek = (department?: string | null) => {
 };
 
 /**
- * Get the start day of week value based on department
+ * Get the start day of week value based on department and role
  * @param department - Optional department name
+ * @param role - Optional role (Admin/Manager always use standard cutoff)
+ * @param roles - Optional roles array (if includes Admin/Manager, uses standard cutoff)
  * @returns The day_of_week value for the start day (3 for 10PM, 4 for others)
  */
-export const getStartDayOfWeek = (department?: string | null): number => {
+export const getStartDayOfWeek = (department?: string | null, role?: string | null, roles?: string[] | null): number => {
   return department === '10PM' ? 3 : 4;
 };
 
@@ -97,11 +101,13 @@ export const getStartDayOfWeek = (department?: string | null): number => {
  * @param weekStart - The start date of the week
  * @param dayOfWeek - The day_of_week value (0-6)
  * @param department - Optional department name
+ * @param role - Optional role (Admin/Manager always use standard cutoff)
+ * @param roles - Optional roles array (if includes Admin/Manager, uses standard cutoff)
  * @returns The actual date
  */
-export const getActualDate = (weekStart: Date, dayOfWeek: number, department?: string | null): Date => {
+export const getActualDate = (weekStart: Date, dayOfWeek: number, department?: string | null, role?: string | null, roles?: string[] | null): Date => {
   const actualDate = new Date(weekStart);
-  const startDay = getStartDayOfWeek(department);
+  const startDay = getStartDayOfWeek(department, role, roles);
   
   // Calculate offset from the week start day
   const offset = (dayOfWeek - startDay + 7) % 7;

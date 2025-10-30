@@ -119,9 +119,9 @@ export const useUserRoles = () => {
           description: `${selectedUser.name} has been suspended`,
         });
       } else if (pendingAction === 'delete') {
-        // Call the edge function to delete the user
-        const { data, error } = await supabase.functions.invoke('delete-team-member', {
-          body: { userId: selectedUser.id }
+        // Call the edge function to delete the user by email
+        const { data, error } = await supabase.functions.invoke('delete-user-by-email', {
+          body: { email: selectedUser.email }
         });
 
         if (error) {

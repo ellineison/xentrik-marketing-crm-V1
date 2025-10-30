@@ -41,7 +41,7 @@ export const AttendanceExportButton: React.FC<AttendanceExportButtonProps> = ({
       // First, get all users that match the filter criteria
       let usersQuery = supabase
         .from('profiles')
-        .select('id, name, email, department')
+        .select('id, name, email, department, role, roles')
         .neq('role', 'Creator')
         .not('roles', 'cs', '{Creator}')
         .eq('status', 'Active');
@@ -136,7 +136,7 @@ export const AttendanceExportButton: React.FC<AttendanceExportButtonProps> = ({
           const recordsByDate = new Map<string, any[]>();
           chatterRecords.forEach((record: any) => {
             const weekStartDate = new Date(record.week_start_date);
-            const actualDate = getActualDate(weekStartDate, record.day_of_week, user.department);
+            const actualDate = getActualDate(weekStartDate, record.day_of_week, user.department, user.role, user.roles);
             const dateKey = format(actualDate, 'yyyy-MM-dd');
             
             if (!recordsByDate.has(dateKey)) {
@@ -149,9 +149,9 @@ export const AttendanceExportButton: React.FC<AttendanceExportButtonProps> = ({
           excelData = Array.from(recordsByDate.entries()).map(([dateKey, dateRecords]) => {
             const firstRecord = dateRecords[0];
             const weekStartDate = new Date(firstRecord.week_start_date);
-            const actualDate = getActualDate(weekStartDate, firstRecord.day_of_week, user.department);
-            // Calculate the correct week start for this user's department
-            const userWeekStart = getWeekStart(weekStartDate, user.department);
+            const actualDate = getActualDate(weekStartDate, firstRecord.day_of_week, user.department, user.role, user.roles);
+            // Calculate the correct week start for this user's department and role
+            const userWeekStart = getWeekStart(weekStartDate, user.department, user.role, user.roles);
 
             // Combine all model names for this date
             const modelsWorked = dateRecords
@@ -228,7 +228,7 @@ export const AttendanceExportButton: React.FC<AttendanceExportButtonProps> = ({
       // First, get all users that match the filter criteria
       let usersQuery = supabase
         .from('profiles')
-        .select('id, name, email, department')
+        .select('id, name, email, department, role, roles')
         .neq('role', 'Creator')
         .not('roles', 'cs', '{Creator}')
         .eq('status', 'Active');
@@ -310,9 +310,9 @@ export const AttendanceExportButton: React.FC<AttendanceExportButtonProps> = ({
         } else {
           // Group records by date (week_start_date + day_of_week)
           const recordsByDate = new Map<string, any[]>();
-          const userWeekStart = getWeekStart(currentDate, user.department);
+          const userWeekStart = getWeekStart(currentDate, user.department, user.role, user.roles);
           chatterRecords.forEach((record: any) => {
-            const actualDate = getActualDate(userWeekStart, record.day_of_week, user.department);
+            const actualDate = getActualDate(userWeekStart, record.day_of_week, user.department, user.role, user.roles);
             const dateKey = format(actualDate, 'yyyy-MM-dd');
             
             if (!recordsByDate.has(dateKey)) {
@@ -324,8 +324,8 @@ export const AttendanceExportButton: React.FC<AttendanceExportButtonProps> = ({
           // Transform data for this chatter - one row per date
           excelData = Array.from(recordsByDate.entries()).map(([dateKey, dateRecords]) => {
             const firstRecord = dateRecords[0];
-            const userWeekStart = getWeekStart(currentDate, user.department);
-            const actualDate = getActualDate(userWeekStart, firstRecord.day_of_week, user.department);
+            const userWeekStart = getWeekStart(currentDate, user.department, user.role, user.roles);
+            const actualDate = getActualDate(userWeekStart, firstRecord.day_of_week, user.department, user.role, user.roles);
 
             // Combine all model names for this date
             const modelsWorked = dateRecords

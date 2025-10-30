@@ -44,9 +44,13 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const canEdit = isAdmin || effectiveChatterId === user?.id;
 
-  // Calculate week start based on department cutoff
-  const weekStart = getWeekStartUtil(selectedWeek, chatterDepartment);
-  const currentWeekStart = getWeekStartUtil(new Date(), chatterDepartment);
+  // Fetch chatter's role for week calculation
+  const [chatterRole, setChatterRole] = useState<string | null>(null);
+  const [chatterRoles, setChatterRoles] = useState<string[] | null>(null);
+  
+  // Calculate week start based on department cutoff and role
+  const weekStart = getWeekStartUtil(selectedWeek, chatterDepartment, chatterRole, chatterRoles);
+  const currentWeekStart = getWeekStartUtil(new Date(), chatterDepartment, chatterRole, chatterRoles);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
   
@@ -56,21 +60,23 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   // Week is editable if it's current week or future, user has permissions, and sales aren't locked
   const isWeekEditable = canEdit && (isCurrentWeek || isFutureWeek) && !isSalesLocked;
 
-  // First effect: fetch department
+  // First effect: fetch department and role
   useEffect(() => {
-    const fetchDepartment = async () => {
+    const fetchDepartmentAndRole = async () => {
       if (!effectiveChatterId) return;
       
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('department')
+        .select('department, role, roles')
         .eq('id', effectiveChatterId)
         .single();
       
       setChatterDepartment(profileData?.department || null);
+      setChatterRole(profileData?.role || null);
+      setChatterRoles(profileData?.roles || null);
     };
     
-    fetchDepartment();
+    fetchDepartmentAndRole();
   }, [effectiveChatterId]);
 
   // Second effect: fetch attendance data once department is known

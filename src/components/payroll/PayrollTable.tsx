@@ -51,6 +51,8 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [chatterName, setChatterName] = useState<string>('');
   const [chatterDepartment, setChatterDepartment] = useState<string | null | undefined>(undefined);
+  const [chatterRole, setChatterRole] = useState<string | null>(null);
+  const [chatterRoles, setChatterRoles] = useState<string[] | null>(null);
 
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -58,15 +60,15 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   const isChatter = userRole === 'Chatter' || userRoles?.includes('Chatter');
   const canEdit = isAdmin || effectiveChatterId === user?.id;
 
-  // Calculate week start based on department cutoff - memoized to recalculate when department changes
+  // Calculate week start based on department cutoff and role - memoized to recalculate when department/role changes
   const weekStart = useMemo(() => 
-    getWeekStartUtil(selectedWeek, chatterDepartment),
-    [selectedWeek, chatterDepartment]
+    getWeekStartUtil(selectedWeek, chatterDepartment, chatterRole, chatterRoles),
+    [selectedWeek, chatterDepartment, chatterRole, chatterRoles]
   );
   
   const currentWeekStart = useMemo(() => 
-    getWeekStartUtil(new Date(), chatterDepartment),
-    [chatterDepartment]
+    getWeekStartUtil(new Date(), chatterDepartment, chatterRole, chatterRoles),
+    [chatterDepartment, chatterRole, chatterRoles]
   );
   
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
@@ -105,19 +107,21 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
 
   // Fetch data when component mounts or dependencies change
   useEffect(() => {
-    const fetchChatterDepartment = async () => {
+    const fetchChatterDepartmentAndRole = async () => {
       if (!effectiveChatterId) return;
       
       const { data } = await supabase
         .from('profiles')
-        .select('department')
+        .select('department, role, roles')
         .eq('id', effectiveChatterId)
         .single();
       
       setChatterDepartment(data?.department || null);
+      setChatterRole(data?.role || null);
+      setChatterRoles(data?.roles || null);
     };
     
-    fetchChatterDepartment();
+    fetchChatterDepartmentAndRole();
   }, [effectiveChatterId]);
 
   useEffect(() => {

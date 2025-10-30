@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getWeekStart } from '@/utils/weekCalculations';
 
 export const AttendanceOnlyView: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
   const [selectedWeek, setSelectedWeek] = useState(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [userDepartment, setUserDepartment] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export const AttendanceOnlyView: React.FC = () => {
     fetchUserDepartment();
   }, [user?.id]);
 
-  const weekStart = getWeekStart(selectedWeek, userDepartment);
+  const weekStart = getWeekStart(selectedWeek, userDepartment, userRole, userRoles);
 
   return (
     <div className="space-y-6">
