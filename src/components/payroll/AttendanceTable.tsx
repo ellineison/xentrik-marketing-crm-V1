@@ -7,8 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Edit3, Check, X, DollarSign, Send } from 'lucide-react';
+import { Users, Edit3, Check, X, DollarSign, Send, Trash2 } from 'lucide-react';
 import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
+import { ConfirmDeleteModal } from '@/components/files/modals/ConfirmDeleteModal';
 
 interface AttendanceEntry {
   id: string;
@@ -39,6 +40,8 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   const [editingHourlyRate, setEditingHourlyRate] = useState(false);
   const [tempHourlyRate, setTempHourlyRate] = useState<number>(0);
   const [chatterDepartment, setChatterDepartment] = useState<string | null | undefined>(undefined);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [dayToDelete, setDayToDelete] = useState<number | null>(null);
 
   const effectiveChatterId = chatterId || user?.id;
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -280,6 +283,60 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
     return format(date, 'h:mm a MMM dd');
   };
 
+  const handleDeleteClick = (dayOfWeek: number) => {
+    setDayToDelete(dayOfWeek);
+    setDeleteModalOpen(true);
+  };
+
+  const deleteAttendance = async () => {
+    if (!effectiveChatterId || !isWeekEditable || dayToDelete === null) return;
+
+    try {
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      
+      // Delete all attendance entries for this day
+      const { error } = await supabase
+        .from('attendance')
+        .delete()
+        .eq('chatter_id', effectiveChatterId)
+        .eq('week_start_date', weekStartStr)
+        .eq('day_of_week', dayToDelete);
+
+      if (error) throw error;
+
+      // Update local state
+      setAttendanceData(prev => {
+        const newData = { ...prev };
+        delete newData[dayToDelete];
+        return newData;
+      });
+      setSubmissionData(prev => {
+        const newData = { ...prev };
+        delete newData[dayToDelete];
+        return newData;
+      });
+      setTempInputs(prev => ({
+        ...prev,
+        [dayToDelete]: ''
+      }));
+
+      toast({
+        title: "Success",
+        description: "Attendance deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting attendance:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete attendance",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteModalOpen(false);
+      setDayToDelete(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card className="bg-secondary/10 border-muted">
@@ -387,15 +444,27 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
                     </TableCell>
                     <TableCell className="text-center">
                       {isSubmitted ? (
-                        <div className="text-xs text-muted-foreground">
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mb-1 ${
-                            hasAttendance 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-                              : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                          }`}>
-                            {hasAttendance ? 'Present' : 'Absent'}
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-2">
+                            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              hasAttendance 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                            }`}>
+                              {hasAttendance ? 'Present' : 'Absent'}
+                            </div>
+                            {isWeekEditable && (
+                              <Button
+                                onClick={() => handleDeleteClick(day.value)}
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
-                          <div>
+                          <div className="text-xs text-muted-foreground">
                             {formatSubmissionTime(submissionData[day.value])}
                           </div>
                         </div>
@@ -422,10 +491,19 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
           <p className="text-sm text-muted-foreground">
             <strong>Instructions:</strong> Enter the names of models you worked with for each day, separated by commas. 
             Click "Submit" to save your attendance for that day. Once submitted, the timestamp will show when you submitted your attendance.
-            Leave empty for days you were absent.
+            Leave empty for days you were absent. You can clear submitted attendance by clicking the "Clear" button.
           </p>
         </div>
       </CardContent>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        onConfirm={deleteAttendance}
+        title="Clear Attendance"
+        description="Are you sure you want to clear this day's attendance? This action cannot be undone."
+        confirmText="Clear"
+      />
     </Card>
   );
 };

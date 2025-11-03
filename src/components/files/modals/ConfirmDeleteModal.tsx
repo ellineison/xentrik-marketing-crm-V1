@@ -40,11 +40,15 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isProcessing}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isProcessing} type="button">Cancel</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onConfirm}
+            onClick={(e) => {
+              e.preventDefault();
+              onConfirm();
+            }}
             disabled={isProcessing}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            type="button"
           >
             {isProcessing ? "Deleting..." : confirmText}
           </AlertDialogAction>
