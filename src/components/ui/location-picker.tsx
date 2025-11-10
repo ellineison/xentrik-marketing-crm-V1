@@ -58,6 +58,11 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
+  // Sync searchTerm with value prop when it changes
+  useEffect(() => {
+    setSearchTerm(value);
+  }, [value]);
+
   // Update current time if timezone is available
   useEffect(() => {
     if (selectedTimezone && showCurrentTime) {
@@ -163,8 +168,26 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
   };
 
   const handleInputBlur = () => {
-    // Delay closing to allow clicking on suggestions
-    setTimeout(() => setIsOpen(false), 200);
+    // If user typed text but didn't select from dropdown, save as plain text immediately
+    if (searchTerm && searchTerm !== value) {
+      onChange(searchTerm);
+    }
+    // Delay closing dropdown to allow clicking on suggestions
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 200);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setIsOpen(false);
+      setSuggestions([]);
+      // Save the plain text value
+      if (searchTerm) {
+        onChange(searchTerm);
+      }
+    }
   };
 
   return (
@@ -176,6 +199,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="pr-10"
         />
