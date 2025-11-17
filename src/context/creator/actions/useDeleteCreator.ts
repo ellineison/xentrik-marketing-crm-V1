@@ -27,54 +27,17 @@ export const useDeleteCreator = (
     try {
       console.log(`Deleting creator with ID: ${creatorId}`);
 
-      // Delete creator tags first (due to foreign key constraints)
-      const { error: tagsError } = await supabase
-        .from('creator_tags')
-        .delete()
-        .eq('creator_id', creatorId);
+      // Call the edge function to delete the creator and all related records
+      const { data, error } = await supabase.functions.invoke('delete-creator', {
+        body: { creatorId }
+      });
 
-      if (tagsError) {
-        throw new Error(`Error deleting creator tags: ${tagsError.message}`);
+      if (error) {
+        throw new Error(`Error deleting creator: ${error.message}`);
       }
 
-      // Delete creator social links
-      const { error: socialLinksError } = await supabase
-        .from('creator_social_links')
-        .delete()
-        .eq('creator_id', creatorId);
-
-      if (socialLinksError) {
-        throw new Error(`Error deleting creator social links: ${socialLinksError.message}`);
-      }
-
-      // Delete creator team members relationships
-      const { error: teamMembersError } = await supabase
-        .from('creator_team_members')
-        .delete()
-        .eq('creator_id', creatorId);
-
-      if (teamMembersError) {
-        throw new Error(`Error deleting creator team members: ${teamMembersError.message}`);
-      }
-
-      // Delete creator telegram groups
-      const { error: telegramGroupsError } = await supabase
-        .from('creator_telegram_groups')
-        .delete()
-        .eq('creator_id', creatorId);
-
-      if (telegramGroupsError) {
-        throw new Error(`Error deleting creator telegram groups: ${telegramGroupsError.message}`);
-      }
-
-      // Finally, delete the creator itself
-      const { error: creatorError } = await supabase
-        .from('creators')
-        .delete()
-        .eq('id', creatorId);
-
-      if (creatorError) {
-        throw new Error(`Error deleting creator: ${creatorError.message}`);
+      if (data?.error) {
+        throw new Error(`Error deleting creator: ${data.error}`);
       }
 
       // Update local state
@@ -85,7 +48,7 @@ export const useDeleteCreator = (
 
       toast({
         title: "Success",
-        description: "Creator successfully removed",
+        description: "Creator and all related records successfully removed",
       });
 
       return true;

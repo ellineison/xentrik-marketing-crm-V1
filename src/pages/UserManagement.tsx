@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import InviteCreatorCard from "@/components/admin/creator-invite/InviteCreatorCard";
 import PendingLinksCard from "@/components/admin/creator-invite/PendingLinksCard";
 import UserRolesList from "@/components/admin/users/UserRolesList";
+import { DeleteUserByEmail } from "@/components/admin/DeleteUserByEmail";
 
 const UserManagement = () => {
   const { user } = useAuth();
@@ -33,6 +34,14 @@ const UserManagement = () => {
       <div className="mb-4 md:mb-6">
         <Card className="p-4 md:p-6">
           <AddTeamMemberForm />
+        </Card>
+      </div>
+
+      {/* Delete User - Admin Tool */}
+      <div className="mb-4 md:mb-6">
+        <Card className="p-4 md:p-6">
+          <h2 className="text-lg font-semibold mb-4">Delete User by Email</h2>
+          <DeleteUserByEmail />
         </Card>
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useTransition } from 'react';
 import { PremiumCard } from '@/components/ui/premium-card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import CustomCard from './CustomCard';
@@ -36,6 +36,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [selectedCustom, setSelectedCustom] = useState<Custom | null>(null);
   const [draggedCustom, setDraggedCustom] = useState<Custom | null>(null);
   const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const handleDragStart = (e: React.DragEvent, custom: Custom) => {
     setDraggedCustom(custom);
@@ -68,24 +69,39 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const handleDrop = (e: React.DragEvent, newStatus: string) => {
     e.preventDefault();
-    setHoveredColumn(null);
     
     if (!draggedCustom || draggedCustom.status === newStatus) {
+      setHoveredColumn(null);
       setDraggedCustom(null);
       return;
     }
 
+    const droppedCustom = draggedCustom;
+
+    // Immediately open modal without waiting for re-renders
     if (newStatus === 'done') {
-      setSelectedCustom(draggedCustom);
+      setSelectedCustom(droppedCustom);
       setDoneModalOpen(true);
+      // Defer non-critical state updates
+      startTransition(() => {
+        setHoveredColumn(null);
+        setDraggedCustom(null);
+      });
     } else if (newStatus === 'endorsed') {
-      setSelectedCustom(draggedCustom);
+      setSelectedCustom(droppedCustom);
       setEndorsedModalOpen(true);
+      // Defer non-critical state updates
+      startTransition(() => {
+        setHoveredColumn(null);
+        setDraggedCustom(null);
+      });
     } else {
-      onUpdateStatus({ customId: draggedCustom.id, newStatus });
+      startTransition(() => {
+        setHoveredColumn(null);
+        setDraggedCustom(null);
+      });
+      onUpdateStatus({ customId: droppedCustom.id, newStatus });
     }
-    
-    setDraggedCustom(null);
   };
 
   const handleCardClick = (custom: Custom) => {
@@ -117,9 +133,9 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setSelectedCustom(null);
   };
 
-  const getCustomsByStatus = (status: string) => {
-    return customs.filter(custom => custom.status === status);
-  };
+  const getCustomsByStatus = useMemo(() => {
+    return (status: string) => customs.filter(custom => custom.status === status);
+  }, [customs]);
 
   const getColumnStyles = (columnId: string, baseColor: string) => {
     if (hoveredColumn === columnId && draggedCustom) {

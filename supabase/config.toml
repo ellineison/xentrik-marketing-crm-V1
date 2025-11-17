@@ -162,6 +162,12 @@ verify_jwt = true
 [functions.delete-team-member]
 verify_jwt = true
 
+[functions.delete-user-by-email]
+verify_jwt = false
+
+[functions.delete-creator]
+verify_jwt = true
+
 [functions.generate-voice]
 verify_jwt = true
 
