@@ -125,13 +125,16 @@ serve(async (req) => {
       .eq('creator_id', creatorId);
     if (mediaError) console.error("Error deleting media:", mediaError);
 
-    // 9. Delete social_media_logins by creator email
+    // 9. Delete social_media_logins by creator email (if email exists)
     if (creator.email) {
       const { error: socialLoginsError } = await supabaseAdmin
         .from('social_media_logins')
         .delete()
         .eq('creator_email', creator.email);
       if (socialLoginsError) console.error("Error deleting social_media_logins:", socialLoginsError);
+      else console.log(`Deleted social_media_logins for email: ${creator.email}`);
+    } else {
+      console.log("No email found for creator, skipping social_media_logins deletion by email");
     }
 
     // 10. Delete records by model_name (these tables use model_name as a string field)

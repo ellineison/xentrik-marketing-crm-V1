@@ -1,11 +1,11 @@
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserCircle, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { UserCircle, Search } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Creator } from '../../types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CreatorSelectProps {
   creators: Creator[];
@@ -19,44 +19,80 @@ const CreatorSelect: React.FC<CreatorSelectProps> = ({
   onSelectCreator 
 }) => {
   const isMobile = useIsMobile();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter and sort creators based on search query
+  const filteredCreators = useMemo(() => {
+    let filtered = creators;
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = creators.filter(creator => {
+        const modelName = creator.modelName?.toLowerCase() || '';
+        const name = creator.name?.toLowerCase() || '';
+        return modelName.includes(query) || name.includes(query);
+      });
+    }
+    
+    // Sort alphabetically by model name or name
+    return filtered.sort((a, b) => {
+      const aName = (a.modelName || a.name).toLowerCase();
+      const bName = (b.modelName || b.name).toLowerCase();
+      return aName.localeCompare(bName);
+    });
+  }, [creators, searchQuery]);
 
   return (
-    <Card className={isMobile ? 'w-full' : ''}>
+    <Card className={isMobile ? 'w-full' : 'h-[calc(100vh-12rem)]'}>
       <CardHeader className={isMobile ? 'pb-4' : ''}>
-        <CardTitle className={isMobile ? 'text-lg' : ''}>Creators</CardTitle>
+        <CardTitle className={isMobile ? 'text-lg' : ''}>Models</CardTitle>
         <CardDescription className={isMobile ? 'text-sm' : ''}>
-          Select a creator to manage login details
+          Select a model to manage login details
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Select
-          value={selectedCreator?.id || ''}
-          onValueChange={onSelectCreator}
-        >
-          <SelectTrigger className={`w-full ${isMobile ? 'h-12' : 'h-10'} rounded-[15px]`}>
-            <div className="flex items-center gap-2">
-              <UserCircle className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'} flex-shrink-0`} />
-              <SelectValue 
-                placeholder="Choose a creator"
-                className={isMobile ? 'text-base' : 'text-sm'}
-              />
-            </div>
-          </SelectTrigger>
-          <SelectContent className="bg-background border shadow-md">
-            {creators.map(creator => (
-              <SelectItem 
-                key={creator.id} 
-                value={creator.id}
-                className="cursor-pointer hover:bg-muted/50 focus:bg-muted"
-              >
-                <div className="flex items-center gap-2">
-                  <UserCircle className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{creator.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <CardContent className="space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search models..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 rounded-[15px]"
+          />
+        </div>
+
+        {/* Creator List */}
+        <ScrollArea className={isMobile ? 'h-[400px]' : 'h-[calc(100vh-24rem)]'}>
+          <div className="space-y-2 pr-4">
+            {filteredCreators.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No models found
+              </div>
+            ) : (
+              filteredCreators.map(creator => (
+                <button
+                  key={creator.id}
+                  onClick={() => onSelectCreator(creator.id)}
+                  className={`
+                    w-full text-left p-3 rounded-[15px] transition-all
+                    flex items-center gap-3
+                    ${selectedCreator?.id === creator.id 
+                      ? 'bg-primary text-primary-foreground shadow-md' 
+                      : 'hover:bg-muted/50 bg-background border border-border'
+                    }
+                  `}
+                >
+                  <UserCircle className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'} flex-shrink-0`} />
+                  <span className={`truncate ${isMobile ? 'text-base' : 'text-sm'} font-medium`}>
+                    {creator.modelName || creator.name}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

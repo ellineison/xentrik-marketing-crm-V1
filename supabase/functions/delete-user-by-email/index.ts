@@ -112,10 +112,15 @@ serve(async (req) => {
       // Delete media
       await supabaseAdmin.from('media').delete().eq('creator_id', userId);
 
-      // Delete social_media_logins by email
+      // Delete social_media_logins by creator email
       if (creator.email) {
         await supabaseAdmin.from('social_media_logins').delete().eq('creator_email', creator.email);
+        console.log(`Deleted social_media_logins for creator email: ${creator.email}`);
       }
+      
+      // Also delete by the main email parameter (in case creator email differs)
+      await supabaseAdmin.from('social_media_logins').delete().eq('creator_email', email);
+      console.log(`Deleted social_media_logins for email: ${email}`);
 
       // Delete records by model_name (these tables use model_name as a string field, not foreign key)
       if (creator.model_name) {
