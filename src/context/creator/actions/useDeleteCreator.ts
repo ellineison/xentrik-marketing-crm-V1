@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Creator } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useDeleteCreator = (
   creators: Creator[],
@@ -11,6 +12,7 @@ export const useDeleteCreator = (
 ) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const deleteCreator = async (creatorId: string) => {
     if (!creatorId) {
@@ -45,6 +47,9 @@ export const useDeleteCreator = (
       
       // Add activity log
       addActivity("delete", `Creator deleted`, creatorId);
+
+      // Invalidate React Query cache to refresh Model Profile table
+      queryClient.invalidateQueries({ queryKey: ['accepted-creator-submissions'] });
 
       toast({
         title: "Success",

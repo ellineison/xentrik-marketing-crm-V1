@@ -46,7 +46,7 @@ serve(async (req) => {
     // Check if creator exists
     const { data: creator, error: creatorLookupError } = await supabaseAdmin
       .from('creators')
-      .select('id, email, name')
+      .select('id, email, name, model_name')
       .eq('id', creatorId)
       .maybeSingle();
     
@@ -185,6 +185,52 @@ serve(async (req) => {
       .delete()
       .eq('creator_id', creatorId);
     if (foldersError) console.error("Error deleting file_folders:", foldersError);
+
+    // 13.5. Delete onboarding_submissions for this creator (by email and model_name)
+    console.log(`Attempting to delete onboarding_submissions for creator: ${creator.name}, email: ${creator.email}, model_name: ${creator.model_name}`);
+    
+    // First, try to delete by email if it exists
+    if (creator.email) {
+      const { error: onboardingError, count: emailCount } = await supabaseAdmin
+        .from('onboarding_submissions')
+        .delete({ count: 'exact' })
+        .eq('email', creator.email);
+      if (onboardingError) {
+        console.error("Error deleting onboarding_submissions by email:", onboardingError);
+      } else {
+        console.log(`Deleted ${emailCount || 0} onboarding_submissions records by email: ${creator.email}`);
+      }
+    }
+    
+    // Also try to delete by model_name in the JSON data field
+    if (creator.model_name) {
+      const { data: matchingSubmissions, error: findError } = await supabaseAdmin
+        .from('onboarding_submissions')
+        .select('id, email, data')
+        .eq('status', 'accepted');
+      
+      if (!findError && matchingSubmissions) {
+        console.log(`Found ${matchingSubmissions.length} accepted submissions to check for model_name match`);
+        
+        for (const submission of matchingSubmissions) {
+          const submissionModelName = submission.data?.personalInfo?.modelName;
+          if (submissionModelName && submissionModelName.toLowerCase() === creator.model_name.toLowerCase()) {
+            console.log(`Found matching onboarding_submission by model_name: ${submissionModelName}, deleting submission id: ${submission.id}`);
+            const { error: deleteError } = await supabaseAdmin
+              .from('onboarding_submissions')
+              .delete()
+              .eq('id', submission.id);
+            if (deleteError) {
+              console.error(`Error deleting onboarding_submission ${submission.id}:`, deleteError);
+            } else {
+              console.log(`Successfully deleted onboarding_submission ${submission.id} for model_name: ${submissionModelName}`);
+            }
+          }
+        }
+      } else if (findError) {
+        console.error("Error finding matching onboarding_submissions by model_name:", findError);
+      }
+    }
 
     // 14. Delete the creator record
     const { error: creatorError } = await supabaseAdmin

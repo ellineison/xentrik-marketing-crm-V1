@@ -66,6 +66,25 @@ const CreatorsDataTable: React.FC = () => {
   const { data: submissions = [], isLoading, refetch } = useQuery({
     queryKey: ['accepted-creator-submissions'],
     queryFn: async () => {
+      // First, fetch all creators to get their emails and model_names
+      const { data: creators, error: creatorsError } = await supabase
+        .from('creators')
+        .select('email, model_name');
+
+      if (creatorsError) {
+        console.error('Error fetching creators:', creatorsError);
+        throw creatorsError;
+      }
+
+      // Create sets for quick lookup
+      const creatorEmails = new Set(
+        creators?.filter(c => c.email).map(c => c.email!.toLowerCase()) || []
+      );
+      const creatorModelNames = new Set(
+        creators?.filter(c => c.model_name).map(c => c.model_name!.toLowerCase()) || []
+      );
+
+      // Fetch onboarding submissions
       const { data, error } = await supabase
         .from('onboarding_submissions')
         .select('*')
@@ -77,7 +96,19 @@ const CreatorsDataTable: React.FC = () => {
         throw error;
       }
 
-      return data as CreatorSubmission[];
+      // Filter to only include submissions that have a matching creator
+      const filteredData = (data as CreatorSubmission[]).filter((submission) => {
+        const submissionEmail = submission.email?.toLowerCase();
+        const submissionModelName = submission.data?.personalInfo?.modelName?.toLowerCase();
+
+        // Include submission if either email or model_name matches an existing creator
+        return (
+          (submissionEmail && creatorEmails.has(submissionEmail)) ||
+          (submissionModelName && creatorModelNames.has(submissionModelName))
+        );
+      });
+
+      return filteredData;
     },
   });
 
