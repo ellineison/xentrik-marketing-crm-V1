@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link, Copy, Check } from "lucide-react";
+import { Link, Copy, Check, UserPlus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -23,6 +23,7 @@ const InviteCreatorCard: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [generatedLink, setGeneratedLink] = useState<string>("");
+  const [generatedModelType, setGeneratedModelType] = useState<'new' | 'old' | null>(null);
   const [copied, setCopied] = useState(false);
   
   const form = useForm<InviteFormValues>({
@@ -32,13 +33,13 @@ const InviteCreatorCard: React.FC = () => {
     },
   });
 
-  const handleGenerateLink = async (data: InviteFormValues) => {
+  const handleGenerateLink = async (data: InviteFormValues, modelType: 'new' | 'old') => {
     try {
       setIsLoading(true);
-      console.log("Generating link for model:", data.modelName);
+      console.log("Generating link for model:", data.modelName, "type:", modelType);
       
-      // Generate invitation token with model name
-      const result = await generateInvitationToken(data.modelName);
+      // Generate invitation token with model name and type
+      const result = await generateInvitationToken(data.modelName, modelType);
         
       if (!result.success || !result.token) {
         throw new Error(result.error || "Failed to generate invitation token");
@@ -52,10 +53,11 @@ const InviteCreatorCard: React.FC = () => {
       
       console.log("Generated onboarding link:", onboardingLink);
       setGeneratedLink(onboardingLink);
+      setGeneratedModelType(modelType);
 
       toast({
         title: "Onboarding link generated",
-        description: `Copy the link and share it with ${data.modelName}`,
+        description: `Copy the link and share it with ${data.modelName} (${modelType === 'new' ? 'New Model' : 'Existing Model'})`,
       });
       
       form.reset();
@@ -91,6 +93,7 @@ const InviteCreatorCard: React.FC = () => {
 
   const generateNewLink = () => {
     setGeneratedLink("");
+    setGeneratedModelType(null);
     setCopied(false);
   };
 
@@ -100,7 +103,7 @@ const InviteCreatorCard: React.FC = () => {
         <div className="flex-1 min-w-0">
           <CardTitle className="text-lg md:text-xl">Generate Creator Onboarding Link</CardTitle>
           <CardDescription className="text-sm md:text-base mt-1">
-            Create a unique onboarding link for new creators (expires in 72 hours)
+            Create a unique onboarding link for creators
           </CardDescription>
         </div>
         <Link className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-2 md:mt-0" />
@@ -108,7 +111,7 @@ const InviteCreatorCard: React.FC = () => {
       <CardContent className="p-4 md:p-6 pt-0">
         {!generatedLink ? (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleGenerateLink)} className="space-y-4">
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="modelName"
@@ -128,20 +131,46 @@ const InviteCreatorCard: React.FC = () => {
                 )}
               />
 
-              <Button 
-                type="submit" 
-                className="w-full h-11 md:h-auto text-base" 
-                disabled={isLoading}
-              >
-                <Link className="mr-2 h-4 w-4" />
-                Generate Onboarding Link
-              </Button>
-            </form>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  type="button"
+                  onClick={form.handleSubmit((data) => handleGenerateLink(data, 'new'))}
+                  className="flex-1 h-11 md:h-auto text-base bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600" 
+                  disabled={isLoading}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  New Model
+                </Button>
+                <Button 
+                  type="button"
+                  onClick={form.handleSubmit((data) => handleGenerateLink(data, 'old'))}
+                  className="flex-1 h-11 md:h-auto text-base bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600" 
+                  disabled={isLoading}
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Existing Model
+                </Button>
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                <strong>New Model:</strong> Simplified form (hides pricing fields) &nbsp;|&nbsp; 
+                <strong>Existing Model:</strong> Full form with all fields
+              </p>
+            </div>
           </Form>
         ) : (
           <div className="space-y-4">
             <div>
-              <Label className="text-sm md:text-base">Generated Onboarding Link</Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Label className="text-sm md:text-base">Generated Onboarding Link</Label>
+                <span className={`text-xs px-2 py-1 rounded ${
+                  generatedModelType === 'new' 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {generatedModelType === 'new' ? 'New Model' : 'Existing Model'}
+                </span>
+              </div>
               <div className="flex gap-2 mt-2">
                 <Input 
                   value={generatedLink} 

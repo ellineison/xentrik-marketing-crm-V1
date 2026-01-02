@@ -127,16 +127,20 @@ export const saveOnboardingData = async (
 /**
  * Generate a new invitation token
  */
-export const generateInvitationToken = async (modelName: string): Promise<{ success: boolean; token?: string; error?: string }> => {
+export const generateInvitationToken = async (
+  modelName: string, 
+  modelType: 'new' | 'old' = 'old'
+): Promise<{ success: boolean; token?: string; error?: string }> => {
   try {
-    console.log("Generating invitation for model:", modelName);
+    console.log("Generating invitation for model:", modelName, "type:", modelType);
     
     const { data, error } = await supabase
       .from('creator_invitations')
       .insert({
         model_name: modelName,
         status: 'pending',
-        expires_at: null // No expiration date anymore
+        expires_at: null, // No expiration date anymore
+        model_type: modelType
       })
       .select('token')
       .single();
@@ -154,6 +158,28 @@ export const generateInvitationToken = async (modelName: string): Promise<{ succ
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to generate token' 
     };
+  }
+};
+
+/**
+ * Get model type from invitation token
+ */
+export const getInvitationModelType = async (token: string): Promise<'new' | 'old' | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('creator_invitations')
+      .select('model_type')
+      .eq('token', token)
+      .maybeSingle();
+    
+    if (error || !data) {
+      return null;
+    }
+    
+    return (data.model_type as 'new' | 'old') || 'old';
+  } catch (error) {
+    console.error('Error getting invitation model type:', error);
+    return null;
   }
 };
 

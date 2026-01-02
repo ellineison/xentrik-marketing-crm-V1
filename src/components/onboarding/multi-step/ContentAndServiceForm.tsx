@@ -1,16 +1,18 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Plus, Trash } from "lucide-react";
 import { CreatorOnboardingFormValues } from "@/schemas/creatorOnboardingSchema";
 import SocialMediaSection from "./SocialMediaSection";
 
-export const ContentAndServiceForm: React.FC = () => {
+interface ContentAndServiceFormProps {
+  isNewModel?: boolean;
+}
+
+export const ContentAndServiceForm: React.FC<ContentAndServiceFormProps> = ({ isNewModel = false }) => {
   const { control, watch } = useFormContext<CreatorOnboardingFormValues>();
   
   const hasFetish = watch("contentAndService.hasFetish");
@@ -232,183 +234,190 @@ export const ContentAndServiceForm: React.FC = () => {
         )}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <div className="space-y-4">
-          <FormField
-            control={control}
-            name="contentAndService.pricePerMinute"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price per minute in custom vids</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
-                    <Input 
-                      type="number" 
-                      min={0}
-                      step="0.01"
-                      className="pl-6"
+      {/* Pricing fields - hidden for new models */}
+      {!isNewModel && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-4">
+            <FormField
+              control={control}
+              name="contentAndService.pricePerMinute"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price per minute in custom vids</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
+                      <Input 
+                        type="number" 
+                        min={0}
+                        step="0.01"
+                        className="pl-6"
+                        {...field} 
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="contentAndService.customVideoNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Notes for Custom Videos</FormLabel>
+                  <FormControl>
+                    <Textarea 
                       {...field} 
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      value={field.value ?? ""}
+                      placeholder="Any additional notes about custom video pricing or preferences..."
+                      className="min-h-[80px]"
                     />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={control}
-            name="contentAndService.customVideoNotes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Additional Notes for Custom Videos</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    {...field} 
-                    placeholder="Any additional notes about custom video pricing or preferences..."
-                    className="min-h-[80px]"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={control}
+              name="contentAndService.dickRatePrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dick Rate Price</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
+                      <Input 
+                        type="number" 
+                        min={0}
+                        step="0.01"
+                        className="pl-6"
+                        {...field} 
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={control}
-            name="contentAndService.dickRatePrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dick Rate Price</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
-                    <Input 
-                      type="number" 
-                      min={0}
-                      step="0.01"
-                      className="pl-6"
+            <FormField
+              control={control}
+              name="contentAndService.dickRateNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Notes for Dick Rate</FormLabel>
+                  <FormControl>
+                    <Textarea 
                       {...field} 
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      value={field.value ?? ""}
+                      placeholder="Any additional notes about dick rate pricing or preferences..."
+                      className="min-h-[80px]"
                     />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={control}
-            name="contentAndService.dickRateNotes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Additional Notes for Dick Rate</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    {...field} 
-                    placeholder="Any additional notes about dick rate pricing or preferences..."
-                    className="min-h-[80px]"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="space-y-4">
+            <FormField
+              control={control}
+              name="contentAndService.videoCallPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Price for video call</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
+                      <Input 
+                        type="number" 
+                        min={0}
+                        step="0.01"
+                        className="pl-6"
+                        {...field} 
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="contentAndService.videoCallNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Notes for Video Calls</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      value={field.value ?? ""}
+                      placeholder="Any additional notes about video call pricing or preferences..."
+                      className="min-h-[80px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="contentAndService.underwearSellingPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Underwear Selling Price</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
+                      <Input 
+                        type="number" 
+                        min={0}
+                        step="0.01"
+                        className="pl-6"
+                        {...field} 
+                        value={field.value ?? ""}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="contentAndService.underwearSellingNotes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Additional Notes for Underwear Selling</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      {...field} 
+                      value={field.value ?? ""}
+                      placeholder="Any additional notes about underwear selling pricing or preferences..."
+                      className="min-h-[80px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
-
-        <div className="space-y-4">
-          <FormField
-            control={control}
-            name="contentAndService.videoCallPrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price for video call</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
-                    <Input 
-                      type="number" 
-                      min={0}
-                      step="0.01"
-                      className="pl-6"
-                      {...field} 
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="contentAndService.videoCallNotes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Additional Notes for Video Calls</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    {...field} 
-                    placeholder="Any additional notes about video call pricing or preferences..."
-                    className="min-h-[80px]"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="contentAndService.underwearSellingPrice"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Underwear Selling Price</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
-                    <Input 
-                      type="number" 
-                      min={0}
-                      step="0.01"
-                      className="pl-6"
-                      {...field} 
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="contentAndService.underwearSellingNotes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Additional Notes for Underwear Selling</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    {...field} 
-                    placeholder="Any additional notes about underwear selling pricing or preferences..."
-                    className="min-h-[80px]"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 };

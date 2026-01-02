@@ -56,6 +56,7 @@ export type Database = {
           expires_at: string | null
           id: string
           model_name: string | null
+          model_type: string
           stage_name: string | null
           status: string
           submission_path: string | null
@@ -66,6 +67,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           model_name?: string | null
+          model_type?: string
           stage_name?: string | null
           status?: string
           submission_path?: string | null
@@ -76,6 +78,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           model_name?: string | null
+          model_type?: string
           stage_name?: string | null
           status?: string
           submission_path?: string | null

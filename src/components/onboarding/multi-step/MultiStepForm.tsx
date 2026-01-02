@@ -17,7 +17,7 @@ import { PersonalInfoForm } from "./PersonalInfoForm";
 import { PhysicalAttributesForm } from "./PhysicalAttributesForm";
 import { PersonalPreferencesForm } from "./PersonalPreferencesForm";
 import { ContentAndServiceForm } from "./ContentAndServiceForm";
-import { saveOnboardingData, validateToken } from "@/utils/onboardingUtils";
+import { saveOnboardingData, validateToken, getInvitationModelType } from "@/utils/onboardingUtils";
 
 interface MultiStepFormProps {
   token?: string;
@@ -29,6 +29,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState<CreatorOnboardingFormValues | null>(null);
+  const [modelType, setModelType] = useState<'new' | 'old'>('old');
   const { toast } = useToast();
   
   const methods = useForm<CreatorOnboardingFormValues>({
@@ -43,11 +44,16 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   console.log("Form errors:", errors);
   console.log("Form isValid:", isValid);
 
-  // Validate token on component mount
+  // Validate token and get model type on component mount
   useEffect(() => {
     if (token) {
-      validateToken(token).then(isValid => {
+      Promise.all([
+        validateToken(token),
+        getInvitationModelType(token)
+      ]).then(([isValid, type]) => {
         setTokenValid(isValid);
+        setModelType(type || 'old');
+        console.log("Token validation result:", isValid, "Model type:", type);
         if (!isValid) {
           toast({
             title: "Invalid or Expired Link",
@@ -135,8 +141,17 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
         }
       }
 
-      // Age is now manually entered by the user, no automatic calculation needed
-      // The age field will be saved as provided by the user (or undefined if not provided)
+      // For new models, ensure pricing fields are null
+      if (modelType === 'new') {
+        data.contentAndService.pricePerMinute = null;
+        data.contentAndService.customVideoNotes = null;
+        data.contentAndService.videoCallPrice = null;
+        data.contentAndService.videoCallNotes = null;
+        data.contentAndService.dickRatePrice = null;
+        data.contentAndService.dickRateNotes = null;
+        data.contentAndService.underwearSellingPrice = null;
+        data.contentAndService.underwearSellingNotes = null;
+      }
 
       // Save to Supabase with the provided token
       const result = await saveOnboardingData(data, token);
@@ -233,12 +248,37 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
     );
   }
 
+  const onFormSubmit = (e: React.FormEvent) => {
+    // Prevent implicit submissions (e.g., pressing Enter) on all steps.
+    // Submission is triggered explicitly via the primary button click.
+    e.preventDefault();
+  };
+
+  const isLastStep = currentStepIndex === steps.length - 1;
+
+  const handlePrimaryAction = () => {
+    if (isLastStep) {
+      // Trigger RHF submission explicitly (no native form submit).
+      void methods.handleSubmit(handleFinalSubmit)();
+      return;
+    }
+
+    goToNextStep();
+  };
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(handleFinalSubmit)} className="space-y-4 sm:space-y-6 lg:space-y-8">
+      <form onSubmit={onFormSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
         <Card className="w-full bg-[#1a1a33]/70 border-[#252538]/50 shadow-xl">
           <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Creator Onboarding</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Creator Onboarding</CardTitle>
+              {modelType === 'new' && (
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                  New Model Form
+                </span>
+              )}
+            </div>
             <CardDescription className="text-sm sm:text-base">
               Complete the form to save <span className="bg-gradient-premium-yellow bg-clip-text text-transparent font-semibold">information that you want us to publicly and consistently tell the fans</span>. We promise to save this data securely.
             </CardDescription>
@@ -271,7 +311,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
               </TabsContent>
               
               <TabsContent value="contentAndService">
-                <ContentAndServiceForm />
+                <ContentAndServiceForm isNewModel={modelType === 'new'} />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -287,24 +327,15 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
               <span>Previous</span>
             </Button>
             
-            {currentStepIndex < steps.length - 1 ? (
-              <Button
-                type="button"
-                variant="premium"
-                onClick={goToNextStep}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
-              >
-                <span>Next</span> <ChevronRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                type="submit" 
-                variant="premium"
-                disabled={isSubmitting}
-                onClick={() => console.log("Submit button clicked!")}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
-              >
-                {isSubmitting ? (
+            <Button
+              type="button"
+              variant="premium"
+              onClick={handlePrimaryAction}
+              disabled={isLastStep ? isSubmitting : false}
+              className="flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px]"
+            >
+              {isLastStep ? (
+                isSubmitting ? (
                   <>
                     <span>Processing</span> <Upload className="h-4 w-4 animate-bounce" />
                   </>
@@ -312,9 +343,13 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
                   <>
                     <span>Submit</span> <Save className="h-4 w-4" />
                   </>
-                )}
-              </Button>
-            )}
+                )
+              ) : (
+                <>
+                  <span>Next</span> <ChevronRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
           </CardFooter>
         </Card>
       </form>

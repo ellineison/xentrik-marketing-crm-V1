@@ -9,6 +9,7 @@ const corsHeaders = {
 interface RequestBody {
   modelName: string;
   appUrl?: string;
+  modelType?: 'new' | 'old'; // 'new' = new model (hide pricing fields), 'old' = existing model (all fields)
 }
 
 serve(async (req) => {
@@ -28,20 +29,21 @@ serve(async (req) => {
     // Create Supabase admin client
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const { modelName, appUrl } = await req.json() as RequestBody;
+    const { modelName, appUrl, modelType = 'old' } = await req.json() as RequestBody;
     
     if (!modelName) {
       throw new Error("modelName is required");
     }
     
-    console.log("Generating onboarding link for model:", modelName);
+    console.log("Generating onboarding link for model:", modelName, "type:", modelType);
     
     // Insert invitation into creator_invitations table
     const { data, error } = await supabase
       .from('creator_invitations')
       .insert({
         model_name: modelName,
-        status: 'pending'
+        status: 'pending',
+        model_type: modelType
       })
       .select('token')
       .single();

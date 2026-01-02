@@ -13,6 +13,7 @@ interface PendingInvitation {
   model_name: string | null;
   created_at: string;
   expires_at: string | null;
+  model_type: string | null;
 }
 
 const PendingLinksCard: React.FC = () => {
@@ -27,7 +28,7 @@ const PendingLinksCard: React.FC = () => {
       // Get all pending invitations
       const { data: pendingInvitations, error: invitationsError } = await supabase
         .from('creator_invitations')
-        .select('token, model_name, created_at, expires_at')
+        .select('token, model_name, created_at, expires_at, model_type')
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
@@ -169,9 +170,18 @@ const PendingLinksCard: React.FC = () => {
                           <p className="font-medium text-sm md:text-base truncate">
                             {invitation.model_name || 'Unnamed Model'}
                           </p>
-                          <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded w-fit">
-                            Pending
-                          </span>
+                          <div className="flex gap-1">
+                            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded w-fit">
+                              Pending
+                            </span>
+                            <span className={`text-xs px-2 py-1 rounded w-fit ${
+                              invitation.model_type === 'new' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {invitation.model_type === 'new' ? 'New' : 'Existing'}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-xs md:text-sm text-muted-foreground">
                           Created {formatDistanceToNow(new Date(invitation.created_at))} ago
