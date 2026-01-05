@@ -68,7 +68,15 @@ export const saveOnboardingData = async (
     
     // Extract basic required fields
     const name = data.personalInfo?.modelName || data.personalInfo?.fullName || "New Creator";
-    const email = data.personalInfo?.email || "noemail@example.com";
+    const email = data.personalInfo?.email;
+    
+    // Validate email is provided (required for account creation)
+    if (!email || email.trim() === '') {
+      return { 
+        success: false, 
+        error: "Email address is required for account creation" 
+      };
+    }
     
     // Check if this token has already been submitted
     const { data: existingSubmission } = await supabase

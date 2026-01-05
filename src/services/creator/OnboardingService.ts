@@ -24,7 +24,13 @@ export class OnboardingService {
     try {
       // Extract basic required fields for the onboarding_submissions table
       const name = formData.personalInfo?.modelName || formData.personalInfo?.fullName || formData.name || "New Creator";
-      const email = formData.personalInfo?.email || "noemail@example.com";
+      const email = formData.personalInfo?.email;
+      
+      // Validate email is provided (required for account creation)
+      if (!email || email.trim() === '') {
+        console.error("Email is required but was not provided");
+        return undefined;
+      }
       
       console.log("Saving onboarding data with token:", token);
       console.log("Form data contains:", 

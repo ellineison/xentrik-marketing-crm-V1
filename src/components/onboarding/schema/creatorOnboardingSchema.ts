@@ -8,7 +8,7 @@ export const creatorOnboardingSchema = z.object({
   gender: z.enum(["Male", "Female", "Trans", "AI"], {
     required_error: "Please select a gender",
   }),
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
   bio: z.string().min(1, "Bio is required"),
   
   // Contact Info

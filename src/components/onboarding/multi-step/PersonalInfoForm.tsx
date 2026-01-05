@@ -77,7 +77,7 @@ export const PersonalInfoForm = () => {
           name="personalInfo.email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel>Email Address <span className="text-destructive">*</span></FormLabel>
               <FormControl>
                 <Input type="email" placeholder="Email address" {...field} className="min-h-[44px]" />
               </FormControl>
@@ -91,7 +91,21 @@ export const PersonalInfoForm = () => {
           name="personalInfo.dateOfBirth"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date of Birth</FormLabel>
+              <FormLabel>Real Date of Birth</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} className="min-h-[44px]" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="personalInfo.modelBirthday"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Model Persona Birthday (Known to Public)</FormLabel>
               <FormControl>
                 <Input type="date" {...field} className="min-h-[44px]" />
               </FormControl>
@@ -105,13 +119,39 @@ export const PersonalInfoForm = () => {
           name="personalInfo.age"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Age</FormLabel>
+              <FormLabel>Real Age</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
                   min={18} 
                   max={100}
-                  placeholder="Enter age"
+                  placeholder="Enter real age"
+                  {...field} 
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value === '' ? '' : Number(value));
+                  }}
+                  value={field.value ?? ''}
+                  className="min-h-[44px]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="personalInfo.modelAge"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Model Persona Age (Known to Public)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min={18} 
+                  max={100}
+                  placeholder="Enter model persona age"
                   {...field} 
                   onChange={(e) => {
                     const value = e.target.value;

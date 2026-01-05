@@ -167,9 +167,11 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
   const [submissionData, setSubmissionData] = useState<any>(submission?.data || {});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Check if user is Admin
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   // Check if user has editing permissions (exclude Chatter role)
-  const canEdit = userRole === 'Admin' || 
-                  userRoles?.includes('Admin') ||
+  const canEdit = isAdmin ||
                   userRole === 'VA' || 
                   userRoles?.includes('VA');
 
@@ -238,6 +240,10 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
   const formatFieldName = (key: string): string => {
     // Handle specific field name mappings
     const fieldMappings: Record<string, string> = {
+      'dateOfBirth': 'Real Date of Birth',
+      'modelBirthday': 'Model Birthday',
+      'age': 'Real Age',
+      'modelAge': 'Model Age',
       'pricePerMinute': 'Custom Price per Minute',
       'videoCallPrice': 'Video Call Price per Minute',
       'customVideoNotes': 'Custom Video Notes',
@@ -267,7 +273,7 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
     setEditingField(editKey);
     
     // Special handling for date fields
-    if (fieldKey === 'dateOfBirth' && currentValue) {
+    if ((fieldKey === 'dateOfBirth' || fieldKey === 'modelBirthday') && currentValue) {
       try {
         // Try to parse the existing date value
         const dateValue = new Date(currentValue);
@@ -377,10 +383,10 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
     
     // Handle different value types
     let processedValue = editValue;
-    if (fieldKey === 'dateOfBirth' && editValue instanceof Date) {
+    if ((fieldKey === 'dateOfBirth' || fieldKey === 'modelBirthday') && editValue instanceof Date) {
       // Format date as YYYY-MM-DD for consistent storage
       processedValue = format(editValue, 'yyyy-MM-dd');
-      } else if (fieldKey === 'age' || fieldKey === 'numberOfKids' || fieldKey === 'bodyCount' || fieldKey === 'sexToysCount' || fieldKey === 'pricePerMinute' || fieldKey === 'videoCallPrice' || fieldKey === 'dickRatePrice' || fieldKey === 'underwearSellingPrice') {
+      } else if (fieldKey === 'age' || fieldKey === 'modelAge' || fieldKey === 'numberOfKids' || fieldKey === 'bodyCount' || fieldKey === 'sexToysCount' || fieldKey === 'pricePerMinute' || fieldKey === 'videoCallPrice' || fieldKey === 'dickRatePrice' || fieldKey === 'underwearSellingPrice') {
         processedValue = editValue === '' ? null : Number(editValue);
     } else if (fieldKey === 'hasPets' || fieldKey === 'hasKids' || fieldKey === 'hasTattoos' || fieldKey === 'canSing' || fieldKey === 'smokes' || fieldKey === 'drinks' || fieldKey === 'isSexual' || fieldKey === 'hasFetish' || fieldKey === 'doesAnal' || fieldKey === 'hasTriedOrgy' || fieldKey === 'lovesThreesomes' || fieldKey === 'sellsUnderwear' || fieldKey === 'isCircumcised') {
       processedValue = editValue === 'true' || editValue === true;
@@ -429,8 +435,8 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
     const isEditing = editingField === editKey;
     
     if (isEditing && canEdit) {
-      // Special handling for date of birth field
-      if (fieldKey === 'dateOfBirth') {
+      // Special handling for date of birth and model birthday fields
+      if (fieldKey === 'dateOfBirth' || fieldKey === 'modelBirthday') {
         return (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
             <Popover>
@@ -657,8 +663,8 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
     return (
       <div className="group flex items-center justify-between gap-3">
         <div className="flex-1 text-muted-foreground break-words min-w-0">
-          {/* Special handling for date of birth display */}
-          {fieldKey === 'dateOfBirth' && value ? (
+          {/* Special handling for date of birth and model birthday display */}
+          {(fieldKey === 'dateOfBirth' || fieldKey === 'modelBirthday') && value ? (
             (() => {
               try {
                 const date = new Date(value);
@@ -734,7 +740,11 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
   };
 
   const personalInfoPriority = [
-    'modelName', 'fullName', 'nickname', 'age', 'dateOfBirth', 'location', 'additionalLocationNote', 'hometown', 'ethnicity',
+    'modelName', 'fullName', 'nickname',
+    ...(isAdmin ? ['age'] : []), // Real Age - only for Admin
+    'modelAge',
+    ...(isAdmin ? ['dateOfBirth'] : []), // Real Date of Birth - only for Admin
+    'modelBirthday', 'location', 'additionalLocationNote', 'hometown', 'ethnicity',
     ...(isChatter ? [] : ['email']), // Hide email for Chatter role
     'sex', 'religion', 'relationshipStatus', 'handedness',
     'hasPets', 'pets', 'hasKids', 'numberOfKids', 'occupation', 'workplace', 'placesVisited'
@@ -830,6 +840,11 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
         {sortedEntries.map(([key, value]) => {
           // Skip email field for Chatter users
           if (key === 'email' && isChatter) {
+            return null;
+          }
+          
+          // Skip Real Age and Real Date of Birth for non-Admin users
+          if ((key === 'age' || key === 'dateOfBirth') && !isAdmin) {
             return null;
           }
           

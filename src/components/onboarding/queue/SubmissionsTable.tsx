@@ -78,6 +78,18 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
   };
 
   const formatFieldName = (key: string): string => {
+    // Handle specific field name mappings
+    const fieldMappings: Record<string, string> = {
+      'dateOfBirth': 'Real Date of Birth',
+      'modelBirthday': 'Model Birthday',
+      'age': 'Real Age',
+      'modelAge': 'Model Age',
+    };
+    
+    if (fieldMappings[key]) {
+      return fieldMappings[key];
+    }
+    
     return key
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, str => str.toUpperCase())
@@ -86,7 +98,7 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
 
   // Updated field priority orders to match actual schema fields only
   const personalInfoPriority = [
-    'modelName', 'fullName', 'nickname', 'age', 'dateOfBirth', 'location', 'hometown', 'ethnicity',
+    'modelName', 'fullName', 'nickname', 'age', 'modelAge', 'dateOfBirth', 'modelBirthday', 'location', 'hometown', 'ethnicity',
     // Logical ordering for remaining actual fields
     'email', 'sex', 'religion', 'relationshipStatus', 'handedness',
     'hasPets', 'pets', 'hasKids', 'numberOfKids', 'occupation', 'workplace', 'placesVisited'
