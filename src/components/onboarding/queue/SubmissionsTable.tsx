@@ -11,8 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, Trash2, Check, Loader2, Edit2, Save, X } from "lucide-react";
+import { Eye, Trash2, Check, Loader2, Edit2, Save, X, Download } from "lucide-react";
 import { OnboardSubmission } from "@/hooks/useOnboardingSubmissions";
+import { generateOnboardingPDF } from "@/utils/onboardingPdfGenerator";
 
 interface SubmissionsTableProps {
   submissions: OnboardSubmission[];
@@ -441,6 +442,14 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => generateOnboardingPDF(submission)}
+                        title="Download PDF"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleDeclineClick(submission.token)}
                         disabled={disabledTokens.has(submission.token)}
                         title="Decline submission"
@@ -505,14 +514,24 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
               </div>
               
               <div className="flex flex-col gap-2 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => togglePreview(submission.token)}
-                  className="w-full min-h-[44px] touch-manipulation flex items-center justify-center gap-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  {submission.showPreview ? 'Hide Preview' : 'Show Preview'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => togglePreview(submission.token)}
+                    className="flex-1 min-h-[44px] touch-manipulation flex items-center justify-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {submission.showPreview ? 'Hide' : 'Preview'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => generateOnboardingPDF(submission)}
+                    className="flex-1 min-h-[44px] touch-manipulation flex items-center justify-center gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    PDF
+                  </Button>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="destructive"
