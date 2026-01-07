@@ -13,9 +13,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Eye, Search } from 'lucide-react';
+import { Eye, Search, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import CreatorDataModal from './CreatorDataModal';
+import { generateOnboardingPDF } from '@/utils/onboardingPdfGenerator';
 import { getTimezoneFromLocationName } from '@/utils/timezoneUtils';
 import { shouldFilterCreator } from '@/utils/geographicFiltering';
 import { useAuth } from '@/context/AuthContext';
@@ -43,6 +44,9 @@ const CreatorsDataTable: React.FC = () => {
 
   // Check if user is a Chatter (hide sensitive info like email)
   const isChatter = userRole === 'Chatter' || userRoles?.includes('Chatter');
+  
+  // Check if user is an Admin (for PDF download access)
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
 
   // Fetch user's geographic restrictions
   useEffect(() => {
@@ -173,6 +177,19 @@ const CreatorsDataTable: React.FC = () => {
     setModalOpen(true);
   };
 
+  const handleDownloadPDF = (submission: CreatorWithTimezone) => {
+    generateOnboardingPDF({
+      id: submission.id,
+      name: submission.name,
+      email: submission.email,
+      submittedAt: submission.submitted_at,
+      data: submission.data,
+      status: 'accepted',
+      token: submission.token,
+      showPreview: false,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -216,15 +233,29 @@ const CreatorsDataTable: React.FC = () => {
                   {submission.data?.personalInfo?.modelName || submission.name}
                 </h3>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewData(submission)}
-                className="ml-3 h-9 px-3 text-sm"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                View Data
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewData(submission)}
+                  className="h-9 px-3 text-sm"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </Button>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDownloadPDF(submission)}
+                    className="h-9 px-3 text-sm"
+                    title="Download Data"
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Download Data
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -246,14 +277,27 @@ const CreatorsDataTable: React.FC = () => {
                 <TableCell className="font-medium text-left">{submission.data?.personalInfo?.modelName || submission.name}</TableCell>
                 {!isChatter && <TableCell className="text-left">{submission.email}</TableCell>}
                 <TableCell className="text-left">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleViewData(submission)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Data
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewData(submission)}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Data
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadPDF(submission)}
+                        title="Download Data"
+                      >
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Download Data
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

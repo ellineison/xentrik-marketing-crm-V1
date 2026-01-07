@@ -48,6 +48,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: profile.id,
           name: profile.name || '',
           email: profile.email || '',
+          role: profile.role || 'Employee',
           roles: profile.roles || [],
           status: profile.status || 'Active',
           teams: [], // Remove teams reference from database

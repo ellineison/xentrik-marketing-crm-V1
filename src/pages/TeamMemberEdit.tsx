@@ -63,6 +63,7 @@ const TeamMemberEdit = () => {
           id: data.id,
           name: data.name || '',
           email: data.email || '',
+          role: (data.role || 'Employee') as "Admin" | "Manager" | "Employee",
           roles: (data.roles || []) as TeamMemberRole[],
           status: (data.status || 'Active') as "Active" | "Inactive" | "Paused" | "Suspended",
           teams: [],
@@ -93,7 +94,7 @@ const TeamMemberEdit = () => {
     defaultValues: {
       name: teamMember?.name || '',
       email: teamMember?.email || '',
-      role: (teamMember?.roles?.[0] || 'Employee') as any,
+      role: teamMember?.role || 'Employee',
       roles: teamMember?.roles || [],
       status: teamMember?.status || 'Active',
       department: teamMember?.department || '',
@@ -109,7 +110,7 @@ const TeamMemberEdit = () => {
       form.reset({
         name: teamMember.name,
         email: teamMember.email,
-        role: (teamMember.roles?.[0] || 'Employee') as any,
+        role: teamMember.role,
         roles: teamMember.roles,
         status: teamMember.status,
         department: teamMember.department || '',

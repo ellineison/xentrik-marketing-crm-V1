@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Trash2 } from 'lucide-react';
@@ -35,7 +35,30 @@ const CustomDetailsModal: React.FC<CustomDetailsModalProps> = ({
   onDeleteCustom,
   isUpdating 
 }) => {
-  // Fetch the latest custom data when modal is open
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Radix Dialog can set document.body{pointer-events:none} while open.
+  // If a dialog unmounts during a mutation, cleanup can occasionally get stuck.
+  // This ensures the app becomes clickable again after closing.
+  useEffect(() => {
+    if (!isOpen) {
+      requestAnimationFrame(() => {
+        document.body.style.removeProperty('pointer-events');
+      });
+      setIsDeleteDialogOpen(false);
+    }
+
+    return () => {
+      document.body.style.removeProperty('pointer-events');
+    };
+  }, [isOpen]);
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      setIsDeleteDialogOpen(false);
+      onClose();
+    }
+  };
   const { data: currentCustom } = useQuery({
     queryKey: ['custom', custom?.id],
     queryFn: async () => {
@@ -67,6 +90,7 @@ const CustomDetailsModal: React.FC<CustomDetailsModalProps> = ({
 
   const handleDelete = () => {
     if (onDeleteCustom && displayCustom) {
+      setIsDeleteDialogOpen(false);
       onDeleteCustom(displayCustom.id);
       onClose();
     }
@@ -75,7 +99,7 @@ const CustomDetailsModal: React.FC<CustomDetailsModalProps> = ({
   const canRefund = displayCustom.status !== 'refunded' && onUpdateStatus;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <CustomDetailsHeader custom={displayCustom} />
@@ -125,7 +149,7 @@ const CustomDetailsModal: React.FC<CustomDetailsModalProps> = ({
               </Button>
             )}
             {onDeleteCustom && (
-              <AlertDialog>
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive" 
@@ -153,7 +177,7 @@ const CustomDetailsModal: React.FC<CustomDetailsModalProps> = ({
               </AlertDialog>
             )}
           </div>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
             Close
           </Button>
         </div>

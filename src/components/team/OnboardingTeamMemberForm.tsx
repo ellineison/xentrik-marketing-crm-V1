@@ -37,13 +37,14 @@ const OnboardingTeamMemberForm = () => {
       
       // Convert single role to an array and ensure required fields are present
       const teamMemberData = {
-        name: data.name, // Ensure name is explicitly set
-        email: data.email, // Ensure email is explicitly set
-        roles: [data.role], // Convert single role to array for API
-        status: data.status || 'Active',
-        telegram: data.telegram,
-        department: data.department,
-        teams: [], // Add empty teams array to satisfy TeamMember interface
+        name: data.name,
+        email: data.email,
+        role: data.role as "Admin" | "Manager" | "Employee",
+        roles: (data.roles || []) as PrimaryRole[],
+        status: data.status || 'Active' as const,
+        telegram: data.telegram || '',
+        department: data.department || '',
+        teams: [] as ("A" | "B" | "C")[],
       };
       
       await addTeamMember(teamMemberData, tempPassword);

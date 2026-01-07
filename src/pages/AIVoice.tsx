@@ -327,6 +327,7 @@ const AIVoice: React.FC = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('voice-sources', {
+        method: 'DELETE',
         body: { id },
       });
 

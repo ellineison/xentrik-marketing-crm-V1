@@ -5,6 +5,7 @@ export interface TeamMember {
   id: string;
   name: string;
   email: string;
+  role: "Admin" | "Manager" | "Employee";
   roles: TeamMemberRole[];
   status: "Active" | "Inactive" | "Paused" | "Suspended";
   teams: ("A" | "B" | "C")[];
