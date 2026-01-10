@@ -32,21 +32,21 @@ select {
 
 /* Premium specific styling */
 .premium-input {
-  background-color: var(--premium-panel-bg) !important;
-  border-color: var(--premium-border) !important;
+  background-color: hsl(var(--premium-panel-bg)) !important;
+  border-color: hsl(var(--premium-border)) !important;
 }
 
 .premium-select {
-  background-color: var(--premium-panel-bg) !important;
-  border-color: var(--premium-border) !important;
+  background-color: hsl(var(--premium-panel-bg)) !important;
+  border-color: hsl(var(--premium-border)) !important;
 }
 
 .premium-checkbox {
-  border-color: var(--premium-border) !important;
+  border-color: hsl(var(--premium-border)) !important;
 }
 
 .premium-panel {
-  background-color: var(--premium-panel-bg);
-  border: 1px solid var(--premium-border);
+  background-color: hsl(var(--premium-panel-bg));
+  border: 1px solid hsl(var(--premium-border));
   border-radius: 0.75rem;
 }

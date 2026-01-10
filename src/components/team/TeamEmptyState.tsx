@@ -13,7 +13,7 @@ const TeamEmptyState: React.FC<TeamEmptyStateProps> = ({
   onAddClick
 }) => {
   return (
-    <div className="text-center py-16 bg-premium-dark/30 rounded-lg border border-[#333333] mt-4">
+    <div className="text-center py-16 bg-muted/30 rounded-lg border border-border mt-4">
       <div className="flex justify-center">
         {hasFilters ? (
           <UserSearch className="h-16 w-16 text-muted-foreground mb-4" />

@@ -64,8 +64,8 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         {/* Left: Icon + Title */}
         <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-white" />
-          <h1 className="text-2xl font-bold text-white">Total Team Members: 
+          <Users className="h-6 w-6 text-foreground" />
+          <h1 className="text-2xl font-bold text-foreground">Total Team Members: 
             <span className="ml-2 text-brand-yellow">{isLoading ? "..." : memberCount}</span>
           </h1>
         </div>
@@ -89,12 +89,12 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
         <div className="relative flex-1">
           <Input 
             placeholder="Search by name or email..." 
-            className="pl-10 h-10 w-full bg-background border-white/20 text-white" 
+            className="pl-10 h-10 w-full bg-background border-border text-foreground" 
             value={searchValue} 
             onChange={handleSearchChange} 
           />
           <span className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <SlidersHorizontal className="h-4 w-4 text-white" />
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
           </span>
         </div>
         
@@ -103,26 +103,26 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="rounded-full flex gap-2 items-center min-w-[120px] h-10 border-white/20 text-white"
+              className="rounded-full flex gap-2 items-center min-w-[120px] h-10 border-border text-foreground"
             >
-              <SlidersHorizontal className="h-4 w-4 text-white" />
+              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
               Roles
               {filters.roles.length > 0 && 
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">
                   {filters.roles.length}
                 </span>
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by role</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by role</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {["VA", "Chatters", "Admin", "Developer"].map(role => (
               <DropdownMenuCheckboxItem 
                 key={role} 
                 checked={filters.roles.includes(role as TeamMemberRole)} 
                 onCheckedChange={() => toggleRole(role as TeamMemberRole)} 
-                className="text-white"
+                className="text-foreground"
               >
                 {role}
               </DropdownMenuCheckboxItem>
@@ -135,26 +135,26 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="rounded-full flex gap-2 items-center min-w-[120px] h-10 border-white/20 text-white"
+              className="rounded-full flex gap-2 items-center min-w-[120px] h-10 border-border text-foreground"
             >
-              <Users className="h-4 w-4 text-white" />
+              <Users className="h-4 w-4 text-muted-foreground" />
               Teams
               {filters.teams.length > 0 && 
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">
                   {filters.teams.length}
                 </span>
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by team</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by team</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {["A", "B", "C"].map(team => (
               <DropdownMenuCheckboxItem 
                 key={team} 
                 checked={filters.teams.includes(team as any)} 
                 onCheckedChange={() => toggleTeam(team as any)} 
-                className="text-white"
+                className="text-foreground"
               >
                 Team {team}
               </DropdownMenuCheckboxItem>
@@ -167,26 +167,26 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="rounded-full flex gap-2 items-center min-w-[120px] h-10 border-white/20 text-white"
+              className="rounded-full flex gap-2 items-center min-w-[120px] h-10 border-border text-foreground"
             >
-              <Filter className="h-4 w-4 text-white" />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               Status
               {filters.status.length > 0 && 
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">
                   {filters.status.length}
                 </span>
               }
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by status</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by status</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {["Active", "Inactive", "Paused"].map(status => (
               <DropdownMenuCheckboxItem 
                 key={status} 
                 checked={filters.status.includes(status as any)} 
                 onCheckedChange={() => toggleStatus(status as any)} 
-                className="text-white"
+                className="text-foreground"
               >
                 {status}
               </DropdownMenuCheckboxItem>
@@ -199,11 +199,11 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-10 text-white hover:text-white/80" 
+            className="h-10 text-foreground hover:text-foreground/80" 
             onClick={onClearFilters}
           >
             <span className="mr-1">Clear</span>
-            <Filter className="h-4 w-4 text-white" />
+            <Filter className="h-4 w-4 text-muted-foreground" />
           </Button>
         )}
       </div>

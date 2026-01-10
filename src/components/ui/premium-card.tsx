@@ -25,7 +25,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
   return (
     <Card
       className={cn(
-        "bg-[#1a1a33]/50 backdrop-blur-sm border border-[#252538]/50 rounded-xl overflow-hidden",
+        "bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden",
         className
       )}
       {...props}
@@ -34,7 +34,7 @@ export const PremiumCard: React.FC<PremiumCardProps> = ({
       <CardContent className={cn("p-6", !header && "pt-6", contentClassName)}>
         {children}
       </CardContent>
-      {footer && <CardFooter className={cn("p-6 border-t border-[#252538]/50", footerClassName)}>{footer}</CardFooter>}
+      {footer && <CardFooter className={cn("p-6 border-t border-border/50", footerClassName)}>{footer}</CardFooter>}
     </Card>
   );
 };

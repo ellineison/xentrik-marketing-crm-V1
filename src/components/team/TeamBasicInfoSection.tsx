@@ -13,7 +13,7 @@ interface TeamBasicInfoSectionProps {
 
 const TeamBasicInfoSection: React.FC<TeamBasicInfoSectionProps> = ({ control }) => {
   return (
-    <div className="bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50">
+    <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50">
       <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
       <div className="grid gap-4">
         <FormField

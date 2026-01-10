@@ -138,7 +138,7 @@ const AddTeamMemberForm = () => {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="grid grid-cols-1 gap-8">
         <div className="space-y-6">
-          <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
+          <div className="bg-card/50 p-6 rounded-xl border border-border/50">
             <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
             
             <div className="space-y-4">
@@ -173,7 +173,7 @@ const AddTeamMemberForm = () => {
                   value="XentrikBananas"
                   readOnly
                   disabled
-                  className="mt-1 bg-gray-800/50"
+                  className="mt-1 bg-muted/50"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   This is the default password that will be assigned to the new team member
@@ -182,7 +182,7 @@ const AddTeamMemberForm = () => {
             </div>
           </div>
 
-          <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
+          <div className="bg-card/50 p-6 rounded-xl border border-border/50">
             <h2 className="text-xl font-semibold mb-4">Primary Role</h2>
             
             <RadioGroup 
@@ -199,7 +199,7 @@ const AddTeamMemberForm = () => {
             </RadioGroup>
           </div>
           
-          <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
+          <div className="bg-card/50 p-6 rounded-xl border border-border/50">
             <h2 className="text-xl font-semibold mb-4">Additional Roles</h2>
             <p className="text-sm text-muted-foreground mb-4">
               Creator is an exclusive role and cannot be combined with other roles
@@ -209,7 +209,7 @@ const AddTeamMemberForm = () => {
               {ADDITIONAL_ROLES.map((role) => (
                 <div 
                   key={role} 
-                  className="flex items-center space-x-2 rounded-md border p-3"
+                  className="flex items-center space-x-2 rounded-md border border-border p-3"
                 >
                   <Checkbox
                     id={`role-additional-${role}`}
@@ -241,7 +241,7 @@ const AddTeamMemberForm = () => {
         </Button>
         <Button
           type="submit"
-          className="text-black rounded-[15px] px-6 py-2 transition-all hover:bg-gradient-premium-yellow hover:text-black hover:-translate-y-0.5 hover:shadow-premium-yellow hover:opacity-90 bg-gradient-premium-yellow shadow-premium-yellow"
+          className="rounded-[15px] px-6 py-2 transition-all hover:-translate-y-0.5 hover:opacity-90 bg-primary text-primary-foreground shadow-md hover:shadow-lg"
           disabled={isSubmitting}
         >
           {isSubmitting ? "Creating..." : (

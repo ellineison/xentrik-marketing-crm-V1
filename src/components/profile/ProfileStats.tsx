@@ -11,8 +11,8 @@ interface ProfileStatsProps {
 }
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ creatorId, stats }) => (
-  <div className="bg-gradient-to-br from-[#1a1a33]/50 to-[#1a1a33]/30 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50 shadow-lg">
-    <h2 className="text-lg font-semibold mb-4 text-white">Statistics</h2>
+  <div className="bg-gradient-to-br from-card/50 to-card/30 backdrop-blur-sm p-6 rounded-xl border border-border/50 shadow-lg">
+    <h2 className="text-lg font-semibold mb-4 text-foreground">Statistics</h2>
     {stats ? (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StatsCard
@@ -58,7 +58,7 @@ const ProfileStats: React.FC<ProfileStatsProps> = ({ creatorId, stats }) => (
         <div className="md:col-span-2">
           <Link to={`/creators/${creatorId}/analytics`}>
             <Button
-              className="w-full flex items-center gap-2 rounded-[15px] px-3 py-3 text-black font-medium transition-all hover:bg-gradient-premium-yellow hover:text-black hover:-translate-y-0.5 hover:shadow-premium-yellow hover:opacity-90 bg-gradient-premium-yellow shadow-premium-yellow"
+              className="w-full flex items-center gap-2 rounded-[15px] px-3 py-3 font-medium transition-all hover:-translate-y-0.5 hover:opacity-90 bg-primary text-primary-foreground shadow-md hover:shadow-lg"
               variant="default"
             >
               <BarChart2 className="h-4 w-4 mr-2" />
@@ -82,9 +82,9 @@ interface StatsCardProps {
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({ title, trend, items }) => (
-  <div className="p-4 border border-[#252538] rounded-lg bg-[#1a1a33]/30">
+  <div className="p-4 border border-border rounded-lg bg-card/30">
     <div className="flex justify-between items-center mb-2">
-      <h3 className="font-medium text-white">{title}</h3>
+      <h3 className="font-medium text-foreground">{title}</h3>
       <div className={`flex items-center ${trend > 0 ? "text-green-500" : "text-red-500"}`}>
         {trend > 0 ? "↑" : "↓"} {Math.abs(trend)}%
       </div>

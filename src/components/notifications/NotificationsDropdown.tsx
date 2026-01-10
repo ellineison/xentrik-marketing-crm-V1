@@ -30,14 +30,14 @@ export const NotificationsDropdown = () => {
       
       <DropdownMenuContent 
         align="end" 
-        className="w-80 bg-premium-darker border border-premium-border"
+        className="w-80 bg-card border border-border"
       >
-        <div className="flex items-center justify-between p-4 border-b border-premium-border">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-sm font-semibold">Notifications</h2>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-xs hover:bg-premium-border"
+            className="text-xs hover:bg-muted"
           >
             Clear all
           </Button>

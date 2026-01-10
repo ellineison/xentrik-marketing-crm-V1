@@ -58,7 +58,7 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   const isCurrentUser = user?.id === teamMember.id;
 
   return (
-    <Card className="overflow-hidden flex flex-col h-full rounded-lg border border-[#333333] bg-premium-card hover:bg-premium-highlight shadow-md">
+    <Card className="overflow-hidden flex flex-col h-full rounded-lg border border-border bg-card hover:bg-muted/50 shadow-md">
       <div className="p-6 flex-grow space-y-6">
         {/* Header with status and badge */}
         <div className="flex justify-between items-center">
@@ -153,8 +153,8 @@ const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         </div>
       </div>
       
-      <CardContent className="p-0 border-t border-[#333333]">
-        <div className="grid grid-cols-2 divide-x divide-[#333333]">
+      <CardContent className="p-0 border-t border-border">
+        <div className="grid grid-cols-2 divide-x divide-border">
           <Button 
             variant="ghost" 
             className="rounded-none py-3 text-primary/80 hover:text-primary hover:bg-background/10"

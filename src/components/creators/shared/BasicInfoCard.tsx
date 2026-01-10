@@ -12,8 +12,8 @@ interface BasicInfoCardProps {
 
 const BasicInfoCard: React.FC<BasicInfoCardProps> = ({ control }) => {
   return (
-    <div className="bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50">
-      <h2 className="text-xl font-semibold mb-4 text-white">Basic Information</h2>
+    <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50">
+      <h2 className="text-xl font-semibold mb-4 text-foreground">Basic Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={control}

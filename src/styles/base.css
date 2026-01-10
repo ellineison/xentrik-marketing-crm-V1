@@ -1,51 +1,50 @@
 
-/* Base styles for the premium dark theme */
+/* Base styles for the premium theme - supports light and dark mode */
 .premium-dark {
-  background-color: #141428;
-  color: #ffffff;
+  @apply bg-background text-foreground;
 }
 
 /* Consistent form input styling */
 .form-input-premium {
-  @apply bg-[#1a1a33] border-[#252538] text-white placeholder-gray-400 focus:border-primary focus:ring-primary/20;
+  @apply bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:ring-primary/20;
 }
 
 /* Consistent background panels */
 .premium-panel {
-  @apply bg-[#1a1a33]/50 backdrop-blur-sm border border-[#252538]/50 rounded-xl;
+  @apply bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl;
 }
 
 /* Consistent gradient elements */
 .gradient-premium-yellow {
-  background: linear-gradient(to right, #f5d020, #f5a320);
+  background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
 }
 
 /* Premium cards styling */
 .premium-card {
-  @apply bg-[#1a1a33]/50 backdrop-blur-sm rounded-xl border border-[#252538]/50 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md;
+  @apply bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md;
 }
 
 /* Premium button styling */
 .premium-btn {
-  @apply text-black rounded-[15px] px-4 py-2 transition-all hover:-translate-y-0.5 hover:shadow-premium-yellow hover:opacity-90 bg-gradient-premium-yellow shadow-premium-yellow;
+  @apply text-primary-foreground rounded-[15px] px-4 py-2 transition-all hover:-translate-y-0.5 hover:shadow-premium-yellow hover:opacity-90 bg-gradient-premium-yellow shadow-premium-yellow;
 }
 
 /* Premium button outline styling */
 .premium-btn-outline {
-  @apply border border-[#252538] rounded-[15px] hover:bg-[#252538]/20 transition-all hover:-translate-y-0.5;
+  @apply border border-border rounded-[15px] hover:bg-muted/20 transition-all hover:-translate-y-0.5;
 }
 
 /* Fix for select styling */
 .premium-select {
-  @apply bg-[#1a1a33] border-[#252538];
+  @apply bg-muted border-border;
 }
 
 /* Fix for checkbox styling */
 .premium-checkbox {
-  @apply border-[#252538] data-[state=checked]:bg-gradient-premium-yellow data-[state=checked]:text-black;
+  @apply border-border data-[state=checked]:bg-gradient-premium-yellow data-[state=checked]:text-primary-foreground;
 }
 
 /* Premium section styling */
 .premium-section {
-  @apply bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50 mb-6;
+  @apply bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50 mb-6;
 }

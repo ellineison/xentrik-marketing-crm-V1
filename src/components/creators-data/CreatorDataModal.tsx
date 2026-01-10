@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { getTimezoneInfo } from '@/utils/timezoneUtils';
 import { useAuth } from '@/context/AuthContext';
 import AnnouncementsTab from './announcements/AnnouncementsTab';
+import CalendarTab from './calendar/CalendarTab';
 import { useQuery } from '@tanstack/react-query';
 
 interface CreatorSubmission {
@@ -903,8 +904,9 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
         
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 flex-1 min-h-0">
           <Tabs defaultValue="announcements" className="w-full h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 mb-4 h-auto p-1">
+            <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 mb-4 h-auto p-1">
               <TabsTrigger value="announcements" className="text-xs sm:text-sm py-2 px-1">Announce</TabsTrigger>
+              <TabsTrigger value="calendar" className="text-xs sm:text-sm py-2 px-1">Calendar</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm py-2 px-1">All Data</TabsTrigger>
               <TabsTrigger value="personal" className="text-xs sm:text-sm py-2 px-1">Personal</TabsTrigger>
               <TabsTrigger value="physical" className="text-xs sm:text-sm py-2 px-1">Physical</TabsTrigger>
@@ -921,6 +923,16 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
                     ) : (
                       <div className="text-center py-8 text-muted-foreground">
                         Creator not found in database. Cannot load announcements.
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="calendar" className="space-y-4 mt-0">
+                    {creatorData?.id ? (
+                      <CalendarTab creatorId={creatorData.id} />
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Creator not found in database. Cannot load calendar.
                       </div>
                     )}
                   </TabsContent>

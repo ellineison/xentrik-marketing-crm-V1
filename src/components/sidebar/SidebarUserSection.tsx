@@ -1,16 +1,17 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseAuth } from '@/context/SupabaseAuthContext';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, Sun, Moon, Monitor } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 const SidebarUserSection: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signOut } = useSupabaseAuth();
+  const { setTheme, theme } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -41,11 +42,11 @@ const SidebarUserSection: React.FC = () => {
     <div className="px-2 mt-auto">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="rounded-xl cursor-pointer transition-all duration-300 hover:bg-gradient-premium-yellow hover:text-black hover:-translate-y-0.5">
+          <div className="rounded-xl cursor-pointer transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:-translate-y-0.5">
             <div className="flex items-center gap-2 px-3 py-2">
-              <Avatar className="h-8 w-8 border border-black/10">
+              <Avatar className="h-8 w-8 border border-border">
                 <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || "User"} />
-                <AvatarFallback className="bg-yellow-200 text-black">{getUserInitials()}</AvatarFallback>
+                <AvatarFallback className="bg-primary/20 text-primary">{getUserInitials()}</AvatarFallback>
               </Avatar>
               
               <div className="flex-1 flex flex-col text-left min-w-0">
@@ -62,16 +63,52 @@ const SidebarUserSection: React.FC = () => {
           </div>
         </DropdownMenuTrigger>
         
-        <DropdownMenuContent align="end" className="w-56 bg-premium-card border-premium-border shadow-premium-md">
+        <DropdownMenuContent align="end" className="w-56 bg-card border-border shadow-lg">
           <DropdownMenuItem 
             onClick={() => navigate('/account')}
-            className="cursor-pointer hover:bg-gradient-premium-yellow hover:text-black"
+            className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
           >
             <Settings className="mr-2 h-4 w-4" />
             <span>Account Settings</span>
           </DropdownMenuItem>
           
-          <DropdownMenuSeparator className="bg-premium-border/20" />
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className="cursor-pointer hover:bg-primary hover:text-primary-foreground">
+              {theme === 'dark' ? (
+                <Moon className="mr-2 h-4 w-4" />
+              ) : theme === 'light' ? (
+                <Sun className="mr-2 h-4 w-4" />
+              ) : (
+                <Monitor className="mr-2 h-4 w-4" />
+              )}
+              <span>Theme</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="bg-card border-border shadow-lg">
+              <DropdownMenuItem 
+                onClick={() => setTheme('light')}
+                className={`cursor-pointer ${theme === 'light' ? 'bg-primary/20' : ''}`}
+              >
+                <Sun className="mr-2 h-4 w-4" />
+                <span>Light</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setTheme('dark')}
+                className={`cursor-pointer ${theme === 'dark' ? 'bg-primary/20' : ''}`}
+              >
+                <Moon className="mr-2 h-4 w-4" />
+                <span>Dark</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setTheme('system')}
+                className={`cursor-pointer ${theme === 'system' ? 'bg-primary/20' : ''}`}
+              >
+                <Monitor className="mr-2 h-4 w-4" />
+                <span>System</span>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          
+          <DropdownMenuSeparator className="bg-border/20" />
           
           <DropdownMenuItem 
             onClick={handleLogout}

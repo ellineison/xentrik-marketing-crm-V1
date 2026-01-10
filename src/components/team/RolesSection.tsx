@@ -53,9 +53,9 @@ const RolesSection: React.FC<Props> = ({ selected, onChange }) => {
   };
 
   return (
-    <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
-      <h2 className="text-xl font-bold mb-4 text-white">Additional Roles</h2>
-      <p className="text-xs mb-3 text-amber-400">
+    <div className="bg-card/50 p-6 rounded-xl border border-border/50">
+      <h2 className="text-xl font-bold mb-4 text-foreground">Additional Roles</h2>
+      <p className="text-xs mb-3 text-amber-600 dark:text-amber-400">
         Note: Creator is an exclusive role and cannot be combined with others
       </p>
       <div className="grid grid-cols-2 gap-3">
@@ -64,18 +64,18 @@ const RolesSection: React.FC<Props> = ({ selected, onChange }) => {
             key={role}
             className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer transition-all ${
               selected.includes(role)
-                ? "bg-[#2a2a45] border-yellow-400/50"
-                : "bg-[#1e1e2e] border-[#23233a]"
+                ? "bg-primary/20 border-primary/50"
+                : "bg-muted border-border"
             } ${isRoleDisabled(role) ? "opacity-50" : ""}`}
           >
             <input
               type="checkbox"
               checked={selected.includes(role)}
               onChange={() => handleRoleChange(role)}
-              className="accent-yellow-400 w-4 h-4"
+              className="accent-primary w-4 h-4"
               disabled={isRoleDisabled(role)}
             />
-            <span className={`text-white text-sm ${isRoleDisabled(role) ? "text-white/50" : ""}`}>
+            <span className={`text-foreground text-sm ${isRoleDisabled(role) ? "text-foreground/50" : ""}`}>
               {role}
             </span>
           </label>

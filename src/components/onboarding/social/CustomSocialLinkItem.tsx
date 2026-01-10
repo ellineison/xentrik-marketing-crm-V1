@@ -23,7 +23,7 @@ const CustomSocialLinkItem: React.FC<CustomSocialLinkItemProps> = ({
   onRemove
 }) => {
   return (
-    <div className="relative space-y-2 p-3 bg-[#1a1a33]/80 rounded-lg">
+    <div className="relative space-y-2 p-3 bg-card/80 rounded-lg">
       <Label>{link.name}</Label>
       <div className="flex">
         <Input 

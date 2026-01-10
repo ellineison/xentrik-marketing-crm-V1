@@ -34,7 +34,7 @@ const SidebarLogo: React.FC = () => {
 
   return (
     <Link to="/dashboard" className="flex h-20 items-center justify-center px-3 hover:opacity-90 transition-opacity py-8">
-      {!logoLoaded && <div className="h-[70px] w-[170px] bg-premium-dark/20 animate-pulse rounded"></div>}
+      {!logoLoaded && <div className="h-[70px] w-[170px] bg-muted/20 animate-pulse rounded"></div>}
       {logoUrl && (
         <img
           src={logoUrl}

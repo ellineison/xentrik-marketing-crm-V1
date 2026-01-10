@@ -12,7 +12,7 @@ interface TeamRolesSectionProps {
 
 const TeamRolesSection: React.FC<TeamRolesSectionProps> = ({ control }) => {
   return (
-    <div className="bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50">
+    <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50">
       <h2 className="text-xl font-semibold mb-4">Roles & Status</h2>
       
       <div className="space-y-6">

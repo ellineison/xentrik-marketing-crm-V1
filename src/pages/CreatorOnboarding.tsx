@@ -38,7 +38,7 @@ const CreatorOnboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#141428] p-6">
+    <div className="min-h-screen bg-background p-6">
       <OnboardingFormContainer>
         <OnboardingPageHeader 
           isSubmitting={isSubmitting}

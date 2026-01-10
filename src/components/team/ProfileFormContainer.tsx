@@ -35,7 +35,7 @@ const ProfileFormContainer: React.FC<ProfileFormContainerProps> = ({
   employeeName
 }) => {
   return (
-    <div className="bg-[#161618] border border-[#333333] rounded-lg p-6 max-w-4xl mx-auto">
+    <div className="bg-card border border-border rounded-lg p-6 max-w-4xl mx-auto">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <div className="flex gap-6 flex-col sm:flex-row">

@@ -152,7 +152,7 @@ const CustomsTracker = () => {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-premium-border border-t-brand-yellow mx-auto mb-4"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading customs...</p>
         </div>
       </div>
@@ -177,7 +177,7 @@ const CustomsTracker = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Customs Tracker</h1>
+          <h1 className="text-2xl font-bold text-foreground">Customs Tracker</h1>
         </div>
         <div className="flex gap-2">
           <Button 

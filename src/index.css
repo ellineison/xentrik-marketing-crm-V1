@@ -3,16 +3,55 @@
 @tailwind utilities;
  
 @layer base {
+  /* Light mode (default) */
   :root {
-    --background: 240 20% 12%; /* #141428 - the requested background color */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 98%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 45 100% 51%;    /* Gold/amber yellow for light mode */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 94%;
+    --secondary-foreground: 240 10% 20%;
+    --muted: 240 5% 90%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 45 100% 55%;     /* Slightly lighter amber */
+    --accent-foreground: 240 10% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 85%;
+    --input: 240 6% 85%;
+    --ring: 45 100% 51%;      /* Gold for focus ring */
+    --radius: 0.25rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 10% 10%;
+    --sidebar-primary: 45 100% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 92%;
+    --sidebar-accent-foreground: 240 10% 10%;
+    --sidebar-border: 240 6% 88%;
+    --sidebar-ring: 45 100% 51%;
+    
+    /* Premium light theme specific variables */
+    --premium-dark-bg: 0 0% 98%;
+    --premium-panel-bg: 0 0% 100%;
+    --premium-border: 240 6% 88%;
+    --premium-yellow-gradient: linear-gradient(to right, hsl(45 100% 51%), hsl(38 100% 50%));
+  }
+
+  /* Dark mode */
+  .dark {
+    --background: 240 20% 12%;
     --foreground: 0 0% 98%;
-    --card: 240 24% 15%; /* Slightly lighter than background for cards */
+    --card: 240 24% 15%;
     --card-foreground: 0 0% 98%;
     --popover: 240 24% 15%;
     --popover-foreground: 0 0% 98%;
     --primary: 54 100% 60%;    /* Banana yellow */
     --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 20% 20%; /* Adjusted for better contrast */
+    --secondary: 240 20% 20%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 20% 25%;
     --muted-foreground: 240 8% 65%;
@@ -23,21 +62,20 @@
     --border: 240 20% 25%;
     --input: 240 20% 25%;
     --ring: 54 100% 60%;      /* Banana yellow for focus ring */
-    --radius: 0.25rem;        /* Reduced radius for a more premium look */
     --sidebar-background: 240 24% 8%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 54 100% 60%;   /* Banana yellow */
+    --sidebar-primary: 54 100% 60%;
     --sidebar-primary-foreground: 240 5.9% 10%;
     --sidebar-accent: 240 20% 18%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 20% 18%;
-    --sidebar-ring: 54 100% 60%;      /* Banana yellow ring */
+    --sidebar-ring: 54 100% 60%;
     
     /* Premium dark theme specific variables */
-    --premium-dark-bg: #141428;
-    --premium-panel-bg: #1a1a33;
-    --premium-border: #252538;
-    --premium-yellow-gradient: linear-gradient(to right, #f5d020, #f5a320);
+    --premium-dark-bg: 240 20% 12%;
+    --premium-panel-bg: 240 24% 15%;
+    --premium-border: 240 20% 18%;
+    --premium-yellow-gradient: linear-gradient(to right, hsl(54 100% 60%), hsl(45 100% 55%));
   }
 
   * {
@@ -71,67 +109,67 @@
   }
 
   .tag-male {
-    @apply bg-blue-900/40 text-blue-200;
+    @apply bg-blue-500/20 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200;
   }
 
   .tag-female {
-    @apply bg-pink-900/40 text-pink-200;
+    @apply bg-pink-500/20 text-pink-700 dark:bg-pink-900/40 dark:text-pink-200;
   }
 
   .tag-trans {
-    @apply bg-purple-900/40 text-purple-200;
+    @apply bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-200;
   }
 
   .tag-real {
-    @apply bg-green-900/40 text-green-200;
+    @apply bg-green-500/20 text-green-700 dark:bg-green-900/40 dark:text-green-200;
   }
 
   .tag-ai {
-    @apply bg-cyan-900/40 text-cyan-200;
+    @apply bg-cyan-500/20 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-200;
   }
 
   .tag-a-team {
-    @apply bg-brand-yellow/40 text-brand-yellow;
+    @apply bg-primary/20 text-primary dark:bg-brand-yellow/40 dark:text-brand-yellow;
   }
 
   .tag-b-team {
-    @apply bg-yellow-900/40 text-yellow-200;
+    @apply bg-yellow-500/20 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-200;
   }
   
   .tag-c-team {
-    @apply bg-red-900/40 text-red-200;
+    @apply bg-red-500/20 text-red-700 dark:bg-red-900/40 dark:text-red-200;
   }
   
   .tag-admin {
-    @apply bg-red-900/40 text-red-200;
+    @apply bg-red-500/20 text-red-700 dark:bg-red-900/40 dark:text-red-200;
   }
   
   .tag-manager {
-    @apply bg-blue-900/40 text-blue-200;
+    @apply bg-blue-500/20 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200;
   }
   
   .tag-employee {
-    @apply bg-gray-900/40 text-gray-200;
+    @apply bg-gray-500/20 text-gray-700 dark:bg-gray-900/40 dark:text-gray-200;
   }
   
   .tag-active {
-    @apply bg-green-900/40 text-green-200;
+    @apply bg-green-500/20 text-green-700 dark:bg-green-900/40 dark:text-green-200;
   }
   
   .tag-inactive {
-    @apply bg-red-900/40 text-red-200;
+    @apply bg-red-500/20 text-red-700 dark:bg-red-900/40 dark:text-red-200;
   }
   
   .tag-paused {
-    @apply bg-amber-900/40 text-amber-200;
+    @apply bg-amber-500/20 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200;
   }
 
   .creator-card {
-    @apply bg-premium-card rounded-xl p-4 border border-premium-border hover:bg-premium-highlight transition-all duration-300 hover:translate-y-[-2px] shadow-premium-sm hover:shadow-premium-md;
+    @apply bg-card rounded-xl p-4 border border-border hover:bg-muted transition-all duration-300 hover:translate-y-[-2px] shadow-sm hover:shadow-md;
   }
   
   .employee-card {
-    @apply bg-card rounded-xl p-4 border border-border hover:bg-card/90 transition-all duration-300 hover:translate-y-[-2px] shadow-premium-sm hover:shadow-premium-md flex flex-col h-full;
+    @apply bg-card rounded-xl p-4 border border-border hover:bg-card/90 transition-all duration-300 hover:translate-y-[-2px] shadow-sm hover:shadow-md flex flex-col h-full;
   }
   
   .employee-card-content {
@@ -139,7 +177,7 @@
   }
   
   .employee-card-footer {
-    @apply mt-auto pt-4 border-t border-premium-border;
+    @apply mt-auto pt-4 border-t border-border;
   }
   
   .social-icon {
@@ -150,33 +188,33 @@
     @apply border-2 border-red-500;
   }
   
-  /* Banner-like UI elements with banana theme */
+  /* Banner-like UI elements with theme support */
   .banana-banner {
-    @apply bg-premium-card border border-premium-border rounded-lg p-4 shadow-premium-sm;
+    @apply bg-card border border-border rounded-lg p-4 shadow-sm;
   }
   
   .banana-card {
-    @apply bg-premium-card rounded-xl border border-premium-border shadow-premium-sm hover:shadow-premium-md hover:border-premium-accent1/40 transition-all duration-300;
+    @apply bg-card rounded-xl border border-border shadow-sm hover:shadow-md hover:border-primary/40 transition-all duration-300;
   }
   
   .banana-button {
-    @apply bg-brand-yellow text-black font-medium hover:bg-brand-highlight transition-colors duration-300 shadow-premium-sm;
+    @apply bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors duration-300 shadow-sm;
   }
   
   .message-bubble {
-    @apply rounded-2xl p-3 max-w-[85%] shadow-premium-sm;
+    @apply rounded-2xl p-3 max-w-[85%] shadow-sm;
   }
   
   .message-outgoing {
-    @apply message-bubble bg-brand-yellow text-black ml-auto;
+    @apply message-bubble bg-primary text-primary-foreground ml-auto;
   }
   
   .message-incoming {
-    @apply message-bubble bg-secondary text-white mr-auto;
+    @apply message-bubble bg-secondary text-secondary-foreground mr-auto;
   }
   
   .team-card {
-    @apply bg-premium-card rounded-lg overflow-hidden border border-premium-border hover:border-premium-accent1/40 transition-colors duration-300 shadow-premium-sm hover:shadow-premium-md;
+    @apply bg-card rounded-lg overflow-hidden border border-border hover:border-primary/40 transition-colors duration-300 shadow-sm hover:shadow-md;
   }
   
   .team-card-header {
@@ -184,39 +222,39 @@
   }
   
   .team-card-footer {
-    @apply bg-premium-darker flex border-t border-premium-border divide-x divide-premium-border;
+    @apply bg-muted flex border-t border-border divide-x divide-border;
   }
   
   .team-button {
-    @apply flex-1 rounded-none h-12 text-sm text-muted-foreground hover:text-white hover:bg-premium-highlight/50;
+    @apply flex-1 rounded-none h-12 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50;
   }
   
   .team-button-danger {
-    @apply flex-1 rounded-none h-12 text-sm text-red-400 hover:text-red-300 hover:bg-premium-highlight/50;
+    @apply flex-1 rounded-none h-12 text-sm text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-muted/50;
   }
   
   .premium-card {
-    @apply bg-gradient-card rounded-xl border border-premium-border p-5 shadow-premium-md transition-all duration-300 hover:shadow-premium-highlight hover:opacity-95;
+    @apply bg-card rounded-xl border border-border p-5 shadow-md transition-all duration-300 hover:shadow-lg hover:opacity-95;
   }
   
   .premium-stat-card {
-    @apply bg-gradient-card rounded-xl border border-premium-border p-4 shadow-premium-sm hover:shadow-premium-md transition-all duration-300 hover:opacity-95;
+    @apply bg-card rounded-xl border border-border p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:opacity-95;
   }
   
   .premium-banner {
-    @apply bg-gradient-premium border border-premium-border rounded-lg p-4 shadow-premium-md;
+    @apply bg-card/80 border border-border rounded-lg p-4 shadow-md;
   }
   
   .premium-sidebar {
-    @apply bg-gradient-sidebar border-r border-premium-border;
+    @apply bg-sidebar border-r border-sidebar-border;
   }
   
   .premium-button {
-    @apply bg-gradient-highlight text-white font-medium shadow-premium-sm hover:shadow-premium-highlight transition-all duration-300;
+    @apply bg-primary text-primary-foreground font-medium shadow-sm hover:shadow-md transition-all duration-300;
   }
   
   .premium-input {
-    @apply bg-premium-darker border border-premium-border focus:border-premium-accent1 focus:ring-1 focus:ring-premium-accent1/50 shadow-premium-inner;
+    @apply bg-muted border border-border focus:border-primary focus:ring-1 focus:ring-primary/50;
   }
   
   /* Original animations */
@@ -237,7 +275,7 @@
   }
   
   .hover-lift {
-    @apply transition-all duration-300 hover:translate-y-[-3px] hover:shadow-premium-md;
+    @apply transition-all duration-300 hover:translate-y-[-3px] hover:shadow-md;
   }
   
   .employee-header {
@@ -257,70 +295,70 @@
   }
   
   .employee-footer {
-    @apply flex gap-2 mt-4 pt-4 border-t border-premium-border;
+    @apply flex gap-2 mt-4 pt-4 border-t border-border;
   }
   
   .employee-btn {
-    @apply flex-1 flex items-center justify-center rounded-none h-12 text-sm hover:bg-premium-highlight/50;
+    @apply flex-1 flex items-center justify-center rounded-none h-12 text-sm hover:bg-muted/50;
   }
   
   .badge-admin {
-    @apply bg-red-900/40 text-red-200;
+    @apply bg-red-500/20 text-red-700 dark:bg-red-900/40 dark:text-red-200;
   }
   
   .badge-manager {
-    @apply bg-blue-900/40 text-blue-200;
+    @apply bg-blue-500/20 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200;
   }
   
   .badge-employee {
-    @apply bg-gray-900/40 text-gray-200;
+    @apply bg-gray-500/20 text-gray-700 dark:bg-gray-900/40 dark:text-gray-200;
   }
   
   .badge-active {
-    @apply bg-green-900/40 text-green-200;
+    @apply bg-green-500/20 text-green-700 dark:bg-green-900/40 dark:text-green-200;
   }
   
   .badge-inactive {
-    @apply bg-red-900/40 text-red-200;
+    @apply bg-red-500/20 text-red-700 dark:bg-red-900/40 dark:text-red-200;
   }
   
   .badge-paused {
-    @apply bg-amber-900/40 text-amber-200;
+    @apply bg-amber-500/20 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200;
   }
   
   .badge-team-a {
-    @apply bg-purple-900/40 text-purple-200;
+    @apply bg-purple-500/20 text-purple-700 dark:bg-purple-900/40 dark:text-purple-200;
   }
   
   .badge-team-b {
-    @apply bg-indigo-900/40 text-indigo-200;
+    @apply bg-indigo-500/20 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200;
   }
   
   .badge-team-c {
-    @apply bg-teal-900/40 text-teal-200;
+    @apply bg-teal-500/20 text-teal-700 dark:bg-teal-900/40 dark:text-teal-200;
   }
   
   /* Premium button styles with improved transitions and corners */
   .premium-button {
-    @apply bg-gradient-premium-yellow text-black font-medium rounded-xl shadow-premium-yellow 
-    hover:shadow-premium-highlight transition-all duration-300 transform hover:-translate-y-1 hover:opacity-90;
+    @apply bg-primary text-primary-foreground font-medium rounded-xl shadow-md 
+    hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:opacity-90;
   }
   
   .premium-button-outline {
-    @apply border border-brand-yellow/50 text-brand-yellow rounded-xl 
-    hover:bg-brand-yellow/10 transition-all duration-300 hover:opacity-90;
+    @apply border border-primary/50 text-primary rounded-xl 
+    hover:bg-primary/10 transition-all duration-300 hover:opacity-90;
   }
 
-  /* New premium navigation styles with improved hover effects */
+  /* Premium navigation styles with improved hover effects */
   .premium-nav-item {
-    @apply flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-all duration-300 hover:bg-gradient-premium-yellow hover:text-black hover:-translate-y-0.5 hover:opacity-90;
+    @apply flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:-translate-y-0.5 hover:opacity-90;
   }
   
   .premium-nav-item-active {
-    @apply bg-gradient-premium-yellow text-black shadow-premium-yellow;
+    @apply bg-primary text-primary-foreground shadow-md;
   }
   
-  /* New hover animation utilities */
+  /* Hover animation utilities */
   .hover-fade {
     @apply transition-opacity duration-300 hover:opacity-90;
   }
@@ -334,7 +372,7 @@
   }
   
   .hover-glow {
-    @apply transition-shadow duration-300 hover:shadow-premium-glow;
+    @apply transition-shadow duration-300 hover:shadow-lg;
   }
 }
 

@@ -68,7 +68,7 @@ const AttachmentsSection: React.FC<AttachmentsSectionProps> = ({ custom }) => {
           <div key={index} className="flex items-center justify-between bg-secondary/20 p-3 rounded">
             <div className="flex items-center">
               <Paperclip className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span className="text-white text-sm">
+              <span className="text-foreground text-sm">
                 {attachmentPath.split('/').pop() || `Attachment ${index + 1}`}
               </span>
             </div>

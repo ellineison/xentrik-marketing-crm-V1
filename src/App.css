@@ -10,22 +10,10 @@
 @import "./styles/theme.module.css";
 @import "./styles/forms.module.css";
 
-/* Root background color enforcement */
+/* Root container (do not enforce theme colors here; Tailwind tokens handle light/dark) */
 #root {
   margin: 0 auto;
   text-align: center;
-  background-color: #141428;
-  color: hsl(var(--foreground));
 }
 
-/* Ensure all main containers have the correct background */
-.app, 
-.container, 
-.content-area, 
-.page-container,
-main,
-.min-h-screen {
-  background-color: #141428;
-  color: hsl(var(--foreground));
-}
 

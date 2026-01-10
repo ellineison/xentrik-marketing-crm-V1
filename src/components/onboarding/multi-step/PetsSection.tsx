@@ -51,7 +51,7 @@ const PetsSection: React.FC = () => {
       {hasPets && (
         <div className="space-y-4 mt-2 pl-7">
           {pets.map((_, index) => (
-            <div key={index} className="p-4 border border-[#252538] rounded-md bg-[#1a1a33]/30">
+            <div key={index} className="p-4 border border-border rounded-md bg-muted/30">
               <div className="flex justify-between items-center mb-2">
                 <h4 className="text-sm font-medium">Pet #{index + 1}</h4>
                 <Button

@@ -42,19 +42,19 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
     const { control, isCurrentUser } = props;
     
     return (
-      <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
-        <h2 className="text-xl font-bold mb-6 text-white">Basic Information</h2>
+      <div className="bg-card/50 p-6 rounded-xl border border-border/50">
+        <h2 className="text-xl font-bold mb-6 text-foreground">Basic Information</h2>
         <div className="space-y-4">
           <FormField
             control={control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Full Name</FormLabel>
+                <FormLabel className="text-foreground">Full Name</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="John Doe"
-                    className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+                    className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
                     {...field}
                   />
                 </FormControl>
@@ -68,11 +68,11 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Email</FormLabel>
+                <FormLabel className="text-foreground">Email</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="john.doe@example.com"
-                    className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+                    className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
                     {...field}
                   />
                 </FormControl>
@@ -88,10 +88,10 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">Role</FormLabel>
+                    <FormLabel className="text-foreground">Role</FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 rounded bg-[#23233a] text-white border-none"
+                        className="w-full p-2 rounded bg-muted text-foreground border border-border"
                         {...field}
                       >
                         <option value="Admin">Admin</option>
@@ -109,10 +109,10 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">Status</FormLabel>
+                    <FormLabel className="text-foreground">Status</FormLabel>
                     <FormControl>
                       <select
-                        className="w-full p-2 rounded bg-[#23233a] text-white border-none"
+                        className="w-full p-2 rounded bg-muted text-foreground border border-border"
                         disabled={isCurrentUser}
                         {...field}
                       >
@@ -134,11 +134,11 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
               name="telegram"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Telegram</FormLabel>
+                  <FormLabel className="text-foreground">Telegram</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="username"
-                      className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+                      className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
                       {...field}
                     />
                   </FormControl>
@@ -152,11 +152,11 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
               name="department"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Department</FormLabel>
+                  <FormLabel className="text-foreground">Department</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Marketing"
-                      className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+                      className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
                       {...field}
                     />
                   </FormControl>
@@ -174,24 +174,24 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
   const { form, onInputChange } = props;
   
   return (
-    <div className="bg-[#1a1a33]/50 p-6 rounded-xl border border-[#252538]/50">
-      <h2 className="text-xl font-bold mb-6 text-white">Basic Information</h2>
+    <div className="bg-card/50 p-6 rounded-xl border border-border/50">
+      <h2 className="text-xl font-bold mb-6 text-foreground">Basic Information</h2>
       <div className="space-y-4">
         <div>
-          <Label htmlFor="name" className="text-white mb-1">Full Name</Label>
+          <Label htmlFor="name" className="text-foreground mb-1">Full Name</Label>
           <Input
             id="name"
             name="name"
             value={form.name}
             onChange={onInputChange}
             placeholder="John Doe"
-            className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+            className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
             autoFocus
             required
           />
         </div>
         <div>
-          <Label htmlFor="email" className="text-white mb-1">Email</Label>
+          <Label htmlFor="email" className="text-foreground mb-1">Email</Label>
           <Input
             id="email"
             name="email"
@@ -199,13 +199,13 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
             value={form.email}
             onChange={onInputChange}
             placeholder="john.doe@example.com"
-            className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+            className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
             required
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="password" className="text-white mb-1">Password</Label>
+            <Label htmlFor="password" className="text-foreground mb-1">Password</Label>
             <Input
               id="password"
               name="password"
@@ -213,12 +213,12 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
               value={form.password}
               onChange={onInputChange}
               placeholder="********"
-              className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+              className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
               required
             />
           </div>
           <div>
-            <Label htmlFor="confirmPassword" className="text-white mb-1">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-foreground mb-1">Confirm Password</Label>
             <Input
               id="confirmPassword"
               name="confirmPassword"
@@ -226,44 +226,44 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = (props) => {
               value={form.confirmPassword}
               onChange={onInputChange}
               placeholder="********"
-              className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+              className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
               required
             />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="telegram" className="text-white mb-1">Telegram</Label>
+            <Label htmlFor="telegram" className="text-foreground mb-1">Telegram</Label>
             <Input
               id="telegram"
               name="telegram"
               value={form.telegram}
               onChange={onInputChange}
               placeholder="username"
-              className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+              className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
             />
           </div>
           <div>
-            <Label htmlFor="phoneNumber" className="text-white mb-1">Phone Number</Label>
+            <Label htmlFor="phoneNumber" className="text-foreground mb-1">Phone Number</Label>
             <Input
               id="phoneNumber"
               name="phoneNumber"
               value={form.phoneNumber}
               onChange={onInputChange}
               placeholder="+1234567890"
-              className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+              className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
             />
           </div>
         </div>
         <div>
-          <Label htmlFor="department" className="text-white mb-1">Department</Label>
+          <Label htmlFor="department" className="text-foreground mb-1">Department</Label>
           <Input
             id="department"
             name="department"
             value={form.department}
             onChange={onInputChange}
             placeholder="Marketing"
-            className="bg-[#23233a] text-white border-none placeholder:text-neutral-400"
+            className="bg-muted text-foreground border-border placeholder:text-muted-foreground"
           />
         </div>
       </div>

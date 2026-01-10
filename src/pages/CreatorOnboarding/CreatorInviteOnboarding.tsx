@@ -121,7 +121,7 @@ const CreatorInviteOnboarding = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle>Loading</CardTitle>
@@ -138,7 +138,7 @@ const CreatorInviteOnboarding = () => {
   // Show success message after submission
   if (isSubmitted) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
@@ -160,7 +160,7 @@ const CreatorInviteOnboarding = () => {
 
   // The main onboarding form with tabs for different sections
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
+    <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="w-full mb-6">
           <CardHeader className="text-center">

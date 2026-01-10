@@ -25,7 +25,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         className={cn(
-          "rounded-xl bg-premium-darker border-premium-border focus:border-brand-yellow transition-all duration-300 hover:opacity-90",
+          "rounded-xl bg-muted border-border focus:border-primary transition-all duration-300 hover:opacity-90",
           error ? 'border-red-500 focus:border-red-500' : ''
         )}
       />

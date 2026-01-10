@@ -80,7 +80,7 @@ const CustomCard: React.FC<CustomCardProps> = ({
       <div className="p-2 space-y-2">
         {/* Header with Model Name and Overdue Indicator */}
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="text-brand-yellow border-brand-yellow text-xs flex-shrink-0">
+          <Badge variant="outline" className="text-foreground dark:text-brand-yellow border-foreground dark:border-brand-yellow text-xs flex-shrink-0">
             {custom.model_name}
           </Badge>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -102,7 +102,7 @@ const CustomCard: React.FC<CustomCardProps> = ({
         {/* Fan Information */}
         <div className="flex items-center text-xs text-muted-foreground">
           <User className="h-3 w-3 mr-1 flex-shrink-0" />
-          <span className="font-medium text-white truncate">{custom.fan_display_name}</span>
+          <span className="font-medium text-foreground truncate">{custom.fan_display_name}</span>
           {custom.fan_username && (
             <span className="ml-1 truncate">(@{custom.fan_username})</span>
           )}
@@ -110,7 +110,7 @@ const CustomCard: React.FC<CustomCardProps> = ({
 
         {/* Custom Type - Single line with ellipsis */}
         <div>
-          <p className="text-xs text-gray-300 text-left truncate">
+          <p className="text-xs text-muted-foreground text-left truncate">
             {custom.custom_type || 'Custom type not specified'}
           </p>
         </div>

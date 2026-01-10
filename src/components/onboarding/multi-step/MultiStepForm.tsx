@@ -191,11 +191,11 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   // Show loading state while validating token
   if (token && tokenValid === null) {
     return (
-      <Card className="w-full bg-[#1a1a33]/70 border-[#252538]/50 shadow-xl">
+      <Card className="w-full bg-card/70 border-border/50 shadow-xl">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <Upload className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-white">Validating invitation link...</p>
+            <p className="text-foreground">Validating invitation link...</p>
           </div>
         </CardContent>
       </Card>
@@ -205,11 +205,11 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   // Show error state for invalid token
   if (token && tokenValid === false) {
     return (
-      <Card className="w-full bg-[#1a1a33]/70 border-[#252538]/50 shadow-xl">
+      <Card className="w-full bg-card/70 border-border/50 shadow-xl">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
-            <p className="text-red-400 mb-4">This onboarding link is invalid or has expired.</p>
-            <p className="text-gray-400">Please contact an administrator for a new link.</p>
+            <p className="text-red-500 dark:text-red-400 mb-4">This onboarding link is invalid or has expired.</p>
+            <p className="text-muted-foreground">Please contact an administrator for a new link.</p>
           </div>
         </CardContent>
       </Card>
@@ -222,33 +222,33 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
     const hasContentGuide = sex === 'Female' || sex === 'Male';
     
     return (
-      <Card className="w-full bg-[#1a1a33]/70 border-[#252538]/50 shadow-xl">
+      <Card className="w-full bg-card/70 border-border/50 shadow-xl">
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center max-w-md">
             <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-4">Form Successfully Submitted!</h2>
-            <p className="text-gray-300 mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Form Successfully Submitted!</h2>
+            <p className="text-muted-foreground mb-6">
               Thank you for completing the onboarding process. Your information has been received and will be reviewed by our team.
             </p>
             {hasContentGuide ? (
               <>
-                <p className="text-gray-300 mb-6">
+                <p className="text-muted-foreground mb-6">
                   To get started with creating content, download our comprehensive content guide below. This guide will help you understand our content requirements and best practices.
                 </p>
                 <Button 
                   onClick={handleContentGuideDownload}
-                  className="mb-6 bg-gradient-premium-yellow text-black hover:shadow-premium-yellow"
+                  className="mb-6 bg-primary text-primary-foreground hover:shadow-lg"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Download Content Guide
                 </Button>
               </>
             ) : (
-              <p className="text-gray-300 mb-6">
+              <p className="text-muted-foreground mb-6">
                 We'll provide you with specific content guidelines during our review process.
               </p>
             )}
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               You can now close this page. We'll be in touch soon!
             </p>
           </div>
@@ -303,18 +303,18 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
   return (
     <FormProvider {...methods}>
       <form onSubmit={onFormSubmit} className="space-y-4 sm:space-y-6 lg:space-y-8">
-        <Card className="w-full bg-[#1a1a33]/70 border-[#252538]/50 shadow-xl">
+        <Card className="w-full bg-card/70 border-border/50 shadow-xl">
           <CardHeader className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Creator Onboarding</CardTitle>
+              <CardTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">Creator Onboarding</CardTitle>
               {modelType === 'new' && (
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-1 rounded">
                   New Model Form
                 </span>
               )}
             </div>
             <CardDescription className="text-sm sm:text-base">
-              Complete the form to save <span className="bg-gradient-premium-yellow bg-clip-text text-transparent font-semibold">information that you want us to publicly and consistently tell the fans</span>. We promise to save this data securely.
+              Complete the form to save <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-semibold">information that you want us to publicly and consistently tell the fans</span>. We promise to save this data securely.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
@@ -324,7 +324,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
                   <TabsTrigger 
                     key={step.id} 
                     value={step.id}
-                    className="data-[state=active]:bg-gradient-premium-yellow data-[state=active]:text-black text-xs sm:text-sm p-2 sm:p-3 h-auto whitespace-normal text-center"
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm p-2 sm:p-3 h-auto whitespace-normal text-center"
                   >
                     <span className="block sm:hidden">{step.label.split(' ')[0]}</span>
                     <span className="hidden sm:block">{step.label}</span>
@@ -349,7 +349,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({ token }) => {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 border-t border-[#252538]/50 pt-4 p-4 sm:p-6">
+          <CardFooter className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 border-t border-border/50 pt-4 p-4 sm:p-6">
             <Button
               type="button"
               variant="outline"

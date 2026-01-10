@@ -21,12 +21,12 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => (
   <div className="premium-stat-card group">
     <div className="flex justify-between items-start mb-2">
-      <h3 className="text-lg font-medium text-white group-hover:text-brand-yellow transition-colors">{title}</h3>
-      <div className="p-2 rounded-full bg-brand-yellow/10 text-brand-yellow">
+      <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">{title}</h3>
+      <div className="p-2 rounded-full bg-primary/10 text-primary">
         {icon}
       </div>
     </div>
-    <p className="text-4xl font-bold text-white">{isLoading ? '...' : value}</p>
+    <p className="text-4xl font-bold text-foreground">{isLoading ? '...' : value}</p>
     {!isLoading && isTopTeam && (
       <div className="text-xs text-muted-foreground mt-2">
         <TrendingUp className="h-3 w-3 inline mr-1" />

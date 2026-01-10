@@ -23,7 +23,7 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
       <Link to={`/team/${employee.id}`} state={{ returnToTeam: true }} className="w-full">
         <Button 
           variant="ghost" 
-          className="rounded-none h-14 flex items-center justify-center text-sm hover:bg-[#222] w-full"
+          className="rounded-none h-14 flex items-center justify-center text-sm hover:bg-muted w-full"
         >
           <Edit className="h-5 w-5 mr-2" />
           Edit
@@ -35,7 +35,7 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
           {onDeactivateClick && (
             <Button 
               variant="ghost" 
-              className="rounded-none h-14 flex items-center justify-center text-sm hover:bg-[#222] border-t border-[#333333] text-red-400 hover:text-red-300"
+              className="rounded-none h-14 flex items-center justify-center text-sm hover:bg-muted border-t border-border text-red-400 hover:text-red-300"
               onClick={onDeactivateClick}
             >
               <UserX className="h-5 w-5 mr-2" />
@@ -45,7 +45,7 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
           
           <Button 
             variant="ghost" 
-            className="rounded-none h-14 flex items-center justify-center text-sm hover:bg-[#222] border-t border-l border-[#333333]"
+            className="rounded-none h-14 flex items-center justify-center text-sm hover:bg-muted border-t border-l border-border"
             onClick={onTogglePause}
           >
             {employee.status === "Paused" ? (

@@ -135,7 +135,7 @@ const CreatorCard = ({
                 className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-primary/20 group-hover:border-primary/40 transition-all"
               />
             ) : (
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-premium-highlight/10 flex items-center justify-center">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-muted/50 flex items-center justify-center">
                 <span className="text-lg md:text-xl font-semibold text-primary/60 group-hover:text-primary/80 transition-colors">
                   {(creator.modelName || creator.name)[0].toUpperCase()}
                 </span>

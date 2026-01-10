@@ -24,9 +24,9 @@ const Dashboard = () => {
   } = dashboardStats;
 
   return (
-    <div className="p-8 w-full bg-premium-dark">
+    <div className="p-8 w-full bg-background">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-white">Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2 text-foreground">Dashboard</h1>
         <p className="text-muted-foreground">Overview of your creator management system</p>
       </div>
 

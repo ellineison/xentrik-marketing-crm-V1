@@ -117,7 +117,7 @@ const DatesSection: React.FC<DatesSectionProps> = ({ custom }) => {
         <label className="text-sm font-medium text-muted-foreground">Sale Date</label>
         <div className="flex items-center mt-1">
           <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-          <span className="text-white">{format(parseISO(custom.sale_date), 'MMM dd, yyyy')}</span>
+          <span className="text-foreground">{format(parseISO(custom.sale_date), 'MMM dd, yyyy')}</span>
         </div>
       </div>
       
@@ -130,7 +130,7 @@ const DatesSection: React.FC<DatesSectionProps> = ({ custom }) => {
               variant="ghost"
               onClick={() => setIsEditingDueDate(true)}
               disabled={updateDueDateMutation.isPending}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-white"
+              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
             >
               <Edit className="h-3 w-3" />
             </Button>
@@ -170,7 +170,7 @@ const DatesSection: React.FC<DatesSectionProps> = ({ custom }) => {
         ) : (
           <div className="flex items-center mt-1">
             <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span className="text-white">
+            <span className="text-foreground">
               {custom.due_date ? format(parseISO(custom.due_date), 'MMM dd, yyyy') : 'No due date set'}
             </span>
           </div>
@@ -186,7 +186,7 @@ const DatesSection: React.FC<DatesSectionProps> = ({ custom }) => {
               variant="ghost"
               onClick={() => setIsEditingCustomType(true)}
               disabled={updateCustomTypeMutation.isPending}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-white"
+              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
             >
               <Edit className="h-3 w-3" />
             </Button>
@@ -228,7 +228,7 @@ const DatesSection: React.FC<DatesSectionProps> = ({ custom }) => {
             </div>
           </div>
         ) : (
-          <p className="text-white bg-secondary/20 p-3 rounded">
+          <p className="text-foreground bg-secondary/20 p-3 rounded">
             {custom.custom_type || 'Not specified'}
           </p>
         )}

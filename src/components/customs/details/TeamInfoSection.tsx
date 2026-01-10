@@ -17,7 +17,7 @@ const TeamInfoSection: React.FC<TeamInfoSectionProps> = ({ custom }) => {
         <div>
           <label className="text-sm font-medium text-muted-foreground">Endorsed By</label>
           <div className="mt-1">
-            <span className="text-white">{custom.endorsed_by}</span>
+            <span className="text-foreground">{custom.endorsed_by}</span>
           </div>
         </div>
       )}
@@ -26,7 +26,7 @@ const TeamInfoSection: React.FC<TeamInfoSectionProps> = ({ custom }) => {
         <div>
           <label className="text-sm font-medium text-muted-foreground">Sent By</label>
           <div className="mt-1">
-            <span className="text-white">{custom.sent_by}</span>
+            <span className="text-foreground">{custom.sent_by}</span>
           </div>
         </div>
       )}

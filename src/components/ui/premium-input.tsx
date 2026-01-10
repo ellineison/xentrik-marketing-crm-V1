@@ -12,7 +12,7 @@ export const PremiumInput: React.FC<PremiumInputProps> = ({
   return (
     <Input
       className={cn(
-        "bg-[#1a1a33] border-[#252538] text-white placeholder-gray-400 focus:border-primary focus:ring-primary/20",
+        "bg-muted border-border text-foreground placeholder-muted-foreground focus:border-primary focus:ring-primary/20",
         className
       )}
       {...props}

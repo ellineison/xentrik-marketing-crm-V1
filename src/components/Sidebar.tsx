@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,7 +37,7 @@ const Sidebar = () => {
         <SidebarContent className="pt-8 h-full flex flex-col">
           <SidebarLogo />
           
-          <div className="px-3 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-premium-border/30 scrollbar-track-transparent mt-4">
+          <div className="px-3 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent mt-4">
             <SidebarNav isAdmin={isAdmin} />
           </div>
 

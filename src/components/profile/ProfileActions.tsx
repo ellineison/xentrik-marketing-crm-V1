@@ -61,7 +61,7 @@ const ProfileActions: React.FC<ProfileActionsProps> = ({
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between py-2 px-4 bg-[#252538]/50 rounded-lg">
+          <div className="flex items-center justify-between py-2 px-4 bg-muted/50 rounded-lg">
             <div className="space-y-1">
               <Label htmlFor="review" className={needsReview ? "font-medium text-red-400" : "font-medium"}>Manual Review Needed</Label>
               <p className="text-xs text-muted-foreground">

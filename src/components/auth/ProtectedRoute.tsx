@@ -46,9 +46,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-premium-darker">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-premium-border border-t-brand-yellow"></div>
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-primary"></div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -68,17 +68,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         <Sidebar>
           <SidebarContent className="pt-8">
             <SidebarLogo />
-            <div className="px-3 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-premium-border/30 scrollbar-track-transparent mt-4">
+            <div className="px-3 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent mt-4">
               <SidebarNav isAdmin={isAdmin} />
             </div>
-            <div className="mt-auto p-3 border-t border-premium-border/20">
+            <div className="mt-auto p-3 border-t border-border/20">
               {user && <SidebarUserSection />}
             </div>
           </SidebarContent>
         </Sidebar>
         
-        <SidebarInset className="bg-premium-dark overflow-y-auto">
-          <div className="flex items-center justify-between border-b border-premium-border/20 bg-premium-darker p-4">
+        <SidebarInset className="bg-background overflow-y-auto">
+          <div className="flex items-center justify-between border-b border-border/20 bg-card p-4">
             <div className="flex items-center">
               <SidebarTrigger />
               <h1 className="ml-4 text-lg font-semibold">{pageTitle}</h1>

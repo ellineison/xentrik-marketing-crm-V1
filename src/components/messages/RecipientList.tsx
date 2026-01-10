@@ -104,7 +104,7 @@ const RecipientList: React.FC<RecipientListProps> = ({
                   key={`recipient-${recipient.id}`}
                   className={`w-full text-left px-3 py-3 rounded-lg transition-all flex items-center gap-3 ${
                     isSelected 
-                      ? 'bg-secondary text-white' 
+                      ? 'bg-secondary text-foreground' 
                       : 'hover:bg-secondary/10'
                   }`}
                   onClick={() => onSelectRecipient(recipient.id)}
@@ -118,7 +118,7 @@ const RecipientList: React.FC<RecipientListProps> = ({
                     </Avatar>
                     {isSelected && (
                       <div className="absolute -top-1 -right-1 bg-primary rounded-full p-0.5">
-                        <Check className="h-3 w-3 text-black" />
+                        <Check className="h-3 w-3 text-primary-foreground" />
                       </div>
                     )}
                   </div>

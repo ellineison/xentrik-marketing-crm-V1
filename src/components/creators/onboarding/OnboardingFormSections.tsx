@@ -101,7 +101,7 @@ const OnboardingFormSections: React.FC<OnboardingFormSectionsProps> = (props) =>
       {/* Basic Information and Profile Picture */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Basic Information */}
-        <div className="lg:col-span-2 bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50">
+        <div className="lg:col-span-2 bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50">
           <BasicInfoSection 
             name={name}
             setName={setName}
@@ -116,7 +116,7 @@ const OnboardingFormSections: React.FC<OnboardingFormSectionsProps> = (props) =>
         </div>
         
         {/* Profile Picture */}
-        <div className="bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50 flex flex-col items-center justify-center">
+        <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50 flex flex-col items-center justify-center">
           <ProfilePicture
             profileImage={profileImage}
             name={name || "New Creator"}
@@ -126,7 +126,7 @@ const OnboardingFormSections: React.FC<OnboardingFormSectionsProps> = (props) =>
       </div>
 
       {/* Marketing Strategy */}
-      <div className="bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50">
+      <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50">
         <MarketingStrategySection
           marketingStrategy={marketingStrategy}
           setMarketingStrategy={setMarketingStrategy}

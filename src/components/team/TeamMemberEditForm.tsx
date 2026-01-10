@@ -27,7 +27,7 @@ const TeamMemberEditForm: React.FC<TeamMemberEditFormProps> = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* Profile Image Section - Full Width at Top */}
-        <div className="bg-[#1a1a33]/50 backdrop-blur-sm p-6 rounded-xl border border-[#252538]/50">
+        <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border/50">
           <h2 className="text-xl font-semibold mb-4">Profile Image</h2>
           <div className="flex justify-center">
             <ProfileImageSection

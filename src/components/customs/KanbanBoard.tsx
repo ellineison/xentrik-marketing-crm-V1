@@ -152,8 +152,8 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {COLUMNS.map((column) => (
             <div key={column.id} className="flex flex-col h-full" style={{ flex: '1 1 0%', minWidth: '380px' }}>
               <PremiumCard className={`flex-1 ${getColumnStyles(column.id, column.color)}`}>
-                <div className="p-2 border-b border-premium-border/20">
-                  <h3 className="font-semibold text-white text-sm">{column.title}</h3>
+                <div className="p-2 border-b border-border/20">
+                  <h3 className="font-semibold text-foreground text-sm">{column.title}</h3>
                   <span className="text-xs text-muted-foreground">
                     {getCustomsByStatus(column.id).length} items
                   </span>

@@ -348,7 +348,7 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
       <div className="space-y-4">
         {sections.map((section, index) => (
           <div key={index} className="mb-4">
-            <h4 className="text-base font-semibold mb-3 border-b pb-1 text-white">{section.title}</h4>
+            <h4 className="text-base font-semibold mb-3 border-b pb-1 text-foreground">{section.title}</h4>
             {renderDataSection(token, section.data, section.title, section.priority, section.key)}
           </div>
         ))}

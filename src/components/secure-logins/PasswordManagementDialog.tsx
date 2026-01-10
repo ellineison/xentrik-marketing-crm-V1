@@ -53,7 +53,7 @@ const PasswordManagementDialog: React.FC<PasswordManagementDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-premium-card border-premium-border shadow-premium-md">
+      <DialogContent className="bg-card border-border shadow-md">
         <DialogHeader>
           <DialogTitle className="text-xl">Manage Secure Area Password</DialogTitle>
           <DialogDescription>
@@ -70,7 +70,7 @@ const PasswordManagementDialog: React.FC<PasswordManagementDialogProps> = ({
               value={password}
               onChange={handlePasswordChange}
               placeholder="Enter new password"
-              className="bg-premium-darker border-premium-border"
+              className="bg-muted border-border"
             />
           </div>
           
@@ -82,7 +82,7 @@ const PasswordManagementDialog: React.FC<PasswordManagementDialogProps> = ({
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               placeholder="Confirm new password"
-              className="bg-premium-darker border-premium-border"
+              className="bg-muted border-border"
             />
           </div>
           

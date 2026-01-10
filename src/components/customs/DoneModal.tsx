@@ -55,7 +55,7 @@ const DoneModal: React.FC<DoneModalProps> = ({ isOpen, onClose, onConfirm, custo
         
         {custom && (
           <div className="py-4">
-            <div className="mb-4 p-3 bg-premium-darker rounded-lg">
+            <div className="mb-4 p-3 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Custom for:</p>
               <p className="font-medium">{custom.model_name}</p>
               <p className="text-sm text-muted-foreground">

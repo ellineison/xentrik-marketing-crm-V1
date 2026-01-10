@@ -19,8 +19,8 @@ interface OnboardingSocialLinksProps {
 
 const OnboardingSocialLinks: React.FC<OnboardingSocialLinksProps> = ({ control }) => {
   return (
-    <div className="rounded-xl bg-gradient-to-br from-[#1a1a33]/50 to-[#1a1a33]/30 backdrop-blur-sm p-6 border border-[#252538]/50 shadow-lg">
-      <h2 className="text-lg font-semibold mb-4 text-white">Social Media Links</h2>
+    <div className="rounded-xl bg-gradient-to-br from-card/50 to-card/30 backdrop-blur-sm p-6 border border-border/50 shadow-lg">
+      <h2 className="text-lg font-semibold mb-4 text-foreground">Social Media Links</h2>
       <div className="grid gap-4">
         <div className="grid grid-cols-2 gap-4">
           <FormField

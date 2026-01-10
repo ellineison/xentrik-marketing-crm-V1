@@ -48,7 +48,7 @@ const Payroll: React.FC = () => {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-premium-dark flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Alert className="max-w-md">
           <Lock className="h-4 w-4" />
           <AlertDescription>
@@ -60,7 +60,7 @@ const Payroll: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-premium-dark">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4">
         {canManageAll ? (
           <AdminPayrollView 

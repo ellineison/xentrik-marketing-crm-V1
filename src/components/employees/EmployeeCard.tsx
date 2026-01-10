@@ -37,7 +37,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   const canChangeStatus = isAdmin && !isCurrentUser;
   
   return (
-    <Card className="overflow-hidden flex flex-col h-full rounded-lg border border-[#333333] bg-premium-card hover:bg-premium-highlight shadow-md">
+    <Card className="overflow-hidden flex flex-col h-full rounded-lg border border-border bg-card hover:bg-muted/50 shadow-md">
       <div className="p-6 flex-grow space-y-6">
         {/* Header with email and role */}
         <EmployeeCardHeader employee={employee} />
@@ -49,7 +49,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
         <EmployeeCardInfo employee={employee} />
       </div>
       
-      <CardFooter className="mt-auto border-t border-[#333333] p-0">
+      <CardFooter className="mt-auto border-t border-border p-0">
         <EmployeeCardActions 
           employee={employee}
           onTogglePause={handleTogglePause}

@@ -74,7 +74,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ custom })
             variant="ghost"
             onClick={() => setIsEditingCustomType(true)}
             disabled={updateCustomTypeMutation.isPending}
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-white"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
           >
             <Edit className="h-3 w-3" />
           </Button>
@@ -116,7 +116,7 @@ const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ custom })
           </div>
         </div>
       ) : (
-        <p className="text-white bg-secondary/20 p-3 rounded">
+        <p className="text-foreground bg-secondary/20 p-3 rounded">
           {custom.custom_type || 'Not specified'}
         </p>
       )}

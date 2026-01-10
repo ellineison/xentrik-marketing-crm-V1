@@ -14,7 +14,7 @@ const FanInfoSection: React.FC<FanInfoSectionProps> = ({ custom }) => {
         <label className="text-sm font-medium text-muted-foreground">Fan Display Name</label>
         <div className="flex items-center mt-1">
           <User className="h-4 w-4 mr-2 text-muted-foreground" />
-          <span className="text-white">{custom.fan_display_name}</span>
+          <span className="text-foreground">{custom.fan_display_name}</span>
         </div>
       </div>
       
@@ -22,7 +22,7 @@ const FanInfoSection: React.FC<FanInfoSectionProps> = ({ custom }) => {
         <div>
           <label className="text-sm font-medium text-muted-foreground">Fan Username</label>
           <div className="mt-1">
-            <span className="text-white">@{custom.fan_username}</span>
+            <span className="text-foreground">@{custom.fan_username}</span>
           </div>
         </div>
       )}

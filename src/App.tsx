@@ -67,7 +67,7 @@ function App() {
           <SupabaseAuthProvider>
             <AuthProvider>
               <TeamProvider>
-                <div className="app flex h-screen w-full bg-premium-dark">
+                <div className="app flex h-screen w-full bg-background text-foreground">
                   <Toaster />
                   <AnimatePresence mode="wait">
                     <AppRoutes />

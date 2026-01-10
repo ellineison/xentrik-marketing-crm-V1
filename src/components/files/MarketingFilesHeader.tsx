@@ -72,34 +72,34 @@ const MarketingFilesHeader: React.FC<MarketingFilesHeaderProps> = ({
         <div className="relative flex-1">
           <Input
             placeholder="Search by name or email..."
-            className="pl-10 h-12 w-full bg-background border-white/20 text-white"
+            className="pl-10 h-12 w-full bg-background border-border text-foreground"
             value={searchQuery}
             onChange={handleSearchChange}
           />
           <span className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <SlidersHorizontal className="h-5 w-5 text-white" />
+            <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
           </span>
         </div>
         {/* Gender Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-white/20 text-white">
-              <SlidersHorizontal className="h-5 w-5 text-white" />
+            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-border text-foreground">
+              <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
               Gender
               {selectedGenders.length > 0 && (
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">{selectedGenders.length}</span>
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">{selectedGenders.length}</span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by gender</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by gender</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {genderTags.map((g) => (
               <DropdownMenuCheckboxItem
                 key={g}
                 checked={selectedGenders.includes(g)}
                 onCheckedChange={() => toggleGender(g)}
-                className="text-white"
+                className="text-foreground"
               >
                 {g}
               </DropdownMenuCheckboxItem>
@@ -109,23 +109,23 @@ const MarketingFilesHeader: React.FC<MarketingFilesHeaderProps> = ({
         {/* Team Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-white/20 text-white">
-              <Users className="h-5 w-5 text-white" />
+            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-border text-foreground">
+              <Users className="h-5 w-5 text-muted-foreground" />
               Teams
               {selectedTeams.length > 0 && (
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">{selectedTeams.length}</span>
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">{selectedTeams.length}</span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by team</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by team</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {teamTags.map((t) => (
               <DropdownMenuCheckboxItem
                 key={t}
                 checked={selectedTeams.includes(t)}
                 onCheckedChange={() => toggleTeam(t)}
-                className="text-white"
+                className="text-foreground"
               >
                 {t}
               </DropdownMenuCheckboxItem>
@@ -135,23 +135,23 @@ const MarketingFilesHeader: React.FC<MarketingFilesHeaderProps> = ({
         {/* Class Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-white/20 text-white">
-              <AlertCircle className="h-5 w-5 text-white" />
+            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-border text-foreground">
+              <AlertCircle className="h-5 w-5 text-muted-foreground" />
               Class
               {selectedClasses.length > 0 && (
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">{selectedClasses.length}</span>
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">{selectedClasses.length}</span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by class</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by class</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {classTags.map((c) => (
               <DropdownMenuCheckboxItem
                 key={c}
                 checked={selectedClasses.includes(c)}
                 onCheckedChange={() => toggleClass(c)}
-                className="text-white"
+                className="text-foreground"
               >
                 {c}
               </DropdownMenuCheckboxItem>
@@ -161,23 +161,23 @@ const MarketingFilesHeader: React.FC<MarketingFilesHeaderProps> = ({
         {/* Marketing Strategy Filter */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-white/20 text-white">
-              <Target className="h-5 w-5 text-white" />
+            <Button variant="outline" className="rounded-full flex gap-2 items-center min-w-[120px] h-12 border-border text-foreground">
+              <Target className="h-5 w-5 text-muted-foreground" />
               Strategy
               {selectedMarketingStrategies.length > 0 && (
-                <span className="ml-1 bg-white/10 text-xs px-2 py-0.5 rounded-full text-white">{selectedMarketingStrategies.length}</span>
+                <span className="ml-1 bg-muted text-xs px-2 py-0.5 rounded-full text-foreground">{selectedMarketingStrategies.length}</span>
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="z-50 w-44 bg-background border-white/20">
-            <DropdownMenuLabel className="text-white">Filter by strategy</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-white/20" />
+          <DropdownMenuContent align="end" className="z-50 w-44 bg-popover border-border">
+            <DropdownMenuLabel className="text-foreground">Filter by strategy</DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
             {marketingStrategyTags.map((s) => (
               <DropdownMenuCheckboxItem
                 key={s}
                 checked={selectedMarketingStrategies.includes(s)}
                 onCheckedChange={() => toggleMarketingStrategy(s)}
-                className="text-white"
+                className="text-foreground"
               >
                 {s}
               </DropdownMenuCheckboxItem>
@@ -186,9 +186,9 @@ const MarketingFilesHeader: React.FC<MarketingFilesHeaderProps> = ({
         </DropdownMenu>
         {/* Clear button if any filters are active */}
         {(selectedGenders.length > 0 || selectedTeams.length > 0 || selectedClasses.length > 0 || selectedMarketingStrategies.length > 0 || searchQuery) && (
-          <Button variant="ghost" size="sm" className="h-12 text-white hover:text-white/80" onClick={handleClearFilters}>
+          <Button variant="ghost" size="sm" className="h-12 text-foreground hover:text-foreground/80" onClick={handleClearFilters}>
             <span className="mr-1">Clear</span>
-            <Filter className="h-4 w-4 text-white" />
+            <Filter className="h-4 w-4 text-muted-foreground" />
           </Button>
         )}
       </div>

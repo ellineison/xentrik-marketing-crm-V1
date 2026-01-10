@@ -11,8 +11,8 @@ interface OnboardingNotesProps {
 
 const OnboardingNotes: React.FC<OnboardingNotesProps> = ({ control }) => {
   return (
-    <div className="rounded-xl bg-gradient-to-br from-[#1a1a33]/50 to-[#1a1a33]/30 backdrop-blur-sm p-6 border border-[#252538]/50 shadow-lg">
-      <h2 className="text-lg font-semibold mb-4 text-white">Additional Notes</h2>
+    <div className="rounded-xl bg-gradient-to-br from-card/50 to-card/30 backdrop-blur-sm p-6 border border-border/50 shadow-lg">
+      <h2 className="text-lg font-semibold mb-4 text-foreground">Additional Notes</h2>
       <FormField
         control={control}
         name="notes"

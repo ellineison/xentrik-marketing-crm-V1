@@ -17,7 +17,7 @@ const OnboardingPageHeader: React.FC<OnboardingPageHeaderProps> = ({
     <div className="flex justify-between items-center mb-8">
       <div className="flex items-center gap-3">
         <BackButton to="/creators" />
-        <h1 className="text-2xl font-bold text-white">Onboard New Creator</h1>
+        <h1 className="text-2xl font-bold text-foreground">Onboard New Creator</h1>
       </div>
       <Button 
         onClick={onSubmit}
