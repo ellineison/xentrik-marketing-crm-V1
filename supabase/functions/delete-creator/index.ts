@@ -158,6 +158,14 @@ serve(async (req) => {
         .eq('model_name', creator.model_name);
       if (attendanceError) console.error("Error deleting attendance:", attendanceError);
 
+      // Delete creator_invoicing records by model_name
+      const { error: invoicingError } = await supabaseAdmin
+        .from('creator_invoicing')
+        .delete()
+        .eq('model_name', creator.model_name);
+      if (invoicingError) console.error("Error deleting creator_invoicing:", invoicingError);
+      else console.log(`Deleted creator_invoicing records for model_name: ${creator.model_name}`);
+
       const { error: voiceSourcesError } = await supabaseAdmin
         .from('voice_sources')
         .delete()

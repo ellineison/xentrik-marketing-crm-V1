@@ -305,6 +305,34 @@ export class OnboardingService {
         // Don't throw here as it's not critical
       }
 
+      // Create initial creator_invoicing record for the current week
+      console.log("Creating initial creator invoicing record...");
+      const now = new Date();
+      // Calculate the start of the current week (Monday)
+      const dayOfWeek = now.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Adjust to Monday
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() + diff);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekStartDate = weekStart.toISOString().split('T')[0];
+
+      const { error: invoicingError } = await supabase
+        .from('creator_invoicing')
+        .insert({
+          creator_id: userId,
+          model_name: modelName,
+          week_start_date: weekStartDate,
+          percentage: 50, // Default percentage
+          invoice_payment: false
+        });
+      
+      if (invoicingError) {
+        console.error('Error creating creator invoicing record:', invoicingError);
+        // Don't throw here as it's not critical
+      } else {
+        console.log("Creator invoicing record created for week:", weekStartDate);
+      }
+
       // Save social media handles to the social_media_logins table
       console.log("Saving social media handles...");
       await this.saveSocialMediaHandles(formData, email);

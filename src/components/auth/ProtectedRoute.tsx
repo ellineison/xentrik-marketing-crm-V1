@@ -31,6 +31,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   useEffect(() => {
     const path = location.pathname;
     if (path.includes('/dashboard')) setPageTitle('Dashboard');
+    else if (path.includes('/creator-invoicing')) setPageTitle('Creator Invoicing');
     else if (path.includes('/creators')) setPageTitle('Creators');
     else if (path.includes('/team')) setPageTitle('Team');
     else if (path.includes('/users')) setPageTitle('User Management');
@@ -43,7 +44,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     else if (path.includes('/account')) setPageTitle('Account Settings');
     else setPageTitle('Dashboard');
   }, [location.pathname]);
-  
+
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">

@@ -311,7 +311,7 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
       // Step 2: Find and update the corresponding creator
       const { data: creators, error: findCreatorError } = await supabase
         .from('creators')
-        .select('id, email')
+        .select('id, email, model_name')
         .eq('email', submission.email)
         .limit(1);
 
@@ -335,9 +335,13 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
         // Step 3: Update creators table model_profile and model_name if changed
         const updatePayload: any = { model_profile: updatedData };
         
+        // Get the old model_name before update for propagation
+        const oldModelName = creators[0].model_name;
+        const newModelName = updatedData.personalInfo?.modelName;
+        
         // If model name was updated, also update the model_name column
-        if (updatedData.personalInfo?.modelName) {
-          updatePayload.model_name = updatedData.personalInfo.modelName;
+        if (newModelName) {
+          updatePayload.model_name = newModelName;
         }
         
         const { data: creatorUpdateData, error: creatorError } = await supabase
@@ -352,6 +356,59 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
         }
 
         console.log('Creator model_profile update successful:', creatorUpdateData);
+
+        // If model_name changed, propagate to all related tables that use model_name
+        if (oldModelName && newModelName && oldModelName !== newModelName) {
+          console.log(`Model name changed from "${oldModelName}" to "${newModelName}", propagating to related tables...`);
+          
+          // Update creator_invoicing
+          const { error: invoicingError } = await supabase
+            .from('creator_invoicing')
+            .update({ model_name: newModelName })
+            .eq('model_name', oldModelName);
+          if (invoicingError) console.error('Error updating creator_invoicing model_name:', invoicingError);
+          else console.log('Updated creator_invoicing model_name');
+          
+          // Update sales_tracker
+          const { error: salesError } = await supabase
+            .from('sales_tracker')
+            .update({ model_name: newModelName })
+            .eq('model_name', oldModelName);
+          if (salesError) console.error('Error updating sales_tracker model_name:', salesError);
+          else console.log('Updated sales_tracker model_name');
+          
+          // Update customs
+          const { error: customsError } = await supabase
+            .from('customs')
+            .update({ model_name: newModelName })
+            .eq('model_name', oldModelName);
+          if (customsError) console.error('Error updating customs model_name:', customsError);
+          else console.log('Updated customs model_name');
+          
+          // Update attendance
+          const { error: attendanceError } = await supabase
+            .from('attendance')
+            .update({ model_name: newModelName })
+            .eq('model_name', oldModelName);
+          if (attendanceError) console.error('Error updating attendance model_name:', attendanceError);
+          else console.log('Updated attendance model_name');
+          
+          // Update voice_sources
+          const { error: voiceError } = await supabase
+            .from('voice_sources')
+            .update({ model_name: newModelName })
+            .eq('model_name', oldModelName);
+          if (voiceError) console.error('Error updating voice_sources model_name:', voiceError);
+          else console.log('Updated voice_sources model_name');
+          
+          // Update generated_voice_clones
+          const { error: voiceClonesError } = await supabase
+            .from('generated_voice_clones')
+            .update({ model_name: newModelName })
+            .eq('model_name', oldModelName);
+          if (voiceClonesError) console.error('Error updating generated_voice_clones model_name:', voiceClonesError);
+          else console.log('Updated generated_voice_clones model_name');
+        }
       }
 
       // Call the parent component's update handler if provided

@@ -24,7 +24,8 @@ import {
   Database,
   Kanban,
   DollarSign,
-  Bot
+  Bot,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -104,6 +105,12 @@ const navGroups: NavGroup[] = [
         path: '/users',
         label: 'User Management',
         icon: <Users className="h-5 w-5" />,
+        adminOnly: true,
+      },
+      {
+        path: '/creator-invoicing',
+        label: 'Creator Invoicing',
+        icon: <Receipt className="h-5 w-5" />,
         adminOnly: true,
       },
     ]
