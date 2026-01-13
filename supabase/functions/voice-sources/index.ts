@@ -50,64 +50,9 @@ serve(async (req) => {
 
       console.log('Found voice sources:', voiceSources?.length || 0);
 
-      // Validate that each voice source still exists in storage
-      const validatedSources: any[] = [];
-      const orphanedIds: string[] = [];
-
-      if (voiceSources && voiceSources.length > 0) {
-        // Get all bucket keys to check
-        const bucketKeys = voiceSources.map(source => source.bucket_key);
-        
-        // Check which files exist in storage (batch check)
-        const { data: existingFiles, error: listError } = await supabase.storage
-          .from('voices')
-          .list('', { limit: 10000 });
-
-        if (listError) {
-          console.error('Error listing storage files:', listError);
-          // If we can't check storage, return all sources
-          validatedSources.push(...voiceSources);
-        } else {
-          // Build a set of all existing file paths in storage
-          const existingPaths = new Set<string>();
-          
-          // We need to check files recursively in subdirectories
-          // For now, verify each source individually
-          for (const source of voiceSources) {
-            const pathParts = source.bucket_key.split('/');
-            const folder = pathParts.slice(0, -1).join('/');
-            const filename = pathParts[pathParts.length - 1];
-            
-            const { data: fileCheck } = await supabase.storage
-              .from('voices')
-              .list(folder, { limit: 1, search: filename });
-            
-            if (fileCheck && fileCheck.length > 0) {
-              validatedSources.push(source);
-            } else {
-              console.log('Orphaned voice source found:', source.id, source.bucket_key);
-              orphanedIds.push(source.id);
-            }
-          }
-
-          // Clean up orphaned records from database
-          if (orphanedIds.length > 0) {
-            console.log('Cleaning up orphaned voice sources:', orphanedIds);
-            const { error: deleteError } = await supabase
-              .from('voice_sources')
-              .delete()
-              .in('id', orphanedIds);
-            
-            if (deleteError) {
-              console.error('Error cleaning up orphaned records:', deleteError);
-            } else {
-              console.log('Successfully cleaned up', orphanedIds.length, 'orphaned records');
-            }
-          }
-        }
-      }
-
-      console.log('Validated voice sources:', validatedSources.length);
+      // Skip per-file storage validation for performance
+      // Orphaned records are cleaned up on upload/delete operations
+      const validatedSources = voiceSources || [];
 
       // Group by model and emotion for easier frontend consumption
       const groupedSources = validatedSources.reduce((acc, source) => {
@@ -126,8 +71,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           voiceSources: validatedSources,
-          groupedSources: groupedSources,
-          cleanedUp: orphanedIds.length
+          groupedSources: groupedSources
         }),
         { 
           status: 200, 
