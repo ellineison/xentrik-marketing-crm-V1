@@ -36,14 +36,9 @@ export function useCreatorInvoicing() {
   const fetchInvoicingData = useCallback(async (weekStart: Date) => {
     setLoading(true);
     const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-    
-    // Calculate previous week start
-    const prevWeekStart = new Date(weekStart);
-    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
-    const prevWeekStartStr = format(prevWeekStart, 'yyyy-MM-dd');
 
-    // Fetch both current and previous week data in parallel
-    const [currentResult, prevResult] = await Promise.all([
+    // Fetch current week data AND all historical data (for cumulative balance calculation)
+    const [currentResult, historicalResult] = await Promise.all([
       supabase
         .from('creator_invoicing')
         .select('*')
@@ -51,7 +46,8 @@ export function useCreatorInvoicing() {
       supabase
         .from('creator_invoicing')
         .select('*')
-        .eq('week_start_date', prevWeekStartStr)
+        .lt('week_start_date', weekStartStr)
+        .order('week_start_date', { ascending: true })
     ]);
 
     if (currentResult.error) {
@@ -66,7 +62,8 @@ export function useCreatorInvoicing() {
     }
 
     setInvoicingData((currentResult.data as CreatorInvoicingEntry[]) || []);
-    setPreviousWeekData((prevResult.data as CreatorInvoicingEntry[]) || []);
+    // Store all historical data (previousWeekData now contains ALL prior weeks)
+    setPreviousWeekData((historicalResult.data as CreatorInvoicingEntry[]) || []);
     setLoading(false);
   }, [toast]);
 

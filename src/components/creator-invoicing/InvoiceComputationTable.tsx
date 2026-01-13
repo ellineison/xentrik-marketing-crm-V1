@@ -48,7 +48,7 @@ export function InvoiceComputationTable({
   onUpdateDefaultInvoiceNumber,
 }: InvoiceComputationTableProps) {
   const [entries, setEntries] = useState<Map<string, CreatorInvoicingEntry>>(new Map());
-  const [prevEntries, setPrevEntries] = useState<Map<string, CreatorInvoicingEntry>>(new Map());
+  const [prevEntries, setPrevEntries] = useState<Map<string, CreatorInvoicingEntry[]>>(new Map());
   const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [initializingCreators, setInitializingCreators] = useState<Set<string>>(new Set());
@@ -70,13 +70,20 @@ export function InvoiceComputationTable({
     setEntries(map);
   }, [invoicingData, weekStartStr]);
 
-  // Build previous week entries map
+  // Build previous entries map (now contains ALL historical data, grouped by creator)
   useEffect(() => {
-    const map = new Map<string, CreatorInvoicingEntry>();
+    const map = new Map<string, CreatorInvoicingEntry[]>();
+    // Group all historical entries by creator_id
     previousWeekData.forEach(entry => {
-      map.set(entry.creator_id, entry);
+      const existing = map.get(entry.creator_id) || [];
+      existing.push(entry);
+      map.set(entry.creator_id, existing);
     });
-    setPrevEntries(map);
+    // Sort each creator's entries by week_start_date ascending
+    map.forEach((entries, creatorId) => {
+      entries.sort((a, b) => a.week_start_date.localeCompare(b.week_start_date));
+    });
+    setPrevEntries(map as any);
   }, [previousWeekData]);
 
   // Initialize entries for creators that don't have one
@@ -131,9 +138,9 @@ export function InvoiceComputationTable({
     return entries.get(creatorId);
   };
 
-  // Get previous week entry for a creator
-  const getPrevEntry = (creatorId: string): CreatorInvoicingEntry | undefined => {
-    return prevEntries.get(creatorId);
+  // Get all historical entries for a creator (sorted ascending by date)
+  const getHistoricalEntries = (creatorId: string): CreatorInvoicingEntry[] => {
+    return prevEntries.get(creatorId) || [];
   };
 
   // Handle checkbox change
@@ -206,17 +213,32 @@ export function InvoiceComputationTable({
     }
   };
 
-  // Calculate balance from previous week (positive = overpayment, negative = underpayment)
+  // Calculate cumulative balance from all historical weeks
+  // Iterates through all past weeks and computes running balance
+  // Balance = sum of (paid - actualInvoice) for each week
+  // where actualInvoice = baseAmount - previousCumulativeBalance
   const calculatePreviousWeekBalance = (creatorId: string): number => {
-    const prevEntry = getPrevEntry(creatorId);
-    if (!prevEntry) return 0;
+    const historicalEntries = getHistoricalEntries(creatorId);
+    if (historicalEntries.length === 0) return 0;
     
-    const prevInvoiceAmount = prevEntry.net_sales !== null 
-      ? (prevEntry.net_sales * (prevEntry.percentage / 100))
-      : 0;
-    const prevPaid = prevEntry.paid ?? 0;
+    // Calculate cumulative balance by iterating through all historical weeks
+    let cumulativeBalance = 0;
     
-    return prevPaid - prevInvoiceAmount;
+    for (const entry of historicalEntries) {
+      const baseAmount = entry.net_sales !== null 
+        ? (entry.net_sales * (entry.percentage / 100))
+        : 0;
+      
+      // The actual invoice for this historical week includes the balance from before it
+      const actualInvoice = baseAmount - cumulativeBalance;
+      const paid = entry.paid ?? 0;
+      
+      // Update cumulative balance: paid - actualInvoice
+      // Positive = overpaid (credit), Negative = underpaid (owed)
+      cumulativeBalance = paid - actualInvoice;
+    }
+    
+    return cumulativeBalance;
   };
 
   // Calculate invoice amount from net_sales, percentage, and balance from last week
@@ -402,7 +424,7 @@ export function InvoiceComputationTable({
                           "text-xs",
                           previousBalance > 0 ? "text-green-500" : "text-red-500"
                         )}>
-                          {previousBalance > 0 ? `(+$${previousBalance.toFixed(2)} credit)` : `(-$${Math.abs(previousBalance).toFixed(2)} owed)`}
+                          {previousBalance > 0 ? `(-$${previousBalance.toFixed(2)} credit)` : `(+$${Math.abs(previousBalance).toFixed(2)} owed)`}
                         </span>
                       )}
                     </div>
