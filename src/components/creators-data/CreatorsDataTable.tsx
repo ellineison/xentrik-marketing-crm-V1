@@ -268,6 +268,7 @@ const CreatorsDataTable: React.FC = () => {
             <TableRow>
               <TableHead className="text-left">Model Name</TableHead>
               {!isChatter && <TableHead className="text-left">Email</TableHead>}
+              {isAdmin && <TableHead className="text-left">Mobile Phone</TableHead>}
               <TableHead className="text-left">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -276,6 +277,7 @@ const CreatorsDataTable: React.FC = () => {
               <TableRow key={submission.id}>
                 <TableCell className="font-medium text-left">{submission.data?.personalInfo?.modelName || submission.name}</TableCell>
                 {!isChatter && <TableCell className="text-left">{submission.email}</TableCell>}
+                {isAdmin && <TableCell className="text-left">{submission.data?.personalInfo?.mobilePhone || '-'}</TableCell>}
                 <TableCell className="text-left">
                   <div className="flex gap-1">
                     <Button

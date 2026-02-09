@@ -25,7 +25,8 @@ import {
   Kanban,
   DollarSign,
   Bot,
-  Receipt
+  Receipt,
+  Gamepad2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -143,6 +144,13 @@ const navGroups: NavGroup[] = [
         icon: <Bot className="h-5 w-5" />,
         roles: ['Admin', 'VA', 'Chatter'],
       },
+      // Tasks & Rewards is accessed via Let's Play! button in header, not sidebar
+      // {
+      //   path: '/tasks-rewards',
+      //   label: 'Tasks & Rewards',
+      //   icon: <Gamepad2 className="h-5 w-5" />,
+      //   roles: ['Admin', 'Chatter'],
+      // },
     ]
   },
   {
@@ -197,7 +205,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin }) => {
     
     // Chatter employees should ONLY see Chatting Team items (this won't affect Admin-Chatter users)
     if (userRole === 'Chatter' || userRoles?.includes('Chatter')) {
-      return item.path === '/creators-data' || item.path === '/customs-tracker' || item.path === '/payroll' || item.path === '/ai-voice';
+      return item.path === '/creators-data' || item.path === '/customs-tracker' || item.path === '/payroll' || item.path === '/ai-voice' || item.path === '/tasks-rewards';
     }
     
     // VA employees should see specific items

@@ -543,6 +543,531 @@ export type Database = {
           },
         ]
       }
+      gamification_banana_transactions: {
+        Row: {
+          amount: number
+          chatter_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          source_id: string | null
+          source_type: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          chatter_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          chatter_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_banana_transactions_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_chatter_stats: {
+        Row: {
+          banana_balance: number
+          chatter_id: string
+          created_at: string
+          id: string
+          total_xp: number
+          updated_at: string
+        }
+        Insert: {
+          banana_balance?: number
+          chatter_id: string
+          created_at?: string
+          id?: string
+          total_xp?: number
+          updated_at?: string
+        }
+        Update: {
+          banana_balance?: number
+          chatter_id?: string
+          created_at?: string
+          id?: string
+          total_xp?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_chatter_stats_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_daily_quest_slots: {
+        Row: {
+          chatter_id: string
+          completed: boolean
+          created_at: string
+          date: string
+          has_rerolled: boolean
+          id: string
+          quest_id: string
+          slot_number: number
+          updated_at: string
+        }
+        Insert: {
+          chatter_id: string
+          completed?: boolean
+          created_at?: string
+          date?: string
+          has_rerolled?: boolean
+          id?: string
+          quest_id: string
+          slot_number: number
+          updated_at?: string
+        }
+        Update: {
+          chatter_id?: string
+          completed?: boolean
+          created_at?: string
+          date?: string
+          has_rerolled?: boolean
+          id?: string
+          quest_id?: string
+          slot_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_daily_quest_slots_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_daily_quest_slots_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_daily_words: {
+        Row: {
+          created_at: string
+          date: string
+          definition: string | null
+          id: string
+          part_of_speech: string | null
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          definition?: string | null
+          id?: string
+          part_of_speech?: string | null
+          word: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          definition?: string | null
+          id?: string
+          part_of_speech?: string | null
+          word?: string
+        }
+        Relationships: []
+      }
+      gamification_purchases: {
+        Row: {
+          banana_spent: number
+          chatter_id: string
+          id: string
+          purchased_at: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          shop_item_id: string
+          status: string
+          voucher_code: string
+        }
+        Insert: {
+          banana_spent?: number
+          chatter_id: string
+          id?: string
+          purchased_at?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          shop_item_id: string
+          status?: string
+          voucher_code: string
+        }
+        Update: {
+          banana_spent?: number
+          chatter_id?: string
+          id?: string
+          purchased_at?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          shop_item_id?: string
+          status?: string
+          voucher_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_purchases_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_purchases_redeemed_by_fkey"
+            columns: ["redeemed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_purchases_shop_item_id_fkey"
+            columns: ["shop_item_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_quest_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          end_date: string
+          id: string
+          quest_id: string
+          start_date: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          end_date: string
+          id?: string
+          quest_id: string
+          start_date: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          quest_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_quest_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_quest_assignments_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_quest_completions: {
+        Row: {
+          attachments: string[] | null
+          bananas_earned: number
+          chatter_id: string
+          completed_at: string
+          id: string
+          quest_assignment_id: string
+          status: string
+          verified_at: string | null
+          verified_by: string | null
+          xp_earned: number
+        }
+        Insert: {
+          attachments?: string[] | null
+          bananas_earned?: number
+          chatter_id: string
+          completed_at?: string
+          id?: string
+          quest_assignment_id: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          xp_earned?: number
+        }
+        Update: {
+          attachments?: string[] | null
+          bananas_earned?: number
+          chatter_id?: string
+          completed_at?: string
+          id?: string
+          quest_assignment_id?: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_quest_completions_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_quest_completions_quest_assignment_id_fkey"
+            columns: ["quest_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_quest_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_quest_completions_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_quest_progress: {
+        Row: {
+          attachment_url: string
+          chatter_id: string
+          id: string
+          quest_assignment_id: string
+          slot_number: number
+          uploaded_at: string
+        }
+        Insert: {
+          attachment_url: string
+          chatter_id: string
+          id?: string
+          quest_assignment_id: string
+          slot_number: number
+          uploaded_at?: string
+        }
+        Update: {
+          attachment_url?: string
+          chatter_id?: string
+          id?: string
+          quest_assignment_id?: string
+          slot_number?: number
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_quest_progress_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gamification_quest_progress_quest_assignment_id_fkey"
+            columns: ["quest_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_quest_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_quests: {
+        Row: {
+          banana_reward: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          game_name: string | null
+          id: string
+          is_active: boolean
+          progress_target: number
+          quest_type: string
+          title: string
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          banana_reward?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          game_name?: string | null
+          id?: string
+          is_active?: boolean
+          progress_target?: number
+          quest_type: string
+          title: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          banana_reward?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          game_name?: string | null
+          id?: string
+          is_active?: boolean
+          progress_target?: number
+          quest_type?: string
+          title?: string
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_quests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_ranks: {
+        Row: {
+          badge_color: string | null
+          created_at: string
+          id: string
+          max_xp: number | null
+          min_xp: number
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          badge_color?: string | null
+          created_at?: string
+          id?: string
+          max_xp?: number | null
+          min_xp?: number
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          badge_color?: string | null
+          created_at?: string
+          id?: string
+          max_xp?: number | null
+          min_xp?: number
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gamification_shop_items: {
+        Row: {
+          banana_cost: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          stock: number | null
+          updated_at: string
+        }
+        Insert: {
+          banana_cost?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          stock?: number | null
+          updated_at?: string
+        }
+        Update: {
+          banana_cost?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          stock?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_shop_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_xp_transactions: {
+        Row: {
+          amount: number
+          chatter_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          source_id: string | null
+          source_type: string
+        }
+        Insert: {
+          amount: number
+          chatter_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type: string
+        }
+        Update: {
+          amount?: number
+          chatter_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          source_id?: string | null
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_xp_transactions_chatter_id_fkey"
+            columns: ["chatter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       generated_voice_clones: {
         Row: {
           audio_url: string | null

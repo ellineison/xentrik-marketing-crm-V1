@@ -15,6 +15,7 @@ import SidebarNav from '../sidebar/SidebarNav';
 import SidebarUserSection from '../sidebar/SidebarUserSection';
 import { useRouteMemory } from '@/hooks/useRouteMemory';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
+import { LetsPlayButton } from '@/components/ui/LetsPlayButton';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -86,6 +87,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             </div>
             <div className="flex items-center space-x-2">
               <NotificationsDropdown />
+              <LetsPlayButton />
             </div>
           </div>
           

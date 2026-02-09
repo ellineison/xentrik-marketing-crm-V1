@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import { SupabaseAuthProvider } from './context/SupabaseAuthContext';
+import { SupabaseAuthProvider, useSupabaseAuth } from './context/SupabaseAuthContext';
 import { AuthProvider } from './context/AuthContext';
 import { CreatorProvider } from './context/creator';
 import { ActivityProvider } from './context/ActivityContext';
@@ -43,7 +43,7 @@ import CustomsTracker from './pages/CustomsTracker';
 import Payroll from './pages/Payroll';
 import Invitation from './pages/Invitation';
 import CreatorInvoicingPage from './pages/CreatorInvoicing';
-
+import TasksRewards from './pages/TasksRewards';
 // Call the function to ensure our storage bucket exists
 // We're calling it here in a non-blocking way
 ensureStorageBucket().catch(err => {
@@ -96,6 +96,43 @@ const CreatorInvoicesRedirect = () => {
   return <Navigate to={`/creators/${id}/invoices`} replace />;
 };
 
+// Tasks & Rewards uses a minimal layout without sidebar
+const TasksRewardsRoute = () => {
+  const { isAuthenticated, isLoading } = useSupabaseAuth();
+  const location = useLocation();
+  
+  // Store this route in memory so it persists correctly per-tab
+  useEffect(() => {
+    // Store route in localStorage for this route specifically
+    // This is separate from the ProtectedRoute's useRouteMemory to ensure
+    // Tasks & Rewards tabs maintain their own route memory
+    if (location.pathname.startsWith('/tasks-rewards')) {
+      localStorage.setItem('lastVisitedRoute', location.pathname);
+    }
+  }, [location.pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-primary"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return (
+    <div className="min-h-screen w-full bg-background">
+      <TasksRewards />
+    </div>
+  );
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -131,7 +168,10 @@ const AppRoutes = () => {
       <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
       <Route path="/payroll/:id" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
       <Route path="/creator-invoicing" element={<ProtectedRoute><CreatorInvoicingPage /></ProtectedRoute>} />
-      
+      <Route path="/tasks-rewards" element={<TasksRewardsRoute />} />
+      <Route path="/tasks-rewards/quests" element={<TasksRewardsRoute />} />
+      <Route path="/tasks-rewards/supply-depot" element={<TasksRewardsRoute />} />
+      <Route path="/tasks-rewards/control-panel" element={<TasksRewardsRoute />} />
       {/* Add redirects for old route patterns */}
       
       <Route path="/onboard" element={<ProtectedRoute><CreatorOnboardForm /></ProtectedRoute>} />

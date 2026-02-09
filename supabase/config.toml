@@ -192,6 +192,9 @@ verify_jwt = false
 [functions.voice-generate]
 verify_jwt = false
 
+[functions.word-of-the-day]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 ip_version = "ipv4"

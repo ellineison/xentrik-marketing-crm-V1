@@ -85,6 +85,20 @@ export const PersonalInfoForm = () => {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={control}
+          name="personalInfo.mobilePhone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mobile Phone Number</FormLabel>
+              <FormControl>
+                <Input type="tel" placeholder="e.g. +1 234 567 8900" {...field} className="min-h-[44px]" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={control}

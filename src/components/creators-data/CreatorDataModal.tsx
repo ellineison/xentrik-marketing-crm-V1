@@ -245,6 +245,7 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
       'modelBirthday': 'Model Birthday',
       'age': 'Real Age',
       'modelAge': 'Model Age',
+      'mobilePhone': 'Mobile Phone',
       'pricePerMinute': 'Custom Price per Minute',
       'videoCallPrice': 'Video Call Price per Minute',
       'customVideoNotes': 'Custom Video Notes',
@@ -804,8 +805,9 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
     ...(isAdmin ? ['dateOfBirth'] : []), // Real Date of Birth - only for Admin
     'modelBirthday', 'location', 'additionalLocationNote', 'hometown', 'ethnicity',
     ...(isChatter ? [] : ['email']), // Hide email for Chatter role
+    ...(isAdmin ? ['mobilePhone'] : []), // Mobile Phone - only for Admin
     'sex', 'religion', 'relationshipStatus', 'handedness',
-    'hasPets', 'pets', 'hasKids', 'numberOfKids', 'occupation', 'workplace', 'placesVisited'
+    'hasPets', 'pets', 'hasKids', 'numberOfKids', 'occupation', 'workplace', 'placesVisited', 'preferredFanNickname'
   ];
 
   const physicalPriority = [
@@ -901,8 +903,8 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
             return null;
           }
           
-          // Skip Real Age and Real Date of Birth for non-Admin users
-          if ((key === 'age' || key === 'dateOfBirth') && !isAdmin) {
+          // Skip Real Age, Real Date of Birth, and Mobile Phone for non-Admin users
+          if ((key === 'age' || key === 'dateOfBirth' || key === 'mobilePhone') && !isAdmin) {
             return null;
           }
           
