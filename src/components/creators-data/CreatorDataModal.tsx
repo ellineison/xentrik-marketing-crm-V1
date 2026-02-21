@@ -25,6 +25,7 @@ import { getTimezoneInfo } from '@/utils/timezoneUtils';
 import { useAuth } from '@/context/AuthContext';
 import AnnouncementsTab from './announcements/AnnouncementsTab';
 import CalendarTab from './calendar/CalendarTab';
+import ContentLimitations from './ContentLimitations';
 import { useQuery } from '@tanstack/react-query';
 
 interface CreatorSubmission {
@@ -187,7 +188,7 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
       
       const { data, error } = await supabase
         .from('creators')
-        .select('id')
+        .select('id, content_limitations')
         .eq('email', submission.email)
         .single();
       
@@ -952,11 +953,32 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
                 )}
               </div>
             </DialogTitle>
-            <DialogDescription className="text-sm">
-              <HeaderTimeDisplay 
-                location={submissionData?.personalInfo?.location || ''} 
-                preloadedTimezone={submission.timezone} 
-              />
+            <DialogDescription className="text-sm space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <HeaderTimeDisplay 
+                  location={submissionData?.personalInfo?.location || ''} 
+                  preloadedTimezone={submission.timezone} 
+                />
+                {creatorData?.id && (
+                  <div className="border-l border-border pl-3 hidden sm:block">
+                    <ContentLimitations
+                      creatorId={creatorData.id}
+                      limitations={(creatorData as any)?.content_limitations || { tits: false, pussy: false, face_with_tits: false, face_with_pussy: false, wholesome_selfie: false }}
+                      isAdmin={!!isAdmin}
+                    />
+                  </div>
+                )}
+              </div>
+              {/* Mobile view for limitations */}
+              {creatorData?.id && (
+                <div className="sm:hidden">
+                  <ContentLimitations
+                    creatorId={creatorData.id}
+                    limitations={(creatorData as any)?.content_limitations || { tits: false, pussy: false, face_with_tits: false, face_with_pussy: false, wholesome_selfie: false }}
+                    isAdmin={!!isAdmin}
+                  />
+                </div>
+              )}
             </DialogDescription>
           </DialogHeader>
         </div>

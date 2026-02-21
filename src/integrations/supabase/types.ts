@@ -267,6 +267,7 @@ export type Database = {
       creators: {
         Row: {
           active: boolean | null
+          content_limitations: Json | null
           created_at: string | null
           creator_type: Database["public"]["Enums"]["creator_type"]
           default_invoice_number: number | null
@@ -288,6 +289,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          content_limitations?: Json | null
           created_at?: string | null
           creator_type: Database["public"]["Enums"]["creator_type"]
           default_invoice_number?: number | null
@@ -309,6 +311,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          content_limitations?: Json | null
           created_at?: string | null
           creator_type?: Database["public"]["Enums"]["creator_type"]
           default_invoice_number?: number | null
