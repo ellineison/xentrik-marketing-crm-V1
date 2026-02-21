@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getRankCrownColor } from './PlayerCard';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { getEffectiveGameDate } from '@/utils/gameDate';
 
 interface GameBoardProps {
   isAdmin: boolean;
@@ -65,7 +66,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAdmin }) => {
   // Track progress counts per quest
   const [questProgress, setQuestProgress] = useState<Record<string, number>>({});
 
-  const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+  const today = useMemo(() => getEffectiveGameDate(), []);
 
   // Fetch progress for all quests
   useEffect(() => {

@@ -51,8 +51,19 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get today's date in UTC
-    const today = new Date().toISOString().split('T')[0];
+    // Get the effective game date (10pm reset)
+    const now = new Date();
+    const hours = now.getUTCHours(); // Edge functions run in UTC
+    // Note: We use the same 10pm logic but need to account for server timezone
+    // Using a simple approach: if hours >= 22 UTC, use tomorrow
+    let today: string;
+    if (hours >= 22) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      today = tomorrow.toISOString().split('T')[0];
+    } else {
+      today = now.toISOString().split('T')[0];
+    }
     
     // Check if we already have a word for today
     const { data: existingWord, error: fetchError } = await supabase

@@ -45,6 +45,8 @@ export interface QuestAssignment {
   start_date: string;
   end_date: string;
   assigned_by: string | null;
+  custom_word: string | null;
+  custom_word_description: string | null;
   created_at: string;
   quest?: Quest;
 }

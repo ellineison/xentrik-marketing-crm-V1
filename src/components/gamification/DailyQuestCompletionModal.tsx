@@ -15,7 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { DailyQuestSlot } from '@/hooks/useDailyQuestSlots';
-import { useWordOfTheDay } from '@/hooks/useWordOfTheDay';
+import { useEffectiveWord } from '@/hooks/useEffectiveWord';
 
 interface DailyQuestCompletionModalProps {
   open: boolean;
@@ -32,7 +32,7 @@ const DailyQuestCompletionModal: React.FC<DailyQuestCompletionModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { dailyWord } = useWordOfTheDay();
+  const { effectiveWord } = useEffectiveWord(slot.quest_id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
@@ -92,7 +92,8 @@ const DailyQuestCompletionModal: React.FC<DailyQuestCompletionModalProps> = ({
 
       // Create a quest assignment for this daily slot if it doesn't exist
       // First check if an assignment exists for this quest today
-      const today = new Date().toISOString().split('T')[0];
+      const { getEffectiveGameDate } = await import('@/utils/gameDate');
+      const today = getEffectiveGameDate();
       
       let { data: existingAssignment } = await supabase
         .from('gamification_quest_assignments')
@@ -193,16 +194,13 @@ const DailyQuestCompletionModal: React.FC<DailyQuestCompletionModalProps> = ({
         </DialogHeader>
 
         {/* Word of the Day Section */}
-        {isWordOfDayQuest && dailyWord && (
+        {isWordOfDayQuest && effectiveWord && (
           <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4 my-2">
             <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Today's Word</p>
-              <p className="text-2xl font-bold text-primary">{dailyWord.word}</p>
-              {dailyWord.part_of_speech && (
-                <p className="text-xs text-muted-foreground italic">({dailyWord.part_of_speech})</p>
-              )}
-              {dailyWord.definition && (
-                <p className="text-sm text-muted-foreground mt-2">{dailyWord.definition}</p>
+              <p className="text-xs text-muted-foreground mb-1">{effectiveWord.isCustom ? "Admin's Word" : "Today's Word"}</p>
+              <p className="text-2xl font-bold text-primary">{effectiveWord.word}</p>
+              {effectiveWord.description && (
+                <p className="text-sm text-muted-foreground mt-2">{effectiveWord.description}</p>
               )}
             </div>
           </div>

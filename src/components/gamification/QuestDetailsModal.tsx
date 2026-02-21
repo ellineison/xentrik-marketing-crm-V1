@@ -11,7 +11,7 @@ import { Quest, QuestAssignment } from '@/hooks/useGamification';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import QuestEvidenceUpload from './QuestEvidenceUpload';
-import { useWordOfTheDay } from '@/hooks/useWordOfTheDay';
+import { useEffectiveWord } from '@/hooks/useEffectiveWord';
 
 interface QuestDetailsModalProps {
   open: boolean;
@@ -55,13 +55,14 @@ const QuestDetailsModal: React.FC<QuestDetailsModalProps> = ({
   const { user } = useAuth();
   const [step, setStep] = useState<'details' | 'upload'>('details');
   const [currentProgress, setCurrentProgress] = useState(0);
-  const { dailyWord, isLoading: wordLoading } = useWordOfTheDay();
+  const { effectiveWord, isLoading: wordLoading } = useEffectiveWord(assignment.quest_id);
   
   const quest = assignment.quest;
   
-  // Check if this is an Ability Rotation quest
-  const isAbilityRotation = quest?.game_name?.toLowerCase().includes('ability rotation') || 
-                            quest?.title?.toLowerCase().includes('ability rotation');
+  // Check if this is a word-based quest (Ability Rotation or Empowered Ability)
+  const isWordQuest = quest?.game_name?.toLowerCase().includes('ability rotation') || 
+                      quest?.game_name?.toLowerCase().includes('empowered ability') ||
+                      quest?.title?.toLowerCase().includes('word of the day');
   
   // Fetch current progress when modal opens
   useEffect(() => {
@@ -157,28 +158,23 @@ const QuestDetailsModal: React.FC<QuestDetailsModalProps> = ({
                 </p>
                 
                 {/* Word of the Day - Only for Ability Rotation quests */}
-                {isAbilityRotation && dailyWord && !wordLoading && (
+                {isWordQuest && effectiveWord && !wordLoading && (
                   <div className="mt-4 p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
                     <div className="flex items-center gap-2 mb-2">
                       <BookOpen className="h-4 w-4 text-purple-400" />
                       <span className="text-sm font-medium text-purple-400 uppercase tracking-wider" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-                        Today's Word
+                        {effectiveWord.isCustom ? "Admin's Word" : "Today's Word"}
                       </span>
                       <Sparkles className="h-3 w-3 text-yellow-500" />
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-xl font-bold text-purple-300" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-                        {dailyWord.word}
+                        {effectiveWord.word}
                       </span>
-                      {dailyWord.part_of_speech && (
-                        <Badge variant="outline" className="text-xs text-purple-300 border-purple-300/50">
-                          {dailyWord.part_of_speech}
-                        </Badge>
-                      )}
                     </div>
-                    {dailyWord.definition && (
+                    {effectiveWord.description && (
                       <p className="text-sm text-muted-foreground italic mt-1">
-                        "{dailyWord.definition}"
+                        "{effectiveWord.description}"
                       </p>
                     )}
                   </div>

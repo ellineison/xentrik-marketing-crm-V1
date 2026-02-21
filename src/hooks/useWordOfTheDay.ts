@@ -22,7 +22,8 @@ export const useWordOfTheDay = () => {
         setError(null);
 
         // First try to get today's word from the database
-        const today = new Date().toISOString().split('T')[0];
+        const { getEffectiveGameDate } = await import('@/utils/gameDate');
+        const today = getEffectiveGameDate();
         const { data: existingWord, error: fetchError } = await supabase
           .from('gamification_daily_words')
           .select('*')

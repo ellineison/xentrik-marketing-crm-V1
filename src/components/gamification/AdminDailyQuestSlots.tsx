@@ -5,7 +5,7 @@ import { Loader2, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import QuestSlotCard from './QuestSlotCard';
 import { Quest } from '@/hooks/useGamification';
-import { format } from 'date-fns';
+import { getEffectiveGameDate, getEffectiveGameDateDisplay } from '@/utils/gameDate';
 
 interface AdminDailyQuestSlotsProps {
   onRemoveAssignment?: (questId: string) => void;
@@ -23,7 +23,7 @@ const AdminDailyQuestSlots: React.FC<AdminDailyQuestSlotsProps> = ({ onRemoveAss
   const [assignments, setAssignments] = useState<AdminAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = getEffectiveGameDate();
 
   // Fetch ADMIN-assigned daily quests (assigned_by IS NULL)
   useEffect(() => {
@@ -95,7 +95,7 @@ const AdminDailyQuestSlots: React.FC<AdminDailyQuestSlotsProps> = ({ onRemoveAss
             Daily Quests
           </h2>
           <p className="text-sm text-muted-foreground">
-            Active for today ({format(new Date(), 'MMM d, yyyy')})
+            Active for today ({getEffectiveGameDateDisplay()})
           </p>
         </div>
         <Badge variant="outline" className="text-base px-3 py-1 border-primary/30 font-bold">

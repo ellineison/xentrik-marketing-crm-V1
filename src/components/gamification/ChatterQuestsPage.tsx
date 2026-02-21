@@ -12,6 +12,7 @@ import { useDailyQuestSlots } from '@/hooks/useDailyQuestSlots';
 import { useWeeklyQuestSlots } from '@/hooks/useWeeklyQuestSlots';
 import { useMonthlyQuestSlots } from '@/hooks/useMonthlyQuestSlots';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { getEffectiveGameDate } from '@/utils/gameDate';
 
 type QuestType = 'daily' | 'weekly' | 'monthly';
 
@@ -37,7 +38,7 @@ const ChatterQuestsPage: React.FC = () => {
   const [slotStatuses, setSlotStatuses] = useState<Record<string, CompletionStatus>>({});
   const [slotProgress, setSlotProgress] = useState<Record<string, number>>({});
 
-  const today = useMemo(() => format(new Date(), 'yyyy-MM-dd'), []);
+  const today = useMemo(() => getEffectiveGameDate(), []);
   const weekStart = useMemo(() => format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'), []);
   const weekEnd = useMemo(() => format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'), []);
   const monthStart = useMemo(() => format(startOfMonth(new Date()), 'yyyy-MM-dd'), []);

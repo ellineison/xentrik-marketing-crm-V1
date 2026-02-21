@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { QuestAssignment } from '@/hooks/useGamification';
-import { useWordOfTheDay } from '@/hooks/useWordOfTheDay';
+import { useEffectiveWord } from '@/hooks/useEffectiveWord';
 
 interface QuestEvidenceUploadProps {
   assignment: QuestAssignment;
@@ -29,7 +29,7 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { dailyWord } = useWordOfTheDay();
+  const { effectiveWord } = useEffectiveWord(assignment.quest_id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [slots, setSlots] = useState<ProgressSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -289,21 +289,20 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
       {/* Content */}
       <div className="p-6 space-y-5">
         {/* Word of the Day Section */}
-        {isWordOfDayQuest && dailyWord && (
+        {isWordOfDayQuest && effectiveWord && (
           <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4">
             <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Today's Word</p>
+              <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
+                {effectiveWord.isCustom ? "Admin's Word" : "Today's Word"}
+              </p>
               <p 
                 className="text-2xl font-bold text-primary"
                 style={{ fontFamily: "'Orbitron', sans-serif" }}
               >
-                {dailyWord.word}
+                {effectiveWord.word}
               </p>
-              {dailyWord.part_of_speech && (
-                <p className="text-xs text-muted-foreground italic">({dailyWord.part_of_speech})</p>
-              )}
-              {dailyWord.definition && (
-                <p className="text-sm text-muted-foreground mt-2">{dailyWord.definition}</p>
+              {effectiveWord.description && (
+                <p className="text-sm text-muted-foreground mt-2">{effectiveWord.description}</p>
               )}
             </div>
           </div>

@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Quest, QuestAssignment } from '@/hooks/useGamification';
 import { format } from 'date-fns';
-import { useWordOfTheDay } from '@/hooks/useWordOfTheDay';
+import { useEffectiveWord } from '@/hooks/useEffectiveWord';
 
 interface QuestCompletionModalProps {
   open: boolean;
@@ -28,7 +28,7 @@ const QuestCompletionModal: React.FC<QuestCompletionModalProps> = ({
 }) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { dailyWord } = useWordOfTheDay();
+  const { effectiveWord } = useEffectiveWord(assignment.quest_id);
   const [step, setStep] = useState<ModalStep>('instructions');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
@@ -192,22 +192,19 @@ const QuestCompletionModal: React.FC<QuestCompletionModalProps> = ({
             
             <div className="space-y-4 py-4">
               {/* Word of the Day Feature */}
-              {isWordOfDayQuest && dailyWord && (
+              {isWordOfDayQuest && effectiveWord && (
                 <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
                   <div className="flex items-center gap-2 mb-2">
                     <BookOpen className="h-5 w-5 text-purple-400" />
-                    <span className="font-semibold text-sm text-purple-400">Today's Word</span>
+                    <span className="font-semibold text-sm text-purple-400">
+                      {effectiveWord.isCustom ? "Admin's Word" : "Today's Word"}
+                    </span>
                   </div>
                   <div className="flex items-baseline gap-2 mb-1">
-                    <h3 className="text-2xl font-bold text-purple-300">{dailyWord.word}</h3>
-                    {dailyWord.part_of_speech && (
-                      <Badge variant="outline" className="text-xs text-purple-300/70 border-purple-300/30">
-                        {dailyWord.part_of_speech}
-                      </Badge>
-                    )}
+                    <h3 className="text-2xl font-bold text-purple-300">{effectiveWord.word}</h3>
                   </div>
-                  {dailyWord.definition && (
-                    <p className="text-sm text-muted-foreground italic">"{dailyWord.definition}"</p>
+                  {effectiveWord.description && (
+                    <p className="text-sm text-muted-foreground italic">"{effectiveWord.description}"</p>
                   )}
                 </div>
               )}

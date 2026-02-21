@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { getEffectiveGameDate } from '@/utils/gameDate';
 import QuestCompletionModal from './QuestCompletionModal';
 import QuestReviewModal from './QuestReviewModal';
 import DailyQuestSlots from './DailyQuestSlots';
@@ -56,6 +57,8 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
     progress_target: 1
   });
   const [selectedQuestForAssign, setSelectedQuestForAssign] = useState<string>('');
+  const [assignCustomWord, setAssignCustomWord] = useState('');
+  const [assignCustomWordDescription, setAssignCustomWordDescription] = useState('');
   
   const [pendingCompletions, setPendingCompletions] = useState<any[]>([]);
   const [selectedAssignment, setSelectedAssignment] = useState<QuestAssignment | null>(null);
@@ -181,22 +184,24 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
       return;
     }
 
-    let startDate: Date;
-    let endDate: Date;
+    let startDateStr: string;
+    let endDateStr: string;
     const today = new Date();
 
     switch (quest.quest_type) {
-      case 'daily':
-        startDate = today;
-        endDate = today;
+      case 'daily': {
+        const effectiveDate = getEffectiveGameDate();
+        startDateStr = effectiveDate;
+        endDateStr = effectiveDate;
         break;
+      }
       case 'weekly':
-        startDate = startOfWeek(today, { weekStartsOn: 1 });
-        endDate = endOfWeek(today, { weekStartsOn: 1 });
+        startDateStr = format(startOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+        endDateStr = format(endOfWeek(today, { weekStartsOn: 1 }), 'yyyy-MM-dd');
         break;
       case 'monthly':
-        startDate = startOfMonth(today);
-        endDate = endOfMonth(today);
+        startDateStr = format(startOfMonth(today), 'yyyy-MM-dd');
+        endDateStr = format(endOfMonth(today), 'yyyy-MM-dd');
         break;
     }
 
@@ -204,19 +209,29 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
       setIsAssigning(true);
       // Admin assignments have assigned_by = null to distinguish from personal assignments
       // Personal assignments (from re-rolls) have assigned_by = user.id
+      const insertData: any = {
+          quest_id: selectedQuestForAssign,
+          start_date: startDateStr,
+          end_date: endDateStr,
+          assigned_by: null // NULL = admin/global assignment, visible to all players
+        };
+
+      // Add custom word if provided (for Word of the Day / Ability Rotation quests)
+      if (assignCustomWord.trim()) {
+        insertData.custom_word = assignCustomWord.trim();
+        insertData.custom_word_description = assignCustomWordDescription.trim() || null;
+      }
+
       const { error } = await supabase
         .from('gamification_quest_assignments')
-        .insert({
-          quest_id: selectedQuestForAssign,
-          start_date: format(startDate, 'yyyy-MM-dd'),
-          end_date: format(endDate, 'yyyy-MM-dd'),
-          assigned_by: null // NULL = admin/global assignment, visible to all players
-        });
+        .insert(insertData);
 
       if (error) throw error;
 
       toast({ title: "Success", description: "Quest assigned successfully!" });
       setSelectedQuestForAssign('');
+      setAssignCustomWord('');
+      setAssignCustomWordDescription('');
       refetch.activeAssignments();
     } catch (error) {
       console.error('Error assigning quest:', error);
@@ -605,16 +620,47 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
                             </SelectContent>
                           </Select>
                         </div>
-                        {selectedQuestForAssign && (
-                          <div className="text-sm text-muted-foreground">
-                            The quest will be assigned based on its type:
-                            <ul className="list-disc list-inside mt-1">
-                              <li>Daily: Today only</li>
-                              <li>Weekly: Current week (Mon-Sun)</li>
-                              <li>Monthly: Current month</li>
-                            </ul>
-                          </div>
-                        )}
+                        {selectedQuestForAssign && (() => {
+                          const selectedQuest = quests.find(q => q.id === selectedQuestForAssign);
+                          const isWordQuest = selectedQuest?.title?.toLowerCase().includes('word of the day') ||
+                                              selectedQuest?.game_name?.toLowerCase().includes('ability rotation') ||
+                                              selectedQuest?.game_name?.toLowerCase().includes('empowered ability') ||
+                                              selectedQuest?.title?.toLowerCase().includes('naughty word');
+                          return (
+                            <>
+                              {isWordQuest && (
+                                <div className="space-y-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                                  <p className="text-sm font-medium text-purple-400">Custom Word (Ability Rotation)</p>
+                                  <div className="space-y-2">
+                                    <Label>Word</Label>
+                                    <Input
+                                      placeholder="Enter the word..."
+                                      value={assignCustomWord}
+                                      onChange={(e) => setAssignCustomWord(e.target.value)}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Word Description</Label>
+                                    <Textarea
+                                      placeholder="Enter the word description..."
+                                      value={assignCustomWordDescription}
+                                      onChange={(e) => setAssignCustomWordDescription(e.target.value)}
+                                      className="min-h-[60px]"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              <div className="text-sm text-muted-foreground">
+                                The quest will be assigned based on its type:
+                                <ul className="list-disc list-inside mt-1">
+                                  <li>Daily: Current period (resets at 10 PM)</li>
+                                  <li>Weekly: Current week (Mon-Sun)</li>
+                                  <li>Monthly: Current month</li>
+                                </ul>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                       <DialogFooter>
                         <Button onClick={handleAssignQuest} disabled={isAssigning || !selectedQuestForAssign}>
@@ -715,7 +761,7 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
             </TabsContent>
           </Tabs>
 
-          {/* All Quests Table for Admin */}
+          {/* All Quests Table for Admin - Tabbed by Category */}
           {isAdmin && (
             <Card className="mt-6">
               <CardHeader>
@@ -723,81 +769,95 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
                 <CardDescription>View and manage all created quests</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>XP</TableHead>
-                      <TableHead>Bananas</TableHead>
-                      <TableHead>Target</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {quests.map(quest => (
-                      <TableRow key={quest.id}>
-                        <TableCell className="font-medium">
-                          {quest.game_name || quest.title}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{quest.quest_type}</Badge>
-                        </TableCell>
-                        <TableCell>{quest.xp_reward}</TableCell>
-                        <TableCell>{quest.banana_reward} 🍌</TableCell>
-                        <TableCell>{quest.progress_target}</TableCell>
-                        <TableCell>
-                          <Badge variant={quest.is_active ? 'default' : 'secondary'}>
-                            {quest.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleOpenEditDialog(quest)}
-                              title="Edit quest"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive"
-                                  title="Delete quest"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Quest</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{quest.game_name || quest.title}"? 
-                                    This will also remove all active assignments for this quest. This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => handleDeleteQuest(quest.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                <Tabs defaultValue="daily">
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="daily">Daily</TabsTrigger>
+                    <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                    <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                  </TabsList>
+                  {['daily', 'weekly', 'monthly'].map(type => (
+                    <TabsContent key={type} value={type}>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>XP</TableHead>
+                            <TableHead>Bananas</TableHead>
+                            <TableHead>Target</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {quests.filter(q => q.quest_type === type).map(quest => (
+                            <TableRow key={quest.id}>
+                              <TableCell className="font-medium">
+                                {quest.game_name || quest.title}
+                              </TableCell>
+                              <TableCell>{quest.xp_reward}</TableCell>
+                              <TableCell>{quest.banana_reward} 🍌</TableCell>
+                              <TableCell>{quest.progress_target}</TableCell>
+                              <TableCell>
+                                <Badge variant={quest.is_active ? 'default' : 'secondary'}>
+                                  {quest.is_active ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => handleOpenEditDialog(quest)}
+                                    title="Edit quest"
                                   >
-                                    Delete Quest
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="sm"
+                                        className="text-destructive hover:text-destructive"
+                                        title="Delete quest"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete Quest</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Are you sure you want to delete "{quest.game_name || quest.title}"? 
+                                          This will also remove all active assignments for this quest. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                          onClick={() => handleDeleteQuest(quest.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Delete Quest
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {quests.filter(q => q.quest_type === type).length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                                No {type} quests found.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </CardContent>
             </Card>
           )}
