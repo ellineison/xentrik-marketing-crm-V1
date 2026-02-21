@@ -5,12 +5,14 @@ import { AttendanceTable } from './AttendanceTable';
 import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
 import { useSalesLockStatus } from './hooks/useSalesLockStatus';
+import { useExpectedSalary } from './hooks/useExpectedSalary';
 import { useAuth } from '@/context/AuthContext';
 import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
 import { getWeekStart } from '@/utils/weekCalculations';
+import { DollarSign } from 'lucide-react';
 
 export const ChatterPayrollView: React.FC = () => {
   const { user, userRole, userRoles } = useAuth();
@@ -34,6 +36,9 @@ export const ChatterPayrollView: React.FC = () => {
   
   // Get sales lock status for the current user and week
   const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(user?.id, selectedWeek, refreshKey);
+  const { expectedSalary, isLoading: isExpectedSalaryLoading } = useExpectedSalary(
+    user?.id, selectedWeek, isSalesLocked, isAdminConfirmed, userDepartment, userRole, userRoles
+  );
 
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const canEdit = isAdmin || user?.id;
@@ -59,7 +64,17 @@ export const ChatterPayrollView: React.FC = () => {
                   {userDepartment === '10PM' ? '(Wednesday to Tuesday)' : '(Thursday to Wednesday)'}
                 </span>
               </CardTitle>
-              <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+              <div className="flex items-center gap-3">
+                <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+                {isSalesLocked && expectedSalary !== null && (
+                  <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
+                    <DollarSign className="h-4 w-4" />
+                    <span className="text-sm font-semibold">
+                      Expected Salary: ${expectedSalary.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
             <GoogleSheetsLinkManager chatterId={user?.id} />
           </CardHeader>

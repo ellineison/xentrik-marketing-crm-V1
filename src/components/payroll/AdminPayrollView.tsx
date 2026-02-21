@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Users } from 'lucide-react';
+import { ChevronLeft, Users, DollarSign } from 'lucide-react';
 import { PayrollTable } from './PayrollTable';
 import { AttendanceTable } from './AttendanceTable';
 import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
 import { useSalesLockStatus } from './hooks/useSalesLockStatus';
+import { useExpectedSalary } from './hooks/useExpectedSalary';
 import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import AdminPayrollTable from './AdminPayrollTable';
@@ -40,6 +41,10 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
   
   // Get sales lock status for the selected chatter and week
   const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(selectedChatterId, selectedWeek, refreshKey);
+  const chatterDept = chatters.find(c => c.id === selectedChatterId)?.department || null;
+  const { expectedSalary } = useExpectedSalary(
+    selectedChatterId || undefined, selectedWeek, isSalesLocked, isAdminConfirmed, chatterDept
+  );
 
   // Calculate week start and current week status
   // Note: For admin view showing all users, we use standard cutoff (department passed in components)
@@ -114,7 +119,17 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
                     {selectedChatter?.department === '10PM' ? '(Wednesday to Tuesday)' : '(Thursday to Wednesday)'}
                   </span>
                 </CardTitle>
-                <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+                <div className="flex items-center gap-3">
+                  <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+                  {isSalesLocked && expectedSalary !== null && (
+                    <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
+                      <DollarSign className="h-4 w-4" />
+                      <span className="text-sm font-semibold">
+                        Expected Salary: ${expectedSalary.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               <GoogleSheetsLinkManager chatterId={selectedChatterId} isAdminView />
             </CardHeader>

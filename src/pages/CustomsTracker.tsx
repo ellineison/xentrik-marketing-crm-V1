@@ -214,7 +214,7 @@ const CustomsTracker = () => {
       </PremiumCard>
 
       {/* Kanban Board */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-x-auto overflow-y-hidden">
         <KanbanBoard 
           customs={filteredCustoms} 
           onUpdateStatus={updateCustomMutation.mutate}

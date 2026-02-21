@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LocationPicker } from '@/components/ui/location-picker';
-import { Edit, Save, X, Clock, CalendarIcon } from 'lucide-react';
+import { Edit, Save, X, Clock, CalendarIcon, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -168,6 +168,7 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
   const [editValue, setEditValue] = useState<any>('');
   const [submissionData, setSubmissionData] = useState<any>(submission?.data || {});
   const [isSaving, setIsSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Check if user is Admin
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -883,32 +884,53 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
 
     return (
       <div className="space-y-6">
-        {sections.map((sectionInfo, index) => (
-          <div key={index} className="mb-6">
-            <h3 className="text-lg font-semibold mb-4 border-b pb-2">{sectionInfo.title}</h3>
-            {renderDataSection(sectionInfo.data, sectionInfo.title, sectionInfo.priority, sectionInfo.section)}
-          </div>
-        ))}
+        {sections.map((sectionInfo, index) => {
+          const sortedEntries = sortFieldsByPriority(sectionInfo.data || {}, sectionInfo.priority);
+          const filteredEntries = sortedEntries.filter(([key, value]) => {
+            if (key === 'email' && isChatter) return false;
+            if ((key === 'age' || key === 'dateOfBirth' || key === 'mobilePhone') && !isAdmin) return false;
+            return matchesSearch(key, value);
+          });
+          if (filteredEntries.length === 0) return null;
+          return (
+            <div key={index} className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 border-b pb-2">{sectionInfo.title}</h3>
+              {renderDataSection(sectionInfo.data, sectionInfo.title, sectionInfo.priority, sectionInfo.section)}
+            </div>
+          );
+        })}
       </div>
     );
+  };
+
+  const matchesSearch = (key: string, value: any): boolean => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    if (formatFieldName(key).toLowerCase().includes(query)) return true;
+    const formatted = formatValue(value, key).toLowerCase();
+    if (formatted.includes(query)) return true;
+    if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value).toLowerCase().includes(query);
+    }
+    return false;
   };
 
   const renderDataSection = (sectionData: any, title: string, priorityOrder: string[], section: string) => {
     const sortedEntries = sortFieldsByPriority(sectionData || {}, priorityOrder);
 
+    const filteredEntries = sortedEntries.filter(([key, value]) => {
+      if (key === 'email' && isChatter) return false;
+      if ((key === 'age' || key === 'dateOfBirth' || key === 'mobilePhone') && !isAdmin) return false;
+      return matchesSearch(key, value);
+    });
+
+    if (filteredEntries.length === 0) {
+      return null;
+    }
+
     return (
       <div className="space-y-4">
-        {sortedEntries.map(([key, value]) => {
-          // Skip email field for Chatter users
-          if (key === 'email' && isChatter) {
-            return null;
-          }
-          
-          // Skip Real Age, Real Date of Birth, and Mobile Phone for non-Admin users
-          if ((key === 'age' || key === 'dateOfBirth' || key === 'mobilePhone') && !isAdmin) {
-            return null;
-          }
-          
+        {filteredEntries.map(([key, value]) => {
           return (
             <div key={key} className="py-3 border-b border-border/50 last:border-b-0">
               {/* Mobile Layout - Stacked */}
@@ -985,14 +1007,10 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
         
         <div className="px-4 sm:px-6 pb-4 sm:pb-6 flex-1 min-h-0">
           <Tabs defaultValue="announcements" className="w-full h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 mb-4 h-auto p-1">
+            <TabsList className="grid w-full grid-cols-3 mb-4 h-auto p-1">
               <TabsTrigger value="announcements" className="text-xs sm:text-sm py-2 px-1">Announce</TabsTrigger>
               <TabsTrigger value="calendar" className="text-xs sm:text-sm py-2 px-1">Calendar</TabsTrigger>
               <TabsTrigger value="all" className="text-xs sm:text-sm py-2 px-1">All Data</TabsTrigger>
-              <TabsTrigger value="personal" className="text-xs sm:text-sm py-2 px-1">Personal</TabsTrigger>
-              <TabsTrigger value="physical" className="text-xs sm:text-sm py-2 px-1">Physical</TabsTrigger>
-              <TabsTrigger value="preferences" className="text-xs sm:text-sm py-2 px-1">Preferences</TabsTrigger>
-              <TabsTrigger value="content" className="text-xs sm:text-sm py-2 px-1">Content</TabsTrigger>
             </TabsList>
             
             <div className="flex-1 min-h-0">
@@ -1019,28 +1037,18 @@ const CreatorDataModal: React.FC<CreatorDataModalProps> = ({
                   </TabsContent>
 
                   <TabsContent value="all" className="space-y-4 mt-0">
+                    <div className="relative mb-3">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search model info..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
                     {renderAllData()}
                   </TabsContent>
 
-                  <TabsContent value="personal" className="space-y-4 mt-0">
-                    <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-                    {renderDataSection(submissionData?.personalInfo, 'Personal Information', personalInfoPriority, 'personalInfo')}
-                  </TabsContent>
-                  
-                  <TabsContent value="physical" className="space-y-4 mt-0">
-                    <h3 className="text-lg font-semibold mb-4">Physical Attributes</h3>
-                    {renderDataSection(submissionData?.physicalAttributes, 'Physical Attributes', physicalPriority, 'physicalAttributes')}
-                  </TabsContent>
-                  
-                  <TabsContent value="preferences" className="space-y-4 mt-0">
-                    <h3 className="text-lg font-semibold mb-4">Personal Preferences</h3>
-                    {renderDataSection(submissionData?.personalPreferences, 'Personal Preferences', preferencesPriority, 'personalPreferences')}
-                  </TabsContent>
-                  
-                  <TabsContent value="content" className="space-y-4 mt-0">
-                    <h3 className="text-lg font-semibold mb-4">Content & Service</h3>
-                    {renderDataSection(submissionData?.contentAndService, 'Content & Service', contentPriority, 'contentAndService')}
-                  </TabsContent>
                 </div>
               </ScrollArea>
             </div>

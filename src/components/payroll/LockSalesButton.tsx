@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, XCircle, Check, Download } from 'lucide-react';
+import { Lock, XCircle, Check, Download, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,16 @@ import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { generatePayslipPDF } from './PayslipGenerator';
 import { getWeekStart } from '@/utils/weekCalculations';
 import { useEffect } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface LockSalesButtonProps {
   chatterId?: string;
@@ -34,6 +44,7 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
   const { user, userRole, userRoles } = useAuth();
   const { toast } = useToast();
   const [showPayrollModal, setShowPayrollModal] = useState(false);
+  const [showLockConfirmation, setShowLockConfirmation] = useState(false);
   const [totalSales, setTotalSales] = useState(0);
   const [currentHourlyRate, setCurrentHourlyRate] = useState(0);
   const [chatterName, setChatterName] = useState('');
@@ -347,7 +358,7 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
           ) : (
             canEdit && (
               <Button
-                onClick={confirmWeekSales}
+                onClick={() => setShowLockConfirmation(true)}
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90"
               >
                 <Lock className="h-4 w-4" />
@@ -368,6 +379,26 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
         currentHourlyRate={currentHourlyRate}
         onConfirmed={onDataRefresh}
       />
+
+      <AlertDialog open={showLockConfirmation} onOpenChange={setShowLockConfirmation}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Confirm Lock
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Please confirm that all sales and attendance records have been accurately submitted. Kindly note that any sales from this week that are not properly recorded may no longer be eligible to be claimed next week.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmWeekSales}>
+              Confirm & Lock
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

@@ -65,7 +65,7 @@ const EmployeePayrollTable: React.FC<EmployeePayrollTableProps> = ({
             <Card 
               key={user.id} 
               className="bg-secondary/10 border-muted hover:border-primary/50 cursor-pointer transition-colors"
-              onClick={() => onSelectChatter(user.id)}
+              onClick={() => window.open(`/payroll/${user.id}`, '_blank')}
             >
               <CardContent className="p-4">
                 <h3 className="font-semibold text-foreground mb-1">{user.name}</h3>

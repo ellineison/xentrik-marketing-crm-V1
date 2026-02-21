@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useTransition } from 'react';
 import { PremiumCard } from '@/components/ui/premium-card';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import CustomCard from './CustomCard';
 import CustomDetailsModal from './details/CustomDetailsModal';
 import DoneModal from './DoneModal';
@@ -147,49 +146,51 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <>
-      <ScrollArea className="w-full">
-        <div className="flex gap-4 h-full pb-4" style={{ display: 'flex', width: '100%' }}>
-          {COLUMNS.map((column) => (
-            <div key={column.id} className="flex flex-col h-full" style={{ flex: '1 1 0%', minWidth: '380px' }}>
-              <PremiumCard className={`flex-1 ${getColumnStyles(column.id, column.color)}`}>
-                <div className="p-2 border-b border-border/20">
-                  <h3 className="font-semibold text-foreground text-sm">{column.title}</h3>
-                  <span className="text-xs text-muted-foreground">
-                    {getCustomsByStatus(column.id).length} items
-                  </span>
-                </div>
-                
-                <div
-                  className="flex-1 p-2 space-y-2 overflow-y-auto"
-                  onDragOver={handleDragOver}
-                  onDragEnter={(e) => handleDragEnter(e, column.id)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, column.id)}
-                >
-                  {getCustomsByStatus(column.id).map((custom) => (
-                    <div key={custom.id}>
-                      <CustomCard
-                        custom={custom}
-                        onDragStart={handleDragStart}
-                        onClick={handleCardClick}
-                        isDragging={draggedCustom?.id === custom.id}
-                        isUpdating={isUpdating}
-                      />
-                    </div>
-                  ))}
+      {/* Wrapper flipped so native horizontal scrollbar appears at top */}
+      <div className="w-full [&::-webkit-scrollbar]{height:8px} [&::-webkit-scrollbar-track]{background:transparent} [&::-webkit-scrollbar-thumb]{background:hsl(var(--border))} [&::-webkit-scrollbar-thumb]:rounded-full" style={{ transform: 'scaleY(-1)', overflowX: 'auto', overflowY: 'hidden', scrollbarColor: 'hsl(var(--border)) transparent' }}>
+        <div style={{ transform: 'scaleY(-1)' }}>
+          <div className="flex gap-4 h-full pb-4" style={{ width: '100%' }}>
+            {COLUMNS.map((column) => (
+              <div key={column.id} className="flex flex-col h-full" style={{ flex: '1 1 0%', minWidth: '380px' }}>
+                <PremiumCard className={`flex-1 ${getColumnStyles(column.id, column.color)}`}>
+                  <div className="p-2 border-b border-border/20">
+                    <h3 className="font-semibold text-foreground text-sm">{column.title}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      {getCustomsByStatus(column.id).length} items
+                    </span>
+                  </div>
                   
-                  {getCustomsByStatus(column.id).length === 0 && (
-                    <div className="text-center text-muted-foreground py-8 text-xs">
-                      No customs in this stage
-                    </div>
-                  )}
-                </div>
-              </PremiumCard>
-            </div>
-          ))}
+                  <div
+                    className="flex-1 p-2 space-y-2 overflow-y-auto"
+                    onDragOver={handleDragOver}
+                    onDragEnter={(e) => handleDragEnter(e, column.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, column.id)}
+                  >
+                    {getCustomsByStatus(column.id).map((custom) => (
+                      <div key={custom.id}>
+                        <CustomCard
+                          custom={custom}
+                          onDragStart={handleDragStart}
+                          onClick={handleCardClick}
+                          isDragging={draggedCustom?.id === custom.id}
+                          isUpdating={isUpdating}
+                        />
+                      </div>
+                    ))}
+                    
+                    {getCustomsByStatus(column.id).length === 0 && (
+                      <div className="text-center text-muted-foreground py-8 text-xs">
+                        No customs in this stage
+                      </div>
+                    )}
+                  </div>
+                </PremiumCard>
+              </div>
+            ))}
+          </div>
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      </div>
 
       <CustomDetailsModal
         isOpen={detailsModalOpen}
