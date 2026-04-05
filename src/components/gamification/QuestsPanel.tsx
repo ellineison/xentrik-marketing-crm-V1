@@ -22,9 +22,8 @@ import QuestReviewModal from './QuestReviewModal';
 import DailyQuestSlots from './DailyQuestSlots';
 import WeeklyQuestSlots from './WeeklyQuestSlots';
 import MonthlyQuestSlots from './MonthlyQuestSlots';
-import AdminDailyQuestSlots from './AdminDailyQuestSlots';
-import AdminWeeklyQuestSlots from './AdminWeeklyQuestSlots';
-import AdminMonthlyQuestSlots from './AdminMonthlyQuestSlots';
+import AdminControlPanelShiftView from './AdminControlPanelShiftView';
+
 
 interface QuestsPanelProps {
   isAdmin: boolean;
@@ -57,6 +56,7 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
     progress_target: 1
   });
   const [selectedQuestForAssign, setSelectedQuestForAssign] = useState<string>('');
+  const [assignDepartment, setAssignDepartment] = useState<string>('all');
   const [assignCustomWord, setAssignCustomWord] = useState('');
   const [assignCustomWordDescription, setAssignCustomWordDescription] = useState('');
   
@@ -148,7 +148,7 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
       if (error) throw error;
 
       toast({ title: "Success", description: "Quest created successfully!" });
-      setNewQuest({ title: '', description: '', quest_type: 'daily', xp_reward: 10, banana_reward: 5, progress_target: 1 });
+      setNewQuest({ title: '', description: '', quest_type: 'daily' as 'daily' | 'weekly' | 'monthly', xp_reward: 10, banana_reward: 5, progress_target: 1 });
       refetch.quests();
     } catch (error) {
       console.error('Error creating quest:', error);
@@ -213,7 +213,8 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
           quest_id: selectedQuestForAssign,
           start_date: startDateStr,
           end_date: endDateStr,
-          assigned_by: null // NULL = admin/global assignment, visible to all players
+          assigned_by: null, // NULL = admin/global assignment, visible to all players
+          department: assignDepartment === 'all' ? null : assignDepartment
         };
 
       // Add custom word if provided (for Word of the Day / Ability Rotation quests)
@@ -228,8 +229,9 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
 
       if (error) throw error;
 
-      toast({ title: "Success", description: "Quest assigned successfully!" });
+      toast({ title: "Success", description: `Quest assigned successfully${assignDepartment !== 'all' ? ` to ${assignDepartment} department` : ''}!` });
       setSelectedQuestForAssign('');
+      setAssignDepartment('all');
       setAssignCustomWord('');
       setAssignCustomWordDescription('');
       refetch.activeAssignments();
@@ -620,6 +622,21 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div className="space-y-2">
+                          <Label>Department</Label>
+                          <Select value={assignDepartment} onValueChange={setAssignDepartment}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Departments</SelectItem>
+                              <SelectItem value="6AM">6AM</SelectItem>
+                              <SelectItem value="2PM">2PM</SelectItem>
+                              <SelectItem value="10PM">10PM</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">Choose which department sees this quest</p>
+                        </div>
                         {selectedQuestForAssign && (() => {
                           const selectedQuest = quests.find(q => q.id === selectedQuestForAssign);
                           const isWordQuest = selectedQuest?.title?.toLowerCase().includes('word of the day') ||
@@ -709,57 +726,45 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
             </Card>
           )}
 
-          {/* Quest Category Sub-tabs */}
-          <Tabs defaultValue="daily" className="w-full">
-            <TabsList className="w-auto justify-start mb-4">
-              <TabsTrigger value="daily" className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                Daily Quests
-              </TabsTrigger>
-              <TabsTrigger value="weekly" className="flex items-center gap-2">
-                <Medal className="h-4 w-4 text-blue-500" />
-                Weekly Quests
-              </TabsTrigger>
-              <TabsTrigger value="monthly" className="flex items-center gap-2">
-                <Crown className="h-4 w-4 text-purple-500" />
-                Monthly Quests
-              </TabsTrigger>
-            </TabsList>
+          {/* Quest display: Admin sees shift-based grouping, Players see type tabs */}
+          {isAdmin ? (
+            <AdminControlPanelShiftView 
+              onRemoveAssignment={handleRemoveAssignmentByQuestId}
+            />
+          ) : (
+            <Tabs defaultValue="daily" className="w-full">
+              <TabsList className="w-auto justify-start mb-4">
+                <TabsTrigger value="daily" className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  Daily Quests
+                </TabsTrigger>
+                <TabsTrigger value="weekly" className="flex items-center gap-2">
+                  <Medal className="h-4 w-4 text-blue-500" />
+                  Weekly Quests
+                </TabsTrigger>
+                <TabsTrigger value="monthly" className="flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-purple-500" />
+                  Monthly Quests
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="daily">
-              {isAdmin ? (
-                <AdminDailyQuestSlots 
-                  onRemoveAssignment={handleRemoveAssignmentByQuestId}
-                />
-              ) : (
+              <TabsContent value="daily">
                 <DailyQuestSlots 
                   onQuestComplete={handleQuestSubmitComplete} 
                 />
-              )}
-            </TabsContent>
-            <TabsContent value="weekly">
-              {isAdmin ? (
-                <AdminWeeklyQuestSlots 
-                  onRemoveAssignment={handleRemoveAssignmentByQuestId}
-                />
-              ) : (
+              </TabsContent>
+              <TabsContent value="weekly">
                 <WeeklyQuestSlots 
                   onQuestComplete={handleQuestSubmitComplete} 
                 />
-              )}
-            </TabsContent>
-            <TabsContent value="monthly">
-              {isAdmin ? (
-                <AdminMonthlyQuestSlots 
-                  onRemoveAssignment={handleRemoveAssignmentByQuestId}
-                />
-              ) : (
+              </TabsContent>
+              <TabsContent value="monthly">
                 <MonthlyQuestSlots 
                   onQuestComplete={handleQuestSubmitComplete} 
                 />
-              )}
-            </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          )}
 
           {/* All Quests Table for Admin - Tabbed by Category */}
           {isAdmin && (

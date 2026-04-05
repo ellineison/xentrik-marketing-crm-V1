@@ -5,6 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import CreatorsHeader from "../components/creators/list/CreatorsHeader";
 import CreatorsManagementList from "../components/creators/management/CreatorsManagementList";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArchivedCreatorsList } from "@/components/creators/ArchivedCreatorsList";
 
 const Creators = () => {
   const { creators, filterCreators } = useCreators();
@@ -16,6 +18,8 @@ const Creators = () => {
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
 
   // Pass searchQuery to filterCreators
   const filteredCreators = filterCreators({
@@ -65,25 +69,60 @@ const Creators = () => {
 
   return (
     <div className="p-4 md:p-8 w-full max-w-[1400px] mx-auto">
-      <CreatorsHeader 
-        isLoading={isLoading}
-        creatorCount={displayCreators.length}
-        selectedGenders={selectedGenders}
-        selectedTeams={selectedTeams}
-        selectedClasses={selectedClasses}
-        setSelectedGenders={setSelectedGenders}
-        setSelectedTeams={setSelectedTeams}
-        setSelectedClasses={setSelectedClasses}
-        handleClearFilters={handleClearFilters}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
+      {isAdmin ? (
+        <Tabs defaultValue="active" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="active">Active Models</TabsTrigger>
+            <TabsTrigger value="archived">Archived Models</TabsTrigger>
+          </TabsList>
 
-      <CreatorsManagementList 
-        isLoading={isLoading}
-        creators={displayCreators}
-        hasFilters={hasFilters}
-      />
+          <TabsContent value="active">
+            <CreatorsHeader 
+              isLoading={isLoading}
+              creatorCount={displayCreators.length}
+              selectedGenders={selectedGenders}
+              selectedTeams={selectedTeams}
+              selectedClasses={selectedClasses}
+              setSelectedGenders={setSelectedGenders}
+              setSelectedTeams={setSelectedTeams}
+              setSelectedClasses={setSelectedClasses}
+              handleClearFilters={handleClearFilters}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+            <CreatorsManagementList 
+              isLoading={isLoading}
+              creators={displayCreators}
+              hasFilters={hasFilters}
+            />
+          </TabsContent>
+
+          <TabsContent value="archived">
+            <ArchivedCreatorsList />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          <CreatorsHeader 
+            isLoading={isLoading}
+            creatorCount={displayCreators.length}
+            selectedGenders={selectedGenders}
+            selectedTeams={selectedTeams}
+            selectedClasses={selectedClasses}
+            setSelectedGenders={setSelectedGenders}
+            setSelectedTeams={setSelectedTeams}
+            setSelectedClasses={setSelectedClasses}
+            handleClearFilters={handleClearFilters}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+          <CreatorsManagementList 
+            isLoading={isLoading}
+            creators={displayCreators}
+            hasFilters={hasFilters}
+          />
+        </>
+      )}
     </div>
   );
 };

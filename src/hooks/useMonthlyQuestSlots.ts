@@ -76,6 +76,15 @@ export const useMonthlyQuestSlots = () => {
   const populateSlotsFromAdminAssignments = useCallback(async () => {
     if (!user) return;
 
+    // Fetch user's department
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department')
+      .eq('id', user.id)
+      .single();
+
+    const userDepartment = profile?.department || null;
+
     // Check if user already has a monthly slot for this month
     const { data: existingSlots } = await supabase
       .from('gamification_daily_quest_slots')
@@ -89,12 +98,12 @@ export const useMonthlyQuestSlots = () => {
     }
 
     // Fetch this month's ADMIN-assigned monthly quest (assigned_by is null)
-    // Personal assignments are NOT included to prevent re-rolls from propagating
     const today = format(new Date(), 'yyyy-MM-dd');
     const { data: monthlyAssignments, error: assignmentError } = await supabase
       .from('gamification_quest_assignments')
       .select(`
         quest_id,
+        department,
         quest:gamification_quests (*)
       `)
       .lte('start_date', today)
@@ -106,9 +115,9 @@ export const useMonthlyQuestSlots = () => {
       return;
     }
 
-    // Filter to only monthly quests
+    // Filter to only monthly quests matching user's department (NULL department defaults to 2PM)
     const monthlyAssignment = (monthlyAssignments || []).find(
-      (a: any) => a.quest?.quest_type === 'monthly'
+      (a: any) => a.quest?.quest_type === 'monthly' && ((a.department || '2PM') === userDepartment)
     );
 
     if (!monthlyAssignment) {

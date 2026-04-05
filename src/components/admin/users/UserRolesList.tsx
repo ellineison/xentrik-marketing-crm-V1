@@ -20,7 +20,7 @@ const UserRolesList: React.FC = () => {
     pendingAction,
     fetchUsers,
     handleEdit,
-    handleSuspend,
+    handleArchive,
     handleDelete,
     handleConfirmAction
   } = useUserRoles();
@@ -42,7 +42,7 @@ const UserRolesList: React.FC = () => {
         <UserRolesTable 
           users={users} 
           onEditUser={handleEdit}
-          onSuspendUser={handleSuspend}
+          onArchiveUser={handleArchive}
           onDeleteUser={handleDelete}
         />
       </div>
@@ -59,7 +59,7 @@ const UserRolesList: React.FC = () => {
         onOpenChange={setIsActionDialogOpen}
         onConfirm={handleConfirmAction}
         employee={selectedUser}
-        action={pendingAction || 'suspend'}
+        action={pendingAction || 'archive'}
       />
     </>
   );

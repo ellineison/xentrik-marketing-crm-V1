@@ -31,7 +31,7 @@ const TeamActiveFilters: React.FC<TeamActiveFiltersProps> = ({
     });
   };
 
-  const removeStatus = (status: "Active" | "Inactive" | "Paused" | "Suspended") => {
+  const removeStatus = (status: "Active" | "Inactive" | "Paused") => {
     onFiltersChange({
       ...filters,
       status: filters.status.filter(s => s !== status)

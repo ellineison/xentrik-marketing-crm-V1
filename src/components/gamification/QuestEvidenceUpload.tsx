@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { QuestAssignment } from '@/hooks/useGamification';
 import { useEffectiveWord } from '@/hooks/useEffectiveWord';
+import { notifyAdminsOfQuestSubmission, resolveDisplayName } from '@/utils/notifyAdmins';
 
 interface QuestEvidenceUploadProps {
   assignment: QuestAssignment;
@@ -33,6 +34,8 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [slots, setSlots] = useState<ProgressSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isBatchUploading, setIsBatchUploading] = useState(false);
 
   const quest = assignment.quest;
   
@@ -87,8 +90,9 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
   if (!quest) return null;
 
   const filledSlots = slots.filter(s => s.attachment_url !== null).length;
+  const emptySlotCount = progressTarget - filledSlots - pendingFiles.length;
   const progressPercentage = Math.min((filledSlots / progressTarget) * 100, 100);
-  const canSubmit = filledSlots >= progressTarget;
+  const canSubmit = filledSlots >= progressTarget && pendingFiles.length === 0 && !isBatchUploading;
 
   // Check if this is a Word of the Day quest
   const isWordOfDayQuest = quest.title?.toLowerCase().includes('word of the day');
@@ -153,11 +157,102 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
     }
   };
 
+  // Handle selecting multiple files at once
+  const handleMultiFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const emptyCount = slots.filter(s => s.attachment_url === null).length - pendingFiles.length;
+    const files = Array.from(e.target.files).slice(0, emptyCount);
+    
+    if (files.length === 0) {
+      toast({ title: "No empty slots", description: "All slots are already filled.", variant: "destructive" });
+      return;
+    }
+    
+    setPendingFiles(prev => [...prev, ...files].slice(0, slots.filter(s => s.attachment_url === null).length));
+    // Reset input so same files can be re-selected
+    e.target.value = '';
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadPendingFiles = async () => {
+    if (!user || pendingFiles.length === 0) return;
+    
+    setIsBatchUploading(true);
+    
+    // Find empty slot indices
+    const emptyIndices = slots
+      .map((s, i) => s.attachment_url === null ? i : -1)
+      .filter(i => i >= 0);
+    
+    let successCount = 0;
+    
+    for (let i = 0; i < pendingFiles.length && i < emptyIndices.length; i++) {
+      const slotIndex = emptyIndices[i];
+      const file = pendingFiles[i];
+      
+      // Mark slot as uploading
+      setSlots(prev => prev.map((s, idx) => idx === slotIndex ? { ...s, isUploading: true } : s));
+      
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${assignment.id}/slot_${slotIndex}_${Date.now()}_${i}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('quest-submissions')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('quest-submissions')
+          .getPublicUrl(fileName);
+
+        const publicUrl = urlData.publicUrl;
+
+        const { error: dbError } = await supabase
+          .from('gamification_quest_progress')
+          .upsert({
+            quest_assignment_id: assignment.id,
+            chatter_id: user.id,
+            slot_number: slotIndex,
+            attachment_url: publicUrl,
+          }, {
+            onConflict: 'quest_assignment_id,chatter_id,slot_number'
+          });
+
+        if (dbError) throw dbError;
+
+        setSlots(prev => prev.map((s, idx) => 
+          idx === slotIndex ? { ...s, attachment_url: publicUrl, isUploading: false } : s
+        ));
+        successCount++;
+      } catch (error: any) {
+        console.error(`Upload error for slot ${slotIndex}:`, error);
+        setSlots(prev => prev.map((s, idx) => 
+          idx === slotIndex ? { ...s, isUploading: false } : s
+        ));
+      }
+    }
+    
+    setPendingFiles([]);
+    setIsBatchUploading(false);
+    
+    if (successCount > 0) {
+      toast({
+        title: `${successCount} file${successCount > 1 ? 's' : ''} uploaded!`,
+        description: `Progress: ${filledSlots + successCount}/${progressTarget}`,
+      });
+    }
+  };
+
   const handleRemoveSlot = async (slotIndex: number) => {
     if (!user) return;
 
     try {
-      // Delete from database
       const { error } = await supabase
         .from('gamification_quest_progress')
         .delete()
@@ -167,14 +262,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
       if (error) throw error;
 
-      // Update local state
       setSlots(prev => prev.map((s, i) => 
         i === slotIndex ? { ...s, attachment_url: null } : s
       ));
 
-      toast({
-        title: "Screenshot removed",
-      });
+      toast({ title: "Screenshot removed" });
     } catch (error: any) {
       console.error('Remove error:', error);
       toast({
@@ -234,6 +326,12 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
         }
         throw new Error('Failed to submit completion');
       }
+
+      // Notify admins (fire-and-forget)
+      const questType = (quest.quest_type || 'daily') as 'daily' | 'weekly' | 'monthly';
+      resolveDisplayName(user.id, user.email || 'A chatter').then(name =>
+        notifyAdminsOfQuestSubmission(name, quest.title, questType)
+      );
 
       toast({
         title: "Quest Submitted! 🎉",
@@ -336,10 +434,74 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
           )}
         </div>
 
+        {/* Batch Upload Button */}
+        {emptySlotCount > 0 && pendingFiles.length === 0 && !isBatchUploading && (
+          <div>
+            <label className="cursor-pointer">
+              <Button variant="outline" className="w-full gap-2" asChild>
+                <span>
+                  <Upload className="h-4 w-4" />
+                  Select Files ({slots.filter(s => s.attachment_url === null).length} slots remaining)
+                </span>
+              </Button>
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleMultiFileSelect}
+              />
+            </label>
+          </div>
+        )}
+
+        {/* Pending Files Preview */}
+        {pendingFiles.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">
+              {pendingFiles.length} file{pendingFiles.length > 1 ? 's' : ''} selected
+            </p>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {pendingFiles.map((file, i) => (
+                <div key={i} className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileImage className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm text-foreground truncate">{file.name}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 shrink-0"
+                    onClick={() => removePendingFile(i)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={uploadPendingFiles}
+                disabled={isBatchUploading}
+                className="flex-1 gap-2"
+              >
+                {isBatchUploading ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+                ) : (
+                  <><Upload className="h-4 w-4" /> Upload {pendingFiles.length} file{pendingFiles.length > 1 ? 's' : ''}</>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => setPendingFiles([])}>
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Upload Slots Grid */}
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Upload {progressTarget} screenshot{progressTarget > 1 ? 's' : ''} as proof of completing the quest
+            {filledSlots}/{progressTarget} screenshot{progressTarget > 1 ? 's' : ''} uploaded
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

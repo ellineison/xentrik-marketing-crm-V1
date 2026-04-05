@@ -30,7 +30,7 @@ export interface Quest {
   title: string;
   game_name: string | null;
   description: string | null;
-  quest_type: 'daily' | 'weekly' | 'monthly';
+  quest_type: 'daily' | 'weekly' | 'monthly' | 'shift';
   xp_reward: number;
   banana_reward: number;
   progress_target: number;

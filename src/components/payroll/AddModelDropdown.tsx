@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, ChevronDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, ChevronDown, Search } from 'lucide-react';
 import { useCreators } from '@/context/creator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +25,7 @@ export const AddModelDropdown: React.FC<AddModelDropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [availableCreators, setAvailableCreators] = useState<typeof creators>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -139,14 +141,32 @@ export const AddModelDropdown: React.FC<AddModelDropdownProps> = ({
       </Button>
 
       {isOpen && (
-        <div className="absolute top-full mt-1 left-0 z-50 min-w-[200px] bg-background border border-border rounded-lg shadow-lg">
-          <div className="py-2 max-h-60 overflow-y-auto">
-            {availableCreators.length === 0 ? (
-              <div className="px-4 py-2 text-sm text-muted-foreground">
-                No available models
-              </div>
-            ) : (
-              availableCreators.map((creator) => (
+        <div className="absolute top-full mt-1 left-0 z-50 min-w-[250px] bg-background border border-border rounded-lg shadow-lg">
+          <div className="p-2 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search models..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-8 text-sm"
+                autoFocus
+              />
+            </div>
+          </div>
+          <div className="py-1 max-h-60 overflow-y-auto">
+            {(() => {
+              const filtered = availableCreators.filter(c =>
+                c.modelName?.toLowerCase().includes(searchQuery.toLowerCase())
+              );
+              if (filtered.length === 0) {
+                return (
+                  <div className="px-4 py-2 text-sm text-muted-foreground">
+                    No available models
+                  </div>
+                );
+              }
+              return filtered.map((creator) => (
                 <button
                   key={creator.id}
                   onClick={() => handleAddModel(creator.id)}
@@ -155,8 +175,8 @@ export const AddModelDropdown: React.FC<AddModelDropdownProps> = ({
                 >
                   {creator.modelName}
                 </button>
-              ))
-            )}
+              ));
+            })()}
           </div>
         </div>
       )}

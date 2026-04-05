@@ -6,6 +6,7 @@ export interface CreatorContextType {
   addCreator: (creator: Omit<Creator, "id">) => Promise<string | undefined>;
   updateCreator: (id: string, updates: Partial<Creator>) => void;
   deleteCreator: (id: string) => Promise<boolean>;
+  restoreCreator: (id: string) => Promise<boolean>;
   isDeleting: boolean;
   getCreator: (id: string) => Creator | undefined;
   getCreatorStats: (id: string) => EngagementStats | undefined;

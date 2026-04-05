@@ -31,7 +31,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Invalid email address" }),
   roles: z.array(z.string()).min(1, { message: "Select at least one role" }),
-  status: z.enum(["Active", "Inactive", "Paused", "Suspended"]),
+  status: z.enum(["Active", "Inactive", "Paused"]),
   teams: z.array(z.string()).optional(),
   department: z.string().optional(),
   telegram: z.string().optional(),

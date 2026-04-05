@@ -11,12 +11,13 @@ export const useCreatorActions = (
 ) => {
   const { addCreator } = useAddCreator(creators, setCreators, addActivity);
   const { updateCreator } = useUpdateCreator(creators, setCreators, addActivity);
-  const { deleteCreator, isDeleting } = useDeleteCreator(creators, setCreators, addActivity);
+  const { deleteCreator, restoreCreator, isDeleting } = useDeleteCreator(creators, setCreators, addActivity);
 
   return {
     addCreator,
     updateCreator,
     deleteCreator,
+    restoreCreator,
     isDeleting
   };
 };

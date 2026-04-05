@@ -15,6 +15,7 @@ import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-f
 import { getEffectiveGameDate } from '@/utils/gameDate';
 
 type QuestType = 'daily' | 'weekly' | 'monthly';
+type SlotQuestType = 'daily' | 'weekly' | 'monthly';
 
 type CompletionStatus = 'pending' | 'verified' | 'rejected' | null;
 
@@ -31,7 +32,6 @@ const ChatterQuestsPage: React.FC = () => {
   const daily = useDailyQuestSlots();
   const weekly = useWeeklyQuestSlots();
   const monthly = useMonthlyQuestSlots();
-
   const [activeTab, setActiveTab] = useState<QuestType>('daily');
   const [selectedAssignment, setSelectedAssignment] = useState<QuestAssignment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -172,7 +172,7 @@ const ChatterQuestsPage: React.FC = () => {
   // CRITICAL: We create "personal" assignments that are isolated per-user.
   // These are identified by having assigned_by = user.id (not null/admin ID).
   // Re-rolled quests get their own personal assignments that don't affect other players.
-  const ensureAssignmentForQuest = async (questId: string, questType: QuestType) => {
+  const ensureAssignmentForQuest = async (questId: string, questType: SlotQuestType) => {
     if (!user) return null;
 
     const period = (() => {
@@ -241,7 +241,7 @@ const ChatterQuestsPage: React.FC = () => {
     return created as any as QuestAssignment;
   };
 
-  const handleViewQuest = async (questId: string, questType: QuestType) => {
+  const handleViewQuest = async (questId: string, questType: SlotQuestType) => {
     const assignment = await ensureAssignmentForQuest(questId, questType);
     if (!assignment) return;
 
@@ -287,7 +287,7 @@ const ChatterQuestsPage: React.FC = () => {
     );
   }
 
-  const renderSlotCards = (questType: QuestType) => {
+  const renderSlotCards = (questType: SlotQuestType) => {
     const slots = allSlots[questType];
 
     if (slots.length === 0) {
@@ -412,6 +412,7 @@ const ChatterQuestsPage: React.FC = () => {
             {renderSlotCards('monthly')}
           </div>
         </TabsContent>
+
       </Tabs>
 
       {/* Quest Details Modal */}

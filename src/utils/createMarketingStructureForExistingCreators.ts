@@ -12,6 +12,7 @@ export const createMarketingStructureForExistingCreators = async () => {
     const { data: creators, error: creatorsError } = await supabase
       .from('creators')
       .select('id, name')
+      .eq('active', true)
       .order('name');
     
     if (creatorsError) {

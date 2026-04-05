@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Trash2, Lock, Download, CheckCircle, Edit3, Check, X, XCircle } from 'lucide-react';
+import { Plus, Trash2, Lock, Download, CheckCircle, Edit3, Check, X, XCircle, Search } from 'lucide-react';
 import { AddModelDropdown } from './AddModelDropdown';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { generatePayslipPDF } from './PayslipGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [showPayrollModal, setShowPayrollModal] = useState(false);
   const [chatterName, setChatterName] = useState<string>('');
+  const [modelSearchFilter, setModelSearchFilter] = useState('');
   const [chatterDepartment, setChatterDepartment] = useState<string | null | undefined>(undefined);
   const [chatterRole, setChatterRole] = useState<string | null>(null);
   const [chatterRoles, setChatterRoles] = useState<string[] | null>(null);
@@ -411,18 +413,34 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
     );
   }
 
+  const filteredModels = models.filter(m =>
+    modelSearchFilter === '' || m.model_name.toLowerCase().includes(modelSearchFilter.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
-      {canEdit && !isSalesLocked && (
-        <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-2">
+        {/* Search filter for models */}
+        {models.length > 0 && (
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search models..."
+              value={modelSearchFilter}
+              onChange={(e) => setModelSearchFilter(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+        )}
+        {canEdit && !isSalesLocked && (
           <AddModelDropdown
             chatterId={effectiveChatterId}
             weekStart={weekStart}
             onModelAdded={fetchData}
             disabled={!canEdit || isSalesLocked}
           />
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="overflow-x-auto">
         <Table>
@@ -441,9 +459,18 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {models.map((model) => (
+            {filteredModels.map((model) => (
               <TableRow key={model.model_name}>
-                <TableCell className="font-medium">{model.model_name}</TableCell>
+                <TableCell className="font-medium max-w-[160px]">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="block truncate">{model.model_name}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>{model.model_name}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
                 {DAYS_OF_WEEK.map(day => (
                   <TableCell key={day.value} className="text-center">
                     <Input
@@ -487,7 +514,7 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
                 )}
               </TableRow>
             ))}
-            {models.length > 0 && (
+            {filteredModels.length > 0 && (
               <TableRow className="border-t-2">
                 <TableCell className="font-bold">Daily Total</TableCell>
                 {DAYS_OF_WEEK.map(day => (

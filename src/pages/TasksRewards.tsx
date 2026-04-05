@@ -51,6 +51,7 @@ const TasksRewards: React.FC = () => {
   // Admin ONLY sees Control Panel
   // Non-admin sees Game Board, Quests, Supply Depot
   const adminNavItems = [
+    { id: 'game-board', label: 'Game Board', icon: Gamepad2, path: '/tasks-rewards' },
     { id: 'control-panel', label: 'Control Panel', icon: Settings, path: '/tasks-rewards/control-panel' },
   ];
 
@@ -63,9 +64,10 @@ const TasksRewards: React.FC = () => {
   const visibleNavItems = isAdmin ? adminNavItems : playerNavItems;
 
   const renderContent = () => {
-    // Admin can ONLY access control-panel
     if (isAdmin) {
-      // Redirect admin to control-panel if they're on any other tab
+      if (activeTab === 'game-board') {
+        return <GameBoard isAdmin={isAdmin} />;
+      }
       if (activeTab !== 'control-panel') {
         navigate('/tasks-rewards/control-panel', { replace: true });
         return <QuestsPanel isAdmin={isAdmin} />;

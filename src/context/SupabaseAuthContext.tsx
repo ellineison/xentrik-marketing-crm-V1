@@ -237,15 +237,17 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Use the default password "XentrikBananas"
       const defaultPassword = "XentrikBananas";
       
-      // Call the create_team_member function with proper parameter names
-      const { data: newUser, error } = await supabase.rpc(
+      // Call the edge function to create a team member (ensures proper password hashing via GoTrue)
+      const { data: newUser, error } = await supabase.functions.invoke(
         'create_team_member',
-        { 
-          email: data.email, 
-          password: defaultPassword,
-          name: data.username,
-          primary_role: data.role,
-          additional_roles: []
+        {
+          body: {
+            email: data.email, 
+            password: defaultPassword,
+            name: data.username,
+            primary_role: data.role,
+            additional_roles: []
+          }
         }
       );
       
@@ -288,7 +290,7 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       // Force signOut which will invalidate all sessions
       try {
-        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        const { error } = await supabase.auth.signOut({ scope: 'local' });
         
         if (error) {
           console.error("Supabase signOut error:", error);

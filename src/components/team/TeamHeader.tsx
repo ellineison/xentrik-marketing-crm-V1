@@ -50,7 +50,7 @@ const TeamHeader: React.FC<TeamHeaderProps> = ({
     });
   };
   
-  const toggleStatus = (status: "Active" | "Inactive" | "Paused" | "Suspended") => {
+  const toggleStatus = (status: "Active" | "Inactive" | "Paused") => {
     const newStatus = filters.status.includes(status) ? filters.status.filter(s => s !== status) : [...filters.status, status];
     onFiltersChange({
       ...filters,

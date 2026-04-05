@@ -81,21 +81,35 @@ const CustomsTracker = () => {
   // Update custom downpayment mutation
   const updateDownpaymentMutation = useMutation({
     mutationFn: async ({ customId, newDownpayment }: { customId: string; newDownpayment: number }) => {
+      // Find the custom to check if status should auto-update
+      const custom = customs.find(c => c.id === customId);
+      const updateData: any = { 
+        downpayment: newDownpayment,
+        updated_at: new Date().toISOString()
+      };
+
+      // Auto-transition: if downpayment >= full_price and status is partially_paid, move to fully_paid
+      if (custom && custom.status === 'partially_paid' && newDownpayment >= custom.full_price) {
+        updateData.status = 'fully_paid';
+      }
+
       const { error } = await supabase
         .from('customs')
-        .update({ 
-          downpayment: newDownpayment,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', customId);
       
       if (error) throw error;
+
+      // Return whether status was auto-updated for toast messaging
+      return { autoTransitioned: !!updateData.status };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['customs'] });
       toast({
         title: "Success",
-        description: "Downpayment updated successfully",
+        description: result.autoTransitioned 
+          ? "Downpayment updated — status moved to Fully Paid" 
+          : "Downpayment updated successfully",
       });
     },
     onError: (error) => {

@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { WeeklyQuestSlot } from '@/hooks/useWeeklyQuestSlots';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { notifyAdminsOfQuestSubmission, resolveDisplayName } from '@/utils/notifyAdmins';
 
 interface WeeklyQuestCompletionModalProps {
   open: boolean;
@@ -118,6 +119,26 @@ const WeeklyQuestCompletionModal: React.FC<WeeklyQuestCompletionModalProps> = ({
         assignmentId = newAssignment.id;
       }
 
+      // Save progress rows for each uploaded file (mirrors QuestEvidenceUpload pattern)
+      if (attachmentUrls.length > 0) {
+        for (let i = 0; i < attachmentUrls.length; i++) {
+          const { error: progressError } = await supabase
+            .from('gamification_quest_progress')
+            .upsert({
+              quest_assignment_id: assignmentId,
+              chatter_id: user.id,
+              slot_number: i,
+              attachment_url: attachmentUrls[i],
+            }, {
+              onConflict: 'quest_assignment_id,chatter_id,slot_number'
+            });
+
+          if (progressError) {
+            console.error('Error saving progress row:', progressError);
+          }
+        }
+      }
+
       // Create the completion record
       const { error: completionError } = await supabase
         .from('gamification_quest_completions')
@@ -146,6 +167,11 @@ const WeeklyQuestCompletionModal: React.FC<WeeklyQuestCompletionModalProps> = ({
       if (slotError) {
         console.error('Error marking slot completed:', slotError);
       }
+
+      // Notify admins (fire-and-forget)
+      resolveDisplayName(user.id, user.email || 'A chatter').then(name =>
+        notifyAdminsOfQuestSubmission(name, quest.title, 'weekly')
+      );
 
       toast({
         title: "Quest Submitted! 🎉",

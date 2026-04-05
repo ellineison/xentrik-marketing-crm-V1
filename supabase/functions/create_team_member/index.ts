@@ -38,6 +38,10 @@ serve(async (req) => {
 
     if (userError) {
       console.error('Error creating user:', userError)
+      // Provide a more descriptive error message for common cases
+      if (userError.message?.includes('duplicate') || userError.message?.includes('already')) {
+        throw new Error(`A user with email "${email}" already exists. Please use a different email address.`)
+      }
       throw userError
     }
 

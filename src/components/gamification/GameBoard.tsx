@@ -12,6 +12,7 @@ import { getRankCrownColor } from './PlayerCard';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { getEffectiveGameDate } from '@/utils/gameDate';
+import AdminShiftOverview from './AdminShiftOverview';
 
 interface GameBoardProps {
   isAdmin: boolean;
@@ -228,91 +229,93 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAdmin }) => {
           Game Board
         </h1>
         <p className="text-muted-foreground text-base mt-1">
-          Welcome back, Chatter. Status report follows.
+          {isAdmin ? 'Admin overview — shift task assignments.' : 'Welcome back, Chatter. Status report follows.'}
         </p>
       </div>
 
-      {/* Stats Grid - 4 Panels */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Rank Panel - colored by rank, crown only */}
-        <Card 
-          className="border-2"
-          style={{ 
-            backgroundColor: `${rankCrownColor}15`,
-            borderColor: `${rankCrownColor}50`
-          }}
-        >
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Current Rank</p>
-            <div className="flex flex-col items-center justify-center gap-1">
-              <Crown 
-                className="h-8 w-8" 
-                style={{ color: rankCrownColor }}
-                fill={rankCrownColor}
-                strokeWidth={1.5}
-              />
+      {/* Stats Grid - 4 Panels (hidden for admin) */}
+      {!isAdmin && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Rank Panel - colored by rank, crown only */}
+          <Card 
+            className="border-2"
+            style={{ 
+              backgroundColor: `${rankCrownColor}15`,
+              borderColor: `${rankCrownColor}50`
+            }}
+          >
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Current Rank</p>
+              <div className="flex flex-col items-center justify-center gap-1">
+                <Crown 
+                  className="h-8 w-8" 
+                  style={{ color: rankCrownColor }}
+                  fill={rankCrownColor}
+                  strokeWidth={1.5}
+                />
+                <p 
+                  className="text-lg font-bold uppercase"
+                  style={{ 
+                    fontFamily: "'Orbitron', sans-serif",
+                    color: rankCrownColor
+                  }}
+                >
+                  {currentRank?.name || 'Unranked'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Leaderboard Position Panel - colored by position */}
+          <Card 
+            className="border-2"
+            style={{ 
+              backgroundColor: positionColor ? `${positionColor}15` : 'rgba(var(--card), 0.8)',
+              borderColor: positionColor ? `${positionColor}50` : 'rgba(var(--border), 0.5)'
+            }}
+          >
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Leaderboard</p>
               <p 
-                className="text-lg font-bold uppercase"
+                className="text-3xl font-bold"
                 style={{ 
                   fontFamily: "'Orbitron', sans-serif",
-                  color: rankCrownColor
+                  color: positionColor || rankCrownColor
                 }}
               >
-                {currentRank?.name || 'Unranked'}
+                #{myPosition || '-'}
               </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Leaderboard Position Panel - colored by position */}
-        <Card 
-          className="border-2"
-          style={{ 
-            backgroundColor: positionColor ? `${positionColor}15` : 'rgba(var(--card), 0.8)',
-            borderColor: positionColor ? `${positionColor}50` : 'rgba(var(--border), 0.5)'
-          }}
-        >
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Leaderboard</p>
-            <p 
-              className="text-3xl font-bold"
-              style={{ 
-                fontFamily: "'Orbitron', sans-serif",
-                color: positionColor || rankCrownColor
-              }}
-            >
-              #{myPosition || '-'}
-            </p>
-          </CardContent>
-        </Card>
+          {/* Banana Count Panel */}
+          <Card className="bg-card/80 border-border/50">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Bananas</p>
+              <p className="text-3xl font-bold text-yellow-500 flex items-center justify-center gap-2">
+                <span>🍌</span>
+                <span style={{ fontFamily: "'Orbitron', sans-serif" }}>{myStats?.banana_balance || 0}</span>
+              </p>
+            </CardContent>
+          </Card>
 
-        {/* Banana Count Panel */}
-        <Card className="bg-card/80 border-border/50">
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Bananas</p>
-            <p className="text-3xl font-bold text-yellow-500 flex items-center justify-center gap-2">
-              <span>🍌</span>
-              <span style={{ fontFamily: "'Orbitron', sans-serif" }}>{myStats?.banana_balance || 0}</span>
-            </p>
-          </CardContent>
-        </Card>
+          {/* XP Count Panel */}
+          <Card className="bg-card/80 border-border/50">
+            <CardContent className="p-4 text-center">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total XP</p>
+              <p 
+                className="text-3xl font-bold text-primary"
+                style={{ fontFamily: "'Orbitron', sans-serif" }}
+              >
+                {myStats?.total_xp || 0}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-        {/* XP Count Panel */}
-        <Card className="bg-card/80 border-border/50">
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total XP</p>
-            <p 
-              className="text-3xl font-bold text-primary"
-              style={{ fontFamily: "'Orbitron', sans-serif" }}
-            >
-              {myStats?.total_xp || 0}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Progress to Next Rank */}
-      {nextRank && (
+      {/* Progress to Next Rank (hidden for admin) */}
+      {!isAdmin && nextRank && (
         <Card className="bg-card/80 border-border/50">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
@@ -338,77 +341,77 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAdmin }) => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sortedQuestCards.map(card => {
-              const config = questTypeConfig[card.questType];
-              const IconComponent = config.icon;
-              const isCompleted = card.completed;
-              const progressTarget = card.quest?.progress_target || 1;
-              // Use actual progress from questProgress map, or full if completed
-              const currentProgress = isCompleted ? progressTarget : (questProgress[card.questId] || 0);
-              
-              return (
-                <Card 
-                  key={card.id} 
-                  className={`bg-card/80 border-border/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/10 hover:border-primary/50 ${isCompleted ? 'opacity-60' : ''}`}
-                >
-                  <CardContent className="p-4">
-                    {/* Type Badge & Rewards */}
-                    <div className="flex items-center justify-between mb-3">
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs uppercase tracking-wider ${config.badgeClass}`}
-                        style={{ fontFamily: "'Orbitron', sans-serif" }}
-                      >
-                        <IconComponent className="h-3 w-3 mr-1" />
-                        {config.label}
-                      </Badge>
-                      <div className="flex items-center gap-2">
-                        <span 
-                          className="text-sm font-bold text-primary"
+          {isAdmin ? (
+            <AdminShiftOverview />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {sortedQuestCards.map(card => {
+                const config = questTypeConfig[card.questType];
+                const IconComponent = config.icon;
+                const isCompleted = card.completed;
+                const progressTarget = card.quest?.progress_target || 1;
+                const currentProgress = isCompleted ? progressTarget : (questProgress[card.questId] || 0);
+                
+                return (
+                  <Card 
+                    key={card.id} 
+                    className={`bg-card/80 border-border/50 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/10 hover:border-primary/50 ${isCompleted ? 'opacity-60' : ''}`}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs uppercase tracking-wider ${config.badgeClass}`}
                           style={{ fontFamily: "'Orbitron', sans-serif" }}
                         >
-                          {card.quest?.xp_reward} XP
-                        </span>
-                        <span className="text-sm text-yellow-500">🍌{card.quest?.banana_reward}</span>
+                          <IconComponent className="h-3 w-3 mr-1" />
+                          {config.label}
+                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="text-sm font-bold text-primary"
+                            style={{ fontFamily: "'Orbitron', sans-serif" }}
+                          >
+                            {card.quest?.xp_reward} XP
+                          </span>
+                          <span className="text-sm text-yellow-500">🍌{card.quest?.banana_reward}</span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Game Name */}
-                    <h3 
-                      className="text-lg font-bold uppercase text-foreground leading-tight mb-3"
-                      style={{ fontFamily: "'Orbitron', sans-serif" }}
-                    >
-                      {card.quest?.game_name || card.quest?.title}
-                    </h3>
+                      <h3 
+                        className="text-lg font-bold uppercase text-foreground leading-tight mb-3"
+                        style={{ fontFamily: "'Orbitron', sans-serif" }}
+                      >
+                        {card.quest?.game_name || card.quest?.title}
+                      </h3>
 
-                    {/* Progress with target from DB */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground uppercase">
-                        <span>Progress</span>
-                        <span className="flex items-center gap-2">
-                          {currentProgress} / {progressTarget}
-                          {isCompleted && <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">✓</Badge>}
-                        </span>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground uppercase">
+                          <span>Progress</span>
+                          <span className="flex items-center gap-2">
+                            {currentProgress} / {progressTarget}
+                            {isCompleted && <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">✓</Badge>}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={(currentProgress / progressTarget) * 100} 
+                          className="h-2" 
+                        />
                       </div>
-                      <Progress 
-                        value={(currentProgress / progressTarget) * 100} 
-                        className="h-2" 
-                      />
-                    </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+
+              {sortedQuestCards.length === 0 && (
+                <Card className="bg-card/80 border-border/50 col-span-2">
+                  <CardContent className="p-8 text-center">
+                    <p className="text-muted-foreground">No active directives at this time.</p>
                   </CardContent>
                 </Card>
-              );
-            })}
-
-            {sortedQuestCards.length === 0 && (
-              <Card className="bg-card/80 border-border/50 col-span-2">
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">No active directives at this time.</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Leaderboard - Right Column (Full) */}
@@ -485,7 +488,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAdmin }) => {
           </Card>
         </div>
       </div>
-
     </div>
   );
 };

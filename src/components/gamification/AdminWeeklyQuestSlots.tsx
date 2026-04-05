@@ -16,6 +16,7 @@ interface AdminAssignment {
   quest_id: string;
   start_date: string;
   end_date: string;
+  department?: string | null;
   quest?: Quest;
 }
 
@@ -40,6 +41,7 @@ const AdminWeeklyQuestSlots: React.FC<AdminWeeklyQuestSlotsProps> = ({ onRemoveA
           quest_id,
           start_date,
           end_date,
+          department,
           quest:gamification_quests (*)
         `)
         .lte('start_date', todayStr)
@@ -109,16 +111,22 @@ const AdminWeeklyQuestSlots: React.FC<AdminWeeklyQuestSlotsProps> = ({ onRemoveA
       {/* Quest Cards */}
       <div className="grid gap-3">
         {assignments.map((assignment) => (
-          <QuestSlotCard
-            key={assignment.id}
-            quest={assignment.quest}
-            questType="weekly"
-            status={null}
-            hasRerolled={false}
-            isRerolling={false}
-            isAdminView={true}
-            onRemoveAssignment={onRemoveAssignment ? () => onRemoveAssignment(assignment.quest_id) : undefined}
-          />
+          <div key={assignment.id} className="relative">
+            <QuestSlotCard
+              quest={assignment.quest}
+              questType="weekly"
+              status={null}
+              hasRerolled={false}
+              isRerolling={false}
+              isAdminView={true}
+              onRemoveAssignment={onRemoveAssignment ? () => onRemoveAssignment(assignment.quest_id) : undefined}
+            />
+            {assignment.department && (
+              <Badge variant="outline" className="absolute top-2 right-2 text-xs">
+                {assignment.department}
+              </Badge>
+            )}
+          </div>
         ))}
       </div>
     </div>

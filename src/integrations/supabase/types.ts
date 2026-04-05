@@ -764,6 +764,7 @@ export type Database = {
           created_at: string
           custom_word: string | null
           custom_word_description: string | null
+          department: string | null
           end_date: string
           id: string
           quest_id: string
@@ -774,6 +775,7 @@ export type Database = {
           created_at?: string
           custom_word?: string | null
           custom_word_description?: string | null
+          department?: string | null
           end_date: string
           id?: string
           quest_id: string
@@ -784,6 +786,7 @@ export type Database = {
           created_at?: string
           custom_word?: string | null
           custom_word_description?: string | null
+          department?: string | null
           end_date?: string
           id?: string
           quest_id?: string
@@ -994,6 +997,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      gamification_shift_quest_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          id: string
+          quest_id: string
+          shift: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          id?: string
+          quest_id: string
+          shift: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          id?: string
+          quest_id?: string
+          shift?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_shift_quest_assignments_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gamification_shift_quest_completions: {
+        Row: {
+          attachments: string[] | null
+          chatter_id: string
+          id: string
+          shift_assignment_id: string
+          status: string
+          submitted_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          attachments?: string[] | null
+          chatter_id: string
+          id?: string
+          shift_assignment_id: string
+          status?: string
+          submitted_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          attachments?: string[] | null
+          chatter_id?: string
+          id?: string
+          shift_assignment_id?: string
+          status?: string
+          submitted_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamification_shift_quest_completions_shift_assignment_id_fkey"
+            columns: ["shift_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_shift_quest_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gamification_shop_items: {
         Row: {
@@ -1327,6 +1406,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          read: boolean
+          recipient_id: string
+          related_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          recipient_id: string
+          related_id?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          read?: boolean
+          recipient_id?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
       }
       onboarding_submissions: {
         Row: {

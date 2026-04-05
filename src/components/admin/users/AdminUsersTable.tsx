@@ -6,14 +6,14 @@ import UserRolesTable from "./UserRolesTable";
 interface AdminUsersTableProps {
   users: Employee[];
   onEditUser: (user: Employee) => void;
-  onSuspendUser?: (user: Employee) => void;
+  onArchiveUser?: (user: Employee) => void;
   onDeleteUser?: (user: Employee) => void;
 }
 
 const AdminUsersTable: React.FC<AdminUsersTableProps> = ({ 
   users,
   onEditUser,
-  onSuspendUser,
+  onArchiveUser,
   onDeleteUser
 }) => {
   // Filter users who have Admin as primary role
@@ -26,7 +26,7 @@ const AdminUsersTable: React.FC<AdminUsersTableProps> = ({
         <UserRolesTable 
           users={adminUsers} 
           onEditUser={onEditUser}
-          onSuspendUser={onSuspendUser}
+          onArchiveUser={onArchiveUser}
           onDeleteUser={onDeleteUser}
         />
       ) : (

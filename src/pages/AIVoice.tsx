@@ -159,6 +159,7 @@ const AIVoice: React.FC = () => {
       const { data, error } = await supabase
         .from('creators')
         .select('id, name, model_name')
+        .eq('active', true)
         .order('name');
 
       if (error) throw error;

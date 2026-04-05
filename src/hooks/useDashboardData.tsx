@@ -56,7 +56,8 @@ export const useDashboardData = () => {
       
       const { data: creatorsData, error: creatorsError } = await supabase
         .from('creators')
-        .select('id, team, gender, creator_type, created_at');
+        .select('id, team, gender, creator_type, created_at')
+        .eq('active', true);
         
       if (creatorsError) {
         console.error('Error fetching creators:', creatorsError);

@@ -1,6 +1,6 @@
 
 export type TeamMemberRole = "Chatter" | "VA" | "Manager" | "Developer" | "Admin" | "Employee" | "Creator" | "HR / Work Force";
-export type EmployeeStatus = "Active" | "Inactive" | "Paused" | "Suspended";
+export type EmployeeStatus = "Active" | "Inactive" | "Paused";
 export type EmployeeTeam = "A" | "B" | "C";
 
 // Alias for backward compatibility with existing code

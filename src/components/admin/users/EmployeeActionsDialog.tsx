@@ -16,7 +16,7 @@ interface EmployeeActionsDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   employee?: Employee;
-  action: 'suspend' | 'delete';
+  action: 'archive' | 'delete';
 }
 
 const EmployeeActionsDialog: React.FC<EmployeeActionsDialogProps> = ({
@@ -26,9 +26,9 @@ const EmployeeActionsDialog: React.FC<EmployeeActionsDialogProps> = ({
   employee,
   action
 }) => {
-  const actionText = action === 'suspend' ? 'Suspend' : 'Delete';
-  const actionDescription = action === 'suspend' 
-    ? 'This will prevent the user from accessing their account. They will see a notice that their account is suspended.'
+  const actionText = action === 'archive' ? 'Archive' : 'Delete';
+  const actionDescription = action === 'archive' 
+    ? 'This will archive the user and hide them from all active views across the system. Their data will be preserved and they can be restored later.'
     : 'This will permanently deactivate the user\'s authentication and remove all their access. This action cannot be undone.';
 
   return (
@@ -44,7 +44,7 @@ const EmployeeActionsDialog: React.FC<EmployeeActionsDialogProps> = ({
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
-            className={action === 'delete' ? "bg-destructive text-destructive-foreground" : "bg-amber-500 text-black"}
+            className={action === 'delete' ? "bg-destructive text-destructive-foreground" : "bg-amber-500 text-foreground"}
           >
             {actionText}
           </AlertDialogAction>

@@ -6,14 +6,14 @@ import UserRolesTable from "./UserRolesTable";
 interface CreatorUsersTableProps {
   users: Employee[];
   onEditUser: (user: Employee) => void;
-  onSuspendUser?: (user: Employee) => void;
+  onArchiveUser?: (user: Employee) => void;
   onDeleteUser?: (user: Employee) => void;
 }
 
 const CreatorUsersTable: React.FC<CreatorUsersTableProps> = ({ 
   users,
   onEditUser,
-  onSuspendUser,
+  onArchiveUser,
   onDeleteUser
 }) => {
   // Filter users who have Creator in their additional roles
@@ -28,7 +28,7 @@ const CreatorUsersTable: React.FC<CreatorUsersTableProps> = ({
         <UserRolesTable 
           users={creatorUsers} 
           onEditUser={onEditUser}
-          onSuspendUser={onSuspendUser}
+          onArchiveUser={onArchiveUser}
           onDeleteUser={onDeleteUser}
         />
       ) : (

@@ -41,10 +41,10 @@ const DeleteCreatorDialog: React.FC<DeleteCreatorDialogProps> = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Archive this creator?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the creator profile
-            for <strong>{creatorName}</strong> and all associated data from the database.
+            This will archive the creator profile for <strong>{creatorName}</strong>. 
+            The creator will be hidden from active lists but can be restored later.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -60,10 +60,10 @@ const DeleteCreatorDialog: React.FC<DeleteCreatorDialogProps> = ({
             {isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Deleting...
+                Archiving...
               </>
             ) : (
-              "Delete"
+              "Archive"
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

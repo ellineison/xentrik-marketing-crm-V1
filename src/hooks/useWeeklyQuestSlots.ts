@@ -76,6 +76,15 @@ export const useWeeklyQuestSlots = () => {
   const populateSlotsFromAdminAssignments = useCallback(async () => {
     if (!user) return;
 
+    // Fetch user's department
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department')
+      .eq('id', user.id)
+      .single();
+
+    const userDepartment = profile?.department || null;
+
     // Check if user already has a weekly slot for this week
     const { data: existingSlots } = await supabase
       .from('gamification_daily_quest_slots')
@@ -89,12 +98,12 @@ export const useWeeklyQuestSlots = () => {
     }
 
     // Fetch this week's ADMIN-assigned weekly quest (assigned_by is null)
-    // Personal assignments are NOT included to prevent re-rolls from propagating
     const today = format(new Date(), 'yyyy-MM-dd');
     const { data: weeklyAssignments, error: assignmentError } = await supabase
       .from('gamification_quest_assignments')
       .select(`
         quest_id,
+        department,
         quest:gamification_quests (*)
       `)
       .lte('start_date', today)
@@ -106,9 +115,9 @@ export const useWeeklyQuestSlots = () => {
       return;
     }
 
-    // Filter to only weekly quests
+    // Filter to only weekly quests matching user's department (NULL department defaults to 2PM)
     const weeklyAssignment = (weeklyAssignments || []).find(
-      (a: any) => a.quest?.quest_type === 'weekly'
+      (a: any) => a.quest?.quest_type === 'weekly' && ((a.department || '2PM') === userDepartment)
     );
 
     if (!weeklyAssignment) {

@@ -10,7 +10,7 @@ export const useUserRoles = () => {
   const [selectedUser, setSelectedUser] = useState<Employee | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isActionDialogOpen, setIsActionDialogOpen] = useState<boolean>(false);
-  const [pendingAction, setPendingAction] = useState<'suspend' | 'delete' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'archive' | 'delete' | null>(null);
   const { toast } = useToast();
 
   // Sort users by role priority: Admin > Manager > Employee
@@ -84,9 +84,9 @@ export const useUserRoles = () => {
     setIsModalOpen(true);
   };
 
-  const handleSuspend = (user: Employee) => {
+  const handleArchive = (user: Employee) => {
     setSelectedUser(user);
-    setPendingAction('suspend');
+    setPendingAction('archive');
     setIsActionDialogOpen(true);
   };
 
@@ -102,21 +102,27 @@ export const useUserRoles = () => {
     try {
       setLoading(true);
       
-      if (pendingAction === 'suspend') {
-        // Update user status to Suspended
+      if (pendingAction === 'archive') {
+        // Archive: set creators.active = false (don't change profiles.status — DB constraint only allows Active/Inactive/Paused)
         const { error } = await supabase
-          .from('profiles')
-          .update({ status: 'Suspended' })
+          .from('creators')
+          .update({ active: false, updated_at: new Date().toISOString() })
           .eq('id', selectedUser.id);
 
         if (error) {
-          console.error('Suspend error:', error);
-          throw new Error(`Failed to suspend user: ${error.message}`);
+          console.error('Archive error:', error);
+          throw new Error(`Failed to archive user: ${error.message}`);
         }
+
+        // Set profile status to Inactive (valid DB value) to reflect archived state
+        await supabase
+          .from('profiles')
+          .update({ status: 'Inactive' })
+          .eq('id', selectedUser.id);
 
         toast({
           title: "Success",
-          description: `${selectedUser.name} has been suspended`,
+          description: `${selectedUser.name} has been archived`,
         });
       } else if (pendingAction === 'delete') {
         // Call the edge function to delete the user by email
@@ -172,7 +178,7 @@ export const useUserRoles = () => {
     pendingAction,
     fetchUsers,
     handleEdit,
-    handleSuspend,
+    handleArchive,
     handleDelete,
     handleConfirmAction
   };

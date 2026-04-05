@@ -74,6 +74,15 @@ export const useDailyQuestSlots = () => {
   const populateSlotsFromAdminAssignments = useCallback(async () => {
     if (!user) return;
 
+    // Fetch user's department
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department')
+      .eq('id', user.id)
+      .single();
+
+    const userDepartment = profile?.department || null;
+
     // Read existing slots (we may need to backfill OR repair a previously-misfilled slot)
     const { data: existingSlots, error: existingError } = await supabase
       .from('gamification_daily_quest_slots')
@@ -91,10 +100,11 @@ export const useDailyQuestSlots = () => {
 
     // Fetch today's ADMIN-assigned daily quests (assigned_by is null)
     // Personal assignments (assigned_by = user.id) are NOT included to prevent re-rolls from propagating
-    const { data: todayAssignments, error: assignmentError } = await supabase
+    let query = supabase
       .from('gamification_quest_assignments')
       .select(`
         quest_id,
+        department,
         quest:gamification_quests (*)
       `)
       .eq('start_date', today)
@@ -102,15 +112,21 @@ export const useDailyQuestSlots = () => {
       .is('assigned_by', null)
       .order('created_at');
 
+    const { data: todayAssignments, error: assignmentError } = await query;
+
     if (assignmentError) {
       console.error('Error fetching admin assignments:', assignmentError);
       return;
     }
 
-    // Filter to only daily quests
+    // Filter to only daily quests AND matching department (NULL department defaults to 2PM)
     const dailyAssignments = (todayAssignments || []).filter(
       (a: any) => a.quest?.quest_type === 'daily'
-    );
+    ).filter((a: any) => {
+      // NULL department defaults to 2PM shift
+      const assignmentDept = (a as any).department || '2PM';
+      return assignmentDept === userDepartment;
+    });
 
     if (dailyAssignments.length === 0) {
       return; // No admin-assigned quests for today

@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
-import { TeamMemberRole } from '@/types/employee';
+import { TeamMemberRole, EmployeeStatus } from '@/types/employee';
 import TeamMemberEditHeader from '@/components/team/TeamMemberEditHeader';
 import TeamMemberEditForm from '@/components/team/TeamMemberEditForm';
 import { teamMemberFormSchema, TeamMemberFormValues } from '@/schemas/teamMemberSchema';
@@ -65,7 +65,7 @@ const TeamMemberEdit = () => {
           email: data.email || '',
           role: (data.role || 'Employee') as "Admin" | "Manager" | "Employee",
           roles: (data.roles || []) as TeamMemberRole[],
-          status: (data.status || 'Active') as "Active" | "Inactive" | "Paused" | "Suspended",
+          status: (data.status || 'Active') as EmployeeStatus,
           teams: [],
           telegram: data.telegram,
           phoneNumber: data.phone_number,

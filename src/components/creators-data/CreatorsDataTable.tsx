@@ -73,7 +73,8 @@ const CreatorsDataTable: React.FC = () => {
       // First, fetch all creators to get their emails and model_names
       const { data: creators, error: creatorsError } = await supabase
         .from('creators')
-        .select('email, model_name');
+        .select('email, model_name')
+        .eq('active', true);
 
       if (creatorsError) {
         console.error('Error fetching creators:', creatorsError);

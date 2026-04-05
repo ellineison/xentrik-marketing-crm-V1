@@ -22,7 +22,7 @@ const RoleBasedUsersList: React.FC = () => {
     pendingAction,
     fetchUsers,
     handleEdit,
-    handleSuspend,
+    handleArchive,
     handleDelete,
     handleConfirmAction
   } = useUserRoles();
@@ -46,7 +46,7 @@ const RoleBasedUsersList: React.FC = () => {
           <AdminUsersTable 
             users={users} 
             onEditUser={handleEdit}
-            onSuspendUser={handleSuspend}
+            onArchiveUser={handleArchive}
             onDeleteUser={handleDelete}
           />
         </div>
@@ -58,7 +58,7 @@ const RoleBasedUsersList: React.FC = () => {
           <CreatorUsersTable 
             users={users} 
             onEditUser={handleEdit}
-            onSuspendUser={handleSuspend}
+            onArchiveUser={handleArchive}
             onDeleteUser={handleDelete}
           />
         </div>
@@ -70,7 +70,7 @@ const RoleBasedUsersList: React.FC = () => {
           <OtherRolesUsersTable 
             users={users} 
             onEditUser={handleEdit}
-            onSuspendUser={handleSuspend}
+            onArchiveUser={handleArchive}
             onDeleteUser={handleDelete}
           />
         </div>
@@ -88,7 +88,7 @@ const RoleBasedUsersList: React.FC = () => {
         onOpenChange={setIsActionDialogOpen}
         onConfirm={handleConfirmAction}
         employee={selectedUser}
-        action={pendingAction || 'suspend'}
+        action={pendingAction || 'archive'}
       />
     </>
   );

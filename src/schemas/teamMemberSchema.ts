@@ -6,7 +6,7 @@ export const teamMemberFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   role: z.enum(["Admin", "Manager", "Employee"] as [PrimaryRole, ...PrimaryRole[]]),
-  status: z.enum(["Active", "Inactive", "Paused", "Suspended"]),
+  status: z.enum(["Active", "Inactive", "Paused"]),
   telegram: z.string().optional(),
   department: z.string().optional(),
   roles: z.array(z.string()).default([]),
