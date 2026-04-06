@@ -150,9 +150,15 @@ const CustomsTracker = () => {
   });
 
   // Filter customs by model name
-  const filteredCustoms = customs.filter(custom =>
-    modelFilter === '' || custom.model_name.toLowerCase().includes(modelFilter.toLowerCase())
-  );
+  const filteredCustoms = customs.filter(custom => {
+    if (modelFilter === '') return true;
+    const q = modelFilter.toLowerCase();
+    return (
+      custom.model_name.toLowerCase().includes(q) ||
+      custom.fan_display_name.toLowerCase().includes(q) ||
+      (custom.fan_username && custom.fan_username.toLowerCase().includes(q))
+    );
+  });
 
   const handleUpdateDownpayment = (customId: string, newDownpayment: number) => {
     updateDownpaymentMutation.mutate({ customId, newDownpayment });
@@ -215,7 +221,7 @@ const CustomsTracker = () => {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Filter by model name..."
+              placeholder="Filter by model name or fan name..."
               value={modelFilter}
               onChange={(e) => setModelFilter(e.target.value)}
               className="pl-10"
