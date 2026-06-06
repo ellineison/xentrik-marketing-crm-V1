@@ -22,7 +22,9 @@ export interface WeeklyQuestSlot {
 const WEEKLY_SLOT_NUMBER = 100;
 
 export const useWeeklyQuestSlots = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [slots, setSlots] = useState<WeeklyQuestSlot[]>([]);
