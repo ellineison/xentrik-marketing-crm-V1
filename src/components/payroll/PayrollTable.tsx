@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
+import { getWeekStart as getWeekStartUtil, getDaysOfWeek, getEffectivePayrollDate } from '@/utils/weekCalculations';
 
 interface SalesEntry {
   id: string;
