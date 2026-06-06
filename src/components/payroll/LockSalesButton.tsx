@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { generatePayslipPDF } from './PayslipGenerator';
 import { getWeekStart } from '@/utils/weekCalculations';
+import { writeLockedPayrollSnapshot } from './hooks/usePayrollSummary';
 import { useEffect } from 'react';
 import {
   AlertDialog,
@@ -122,6 +123,13 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
         if (error) throw error;
       }
 
+      // Snapshot the locked Expected Salary so it never drifts after lock.
+      try {
+        await writeLockedPayrollSnapshot(effectiveChatterId, weekStartStr);
+      } catch (snapshotErr) {
+        console.error('Error writing payroll snapshot:', snapshotErr);
+      }
+
       onDataRefresh(); // Refresh data
       toast({
         title: "Sales & Attendance Confirmed",
@@ -217,6 +225,25 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
         .eq('week_start_date', weekStartStr);
 
       if (error) throw error;
+
+      // Clear admin approval fields on the snapshot so an old Approved Salary
+      // is never displayed after a rejection. Locked snapshot is wiped too;
+      // the chatter's next lock will refresh it.
+      await supabase
+        .from('payroll_summaries')
+        .update({
+          overtime_pay: null,
+          overtime_notes: null,
+          bonus_amount: null,
+          bonus_notes: null,
+          deduction_amount: null,
+          deduction_notes: null,
+          approved_salary: null,
+          approved_at: null,
+          approved_by: null,
+        })
+        .eq('chatter_id', effectiveChatterId)
+        .eq('week_start_date', weekStartStr);
 
       onDataRefresh(); // Refresh data
       toast({
