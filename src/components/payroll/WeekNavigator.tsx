@@ -3,36 +3,43 @@ import { Button } from '@/components/ui/button';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { format, addWeeks, subWeeks } from 'date-fns';
 import { getWeekStart, getWeekEnd } from '@/utils/weekCalculations';
 
 interface WeekNavigatorProps {
   selectedWeek?: Date;
   onWeekChange?: (date: Date) => void;
+  /**
+   * Department of the chatter being viewed. Drives the week cutoff so that
+   * 10PM (Team Nash) chatters see a Wednesday-Tuesday window in the picker,
+   * while everyone else sees Thursday-Wednesday.
+   */
+  department?: string | null;
+  role?: string | null;
+  roles?: string[] | null;
 }
 
 export const WeekNavigator: React.FC<WeekNavigatorProps> = ({
   selectedWeek = new Date(),
-  onWeekChange
+  onWeekChange,
+  department,
+  role,
+  roles,
 }) => {
-  // Use standard cutoff for navigation (most common case)
-  const weekStart = getWeekStart(selectedWeek);
+  const weekStart = getWeekStart(selectedWeek, department, role, roles);
   const weekEnd = getWeekEnd(weekStart);
 
   const handlePreviousWeek = () => {
-    const newWeek = subWeeks(weekStart, 1);
-    onWeekChange?.(newWeek);
+    onWeekChange?.(subWeeks(weekStart, 1));
   };
 
   const handleNextWeek = () => {
-    const newWeek = addWeeks(weekStart, 1);
-    onWeekChange?.(newWeek);
+    onWeekChange?.(addWeeks(weekStart, 1));
   };
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      const newWeekStart = getWeekStart(date);
-      onWeekChange?.(newWeekStart);
+      onWeekChange?.(getWeekStart(date, department, role, roles));
     }
   };
 
