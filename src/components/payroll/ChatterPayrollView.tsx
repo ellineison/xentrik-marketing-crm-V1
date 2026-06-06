@@ -11,12 +11,13 @@ import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
-import { getWeekStart } from '@/utils/weekCalculations';
+import { getWeekStart, getEffectivePayrollDate } from '@/utils/weekCalculations';
 import { DollarSign } from 'lucide-react';
 
 export const ChatterPayrollView: React.FC = () => {
   const { user, userRole, userRoles } = useAuth();
-  const [selectedWeek, setSelectedWeek] = React.useState(new Date());
+  const [selectedWeek, setSelectedWeek] = React.useState(() => getEffectivePayrollDate(new Date()));
+
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [userDepartment, setUserDepartment] = React.useState<string | null>(null);
   
