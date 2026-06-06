@@ -7,8 +7,14 @@ export const LetsPlayButton: React.FC = () => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    // Open Tasks & Rewards in the SAME tab so the in-app "Back to CRM"
-    // button can reliably return the user to the main CRM via history/navigate.
+    // Remember the CRM route the user came from so "Back to CRM" can
+    // return them to the exact same page (not the game board).
+    try {
+      const here = window.location.pathname + window.location.search;
+      if (!here.startsWith('/tasks-rewards')) {
+        sessionStorage.setItem('preGamificationRoute', here);
+      }
+    } catch {}
     navigate('/tasks-rewards');
   };
 
