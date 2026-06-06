@@ -69,9 +69,10 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   );
   
   const currentWeekStart = useMemo(() => 
-    getWeekStartUtil(new Date(), chatterDepartment, chatterRole, chatterRoles),
+    getWeekStartUtil(getEffectivePayrollDate(new Date(), chatterDepartment), chatterDepartment, chatterRole, chatterRoles),
     [chatterDepartment, chatterRole, chatterRoles]
   );
+
   
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
