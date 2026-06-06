@@ -30,7 +30,19 @@ export const ChatterPayrollView: React.FC = () => {
         .select('department')
         .eq('id', user.id)
         .single();
-      setUserDepartment(data?.department || null);
+      const dept = data?.department || null;
+      setUserDepartment(dept);
+      // Re-anchor the selected week to the shift-effective "today" once we know
+      // the chatter is on the 10PM rotation (post-midnight should map to the
+      // previous calendar day so the Wed-night shift lands on Wed, not Thu).
+      setSelectedWeek(prev => {
+        const initial = getEffectivePayrollDate(new Date());
+        // Only reset if the user hasn't navigated away from today's default.
+        return prev.getTime() === initial.getTime()
+          ? getEffectivePayrollDate(new Date(), dept)
+          : prev;
+      });
+
     };
     fetchUserDepartment();
   }, [user?.id]);
