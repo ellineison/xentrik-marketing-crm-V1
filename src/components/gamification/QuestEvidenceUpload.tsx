@@ -187,6 +187,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
   const uploadPendingFiles = async () => {
     if (!user || pendingFiles.length === 0) return;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot submit quest evidence." });
+      return;
+    }
+
     
     setIsBatchUploading(true);
     
