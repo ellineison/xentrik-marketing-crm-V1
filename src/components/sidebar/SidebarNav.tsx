@@ -143,6 +143,7 @@ const navGroups: NavGroup[] = [
         label: 'AI Clone',
         icon: <Bot className="h-5 w-5" />,
         roles: ['Admin', 'VA', 'Chatter'],
+        hidden: true,
       },
       // Tasks & Rewards is accessed via Let's Play! button in header, not sidebar
       // {
