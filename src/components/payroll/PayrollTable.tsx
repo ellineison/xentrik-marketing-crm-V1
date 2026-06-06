@@ -80,6 +80,13 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   // Get days of week order based on department
   const DAYS_OF_WEEK = getDaysOfWeek(chatterDepartment);
 
+  // Shift-effective "today" column (PHT, post-midnight maps back for 10PM).
+  const effectiveTodayDow = useMemo(
+    () => isCurrentWeek ? getEffectivePayrollDate(new Date(), chatterDepartment).getDay() : -1,
+    [isCurrentWeek, chatterDepartment]
+  );
+
+
   console.log('Week calculation debug:', {
     today: new Date().toISOString().split('T')[0],
     todayDay: new Date().getDay(),
