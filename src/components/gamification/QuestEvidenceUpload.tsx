@@ -291,6 +291,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
   const handleSubmit = async () => {
     if (!user || !quest) return;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot submit quests for review." });
+      return;
+    }
+
     
     if (!canSubmit) {
       toast({
