@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { generatePayslipPDF } from './PayslipGenerator';
+import { buildPayslipData } from './hooks/usePayslipData';
 import { getWeekStart } from '@/utils/weekCalculations';
 import { writeLockedPayrollSnapshot } from './hooks/usePayrollSummary';
 import { useEffect } from 'react';
@@ -264,27 +265,8 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     if (!effectiveChatterId) return;
 
     try {
-      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-      
-      // Fetch sales data and payroll details
-      const { data: salesData, error: salesError } = await supabase
-        .from('sales_tracker')
-        .select('*')
-        .eq('chatter_id', effectiveChatterId)
-        .eq('week_start_date', weekStartStr);
-
-      if (salesError) throw salesError;
-
-      // Get chatter profile info
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('name, hourly_rate')
-        .eq('id', effectiveChatterId)
-        .single();
-
-      if (profileError) throw profileError;
-
-      if (!salesData?.length || !profileData) {
+      const payslipData = await buildPayslipData(effectiveChatterId, weekStart);
+      if (!payslipData) {
         toast({
           title: "Error",
           description: "No payroll data found for this week",
@@ -292,45 +274,7 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
         });
         return;
       }
-
-      const firstEntry = salesData[0];
-      const totalSales = salesData.reduce((sum, entry) => sum + (entry.earnings || 0), 0);
-      
-      // Calculate commission amount and total payout
-      const commissionRate = firstEntry.confirmed_commission_rate || 0;
-      const hoursWorked = firstEntry.confirmed_hours_worked || 0;
-      const hourlyRate = profileData.hourly_rate || 0;
-      const overtimePay = firstEntry.overtime_pay || 0;
-      const deductionAmount = firstEntry.deduction_amount || 0;
-      
-      const commissionAmount = (totalSales * commissionRate) / 100;
-      const hourlyPay = hoursWorked * hourlyRate;
-      const totalPayout = hourlyPay + commissionAmount + overtimePay - deductionAmount;
-
-      // Prepare payslip data
-      const payslipData = {
-        chatterName: profileData.name,
-        weekStart: weekStart,
-        weekEnd: new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000),
-        salesData: salesData.map(entry => ({
-          model_name: entry.model_name,
-          day_of_week: entry.day_of_week,
-          earnings: entry.earnings
-        })),
-        totalSales: totalSales,
-        hoursWorked: hoursWorked,
-        hourlyRate: hourlyRate,
-        commissionRate: commissionRate,
-        commissionAmount: commissionAmount,
-        overtimePay: overtimePay,
-        overtimeNotes: firstEntry.overtime_notes || '',
-        deductionAmount: deductionAmount,
-        deductionNotes: firstEntry.deduction_notes || '',
-        totalPayout: totalPayout
-      };
-
       generatePayslipPDF(payslipData);
-
       toast({
         title: "Payslip Downloaded",
         description: "Payslip has been generated and downloaded successfully.",
