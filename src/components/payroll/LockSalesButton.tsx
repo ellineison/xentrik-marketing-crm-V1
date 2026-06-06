@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, XCircle, Check, Download, AlertTriangle } from 'lucide-react';
+import { Lock, XCircle, Check, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
