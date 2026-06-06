@@ -135,23 +135,55 @@ export const generatePayslipPDF = (data: PayslipData) => {
     leftY += 3;
   }
   
-  // Right column - Deduction (always show)
-  pdf.text(`Deduction: -$${data.deductionAmount.toFixed(2)}`, leftColumn, rightY);
+  // Right column - Bonus (always show)
+  const bonusAmount = data.bonusAmount || 0;
+  pdf.text(`Bonus: $${bonusAmount.toFixed(2)}`, leftColumn, rightY);
   rightY += 7;
-  if (data.deductionNotes && data.deductionAmount > 0) {
+  if (data.bonusNotes && bonusAmount > 0) {
     pdf.setFontSize(10);
-    pdf.text(`Deduction Reason: ${data.deductionNotes}`, leftColumn, rightY);
+    pdf.text(`Bonus Reason: ${data.bonusNotes}`, leftColumn, rightY);
     rightY += 10;
   } else {
     rightY += 3;
   }
-  
+
   // Set yPosition to the maximum of both columns
   yPosition = Math.max(leftY, rightY);
 
-  // Total payout
+  // Deduction (full width row)
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  pdf.text(`Deduction: -$${data.deductionAmount.toFixed(2)}`, 20, yPosition);
+  yPosition += 7;
+  if (data.deductionNotes && data.deductionAmount > 0) {
+    pdf.text(`Deduction Reason: ${data.deductionNotes}`, 20, yPosition);
+    yPosition += 10;
+  } else {
+    yPosition += 3;
+  }
+
+  // Expected Salary (system-computed, locked snapshot)
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(10);
+  if (data.expectedSalary !== undefined && data.expectedSalary !== null) {
+    pdf.setTextColor(22, 128, 56); // green
+    pdf.text(`Expected Salary: $${data.expectedSalary.toFixed(2)}`, 20, yPosition);
+    yPosition += 8;
+  }
+
+  // Approved Salary (final, admin-approved) — highlighted blue
+  if (data.approvedSalary !== undefined && data.approvedSalary !== null) {
+    pdf.setTextColor(37, 99, 235); // blue
+    pdf.text(
+      `Approved Salary (Final Payout): $${data.approvedSalary.toFixed(2)}`,
+      20,
+      yPosition
+    );
+    yPosition += 8;
+  }
+
+  // Total payout
+  pdf.setTextColor(0, 0, 0);
   pdf.text(`Total Payout: $${data.totalPayout.toFixed(2)}`, 20, yPosition);
   yPosition += 15;
 
