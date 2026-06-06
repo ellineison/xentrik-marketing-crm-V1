@@ -53,7 +53,8 @@ export const AttendanceTable: React.FC<AttendanceTableProps> = ({
   
   // Calculate week start based on department cutoff and role
   const weekStart = getWeekStartUtil(selectedWeek, chatterDepartment, chatterRole, chatterRoles);
-  const currentWeekStart = getWeekStartUtil(new Date(), chatterDepartment, chatterRole, chatterRoles);
+  const currentWeekStart = getWeekStartUtil(getEffectivePayrollDate(new Date(), chatterDepartment), chatterDepartment, chatterRole, chatterRoles);
+
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
   
