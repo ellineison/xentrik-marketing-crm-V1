@@ -261,33 +261,9 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
-  const downloadPayslip = async () => {
-    if (!effectiveChatterId) return;
+  // Download payslip lives in ApprovedPayrollStatus / PayrollTable — both gated
+  // on admin approval. Intentionally no download button rendered here.
 
-    try {
-      const payslipData = await buildPayslipData(effectiveChatterId, weekStart);
-      if (!payslipData) {
-        toast({
-          title: "Error",
-          description: "No payroll data found for this week",
-          variant: "destructive",
-        });
-        return;
-      }
-      generatePayslipPDF(payslipData);
-      toast({
-        title: "Payslip Downloaded",
-        description: "Payslip has been generated and downloaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error generating payslip:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate payslip",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Show component if sales are locked and awaiting approval, or if they can edit
   // No longer restricted to current week only
