@@ -8,6 +8,7 @@ import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { generatePayslipPDF } from './PayslipGenerator';
+import { buildPayslipData } from './hooks/usePayslipData';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
