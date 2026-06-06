@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, XCircle, Check, Download, AlertTriangle } from 'lucide-react';
+import { Lock, XCircle, Check, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
-import { generatePayslipPDF } from './PayslipGenerator';
-import { buildPayslipData } from './hooks/usePayslipData';
 import { getWeekStart } from '@/utils/weekCalculations';
 import { writeLockedPayrollSnapshot } from './hooks/usePayrollSummary';
 import { useEffect } from 'react';
@@ -261,33 +259,9 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
-  const downloadPayslip = async () => {
-    if (!effectiveChatterId) return;
+  // Download payslip lives in ApprovedPayrollStatus / PayrollTable — both gated
+  // on admin approval. Intentionally no download button rendered here.
 
-    try {
-      const payslipData = await buildPayslipData(effectiveChatterId, weekStart);
-      if (!payslipData) {
-        toast({
-          title: "Error",
-          description: "No payroll data found for this week",
-          variant: "destructive",
-        });
-        return;
-      }
-      generatePayslipPDF(payslipData);
-      toast({
-        title: "Payslip Downloaded",
-        description: "Payslip has been generated and downloaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error generating payslip:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate payslip",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Show component if sales are locked and awaiting approval, or if they can edit
   // No longer restricted to current week only
