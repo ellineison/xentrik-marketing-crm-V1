@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Gamepad2, Swords, Store, Settings } from 'lucide-react';
+import { Gamepad2, Swords, Store, Settings, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 import GameBoard from '@/components/gamification/GameBoard';
 import QuestsPanel from '@/components/gamification/QuestsPanel';
 import ChatterQuestsPage from '@/components/gamification/ChatterQuestsPage';
