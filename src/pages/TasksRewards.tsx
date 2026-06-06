@@ -118,7 +118,15 @@ const TasksRewards: React.FC = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/')}
+            onClick={() => {
+              let target = '/dashboard';
+              try {
+                const saved = sessionStorage.getItem('preGamificationRoute');
+                if (saved && !saved.startsWith('/tasks-rewards')) target = saved;
+                sessionStorage.removeItem('preGamificationRoute');
+              } catch {}
+              navigate(target);
+            }}
             className="gap-2 text-foreground/80 hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
