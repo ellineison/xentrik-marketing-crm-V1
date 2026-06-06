@@ -74,7 +74,8 @@ export const useDailyQuestSlots = () => {
 
   // Fetch today's admin-assigned quests and populate user slots
   const populateSlotsFromAdminAssignments = useCallback(async () => {
-    if (!user) return;
+    if (!user || isAdmin) return; // Admins never get personal slots
+
 
     // Fetch user's department
     const { data: profile } = await supabase
