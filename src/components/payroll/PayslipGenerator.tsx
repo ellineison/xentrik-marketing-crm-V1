@@ -202,42 +202,57 @@ export const generatePayslipPDF = (data: PayslipData) => {
 
   const splitText = pdf.splitTextToSize(payslipText, pageWidth - 40);
   pdf.text(splitText, 20, yPosition);
-  yPosition += splitText.length * 5 + 40;
+  yPosition += splitText.length * 5 + 15;
 
-  // Signature Section — anchor below the paragraph (not a fixed page offset)
-  // so added Expected/Approved/Bonus lines never push the paragraph into it.
+  // Signature Section — dynamic placement with reserved block.
+  // Reserved heights: signatures block ~45, footer ~25, bottom margin ~10.
   const pageHeight = pdf.internal.pageSize.height;
-  const signatureYPosition = Math.min(yPosition + 5, pageHeight - 65);
-  
+  const SIGNATURE_BLOCK_HEIGHT = 45;
+  const FOOTER_BLOCK_HEIGHT = 25;
+  const BOTTOM_MARGIN = 10;
+  const requiredSpace = SIGNATURE_BLOCK_HEIGHT + FOOTER_BLOCK_HEIGHT + BOTTOM_MARGIN;
+
+  // If not enough room on this page, add a new page.
+  if (yPosition + requiredSpace > pageHeight) {
+    pdf.addPage();
+    yPosition = 20;
+  }
+
+  const signatureYPosition = yPosition;
+
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(10);
+  pdf.setTextColor(0, 0, 0);
   pdf.text('Authorized Signatures:', 20, signatureYPosition);
-  
+
   // COO Signature
   pdf.setFont('helvetica', 'normal');
-  pdf.text('Chief Operating Officer:', 20, signatureYPosition + 10);
-  
-  // Use your uploaded Keyshawn signature
+  pdf.text('Chief Operating Officer:', 20, signatureYPosition + 8);
+
   const keyshawnImg = new Image();
   keyshawnImg.src = '/lovable-uploads/044d8d27-d561-4feb-baba-fed28f199066.png';
-  pdf.addImage(keyshawnImg.src, 'PNG', 20, signatureYPosition + 15, 50, 15);
-  pdf.text('Keyshawn Lopez', 20, signatureYPosition + 35);
-  
-  // CEO Signature  
-  pdf.text('Chief Executive Officer:', pageWidth / 2, signatureYPosition + 10);
-  
-  // Use your uploaded Michael signature
+  pdf.addImage(keyshawnImg.src, 'PNG', 20, signatureYPosition + 12, 50, 15);
+  pdf.text('Keyshawn Lopez', 20, signatureYPosition + 33);
+
+  // CEO Signature
+  pdf.text('Chief Executive Officer:', pageWidth / 2, signatureYPosition + 8);
+
   const michaelImg = new Image();
   michaelImg.src = '/lovable-uploads/9aae90b3-e37d-43d5-8bbd-0f0ae1c1b94c.png';
-  pdf.addImage(michaelImg.src, 'PNG', pageWidth / 2, signatureYPosition + 15, 50, 15);
-  pdf.text('Michael Slipek', pageWidth / 2, signatureYPosition + 35);
+  pdf.addImage(michaelImg.src, 'PNG', pageWidth / 2, signatureYPosition + 12, 50, 15);
+  pdf.text('Michael Slipek', pageWidth / 2, signatureYPosition + 33);
 
-  // Footer
-  pdf.setFontSize(10);
+  // Footer — placed below the signature block with breathing room.
+  const footerY = Math.max(
+    signatureYPosition + SIGNATURE_BLOCK_HEIGHT + 10,
+    pageHeight - 15
+  );
+  pdf.setFontSize(9);
   pdf.setFont('helvetica', 'italic');
   const footerText = "This payslip has been issued for whatever purpose it may serve and is a true and accurate representation of the employee's earnings for the stated period.";
   const footerSplitText = pdf.splitTextToSize(footerText, pageWidth - 40);
-  pdf.text(footerSplitText, pageWidth / 2, pageHeight - 15, { align: 'center' });
+  pdf.text(footerSplitText, pageWidth / 2, Math.min(footerY, pageHeight - 10), { align: 'center' });
+
 
   // Save the PDF
   const fileName = `payslip_${data.chatterName.replace(/\s+/g, '_')}_${format(data.weekStart, 'yyyy-MM-dd')}.pdf`;
