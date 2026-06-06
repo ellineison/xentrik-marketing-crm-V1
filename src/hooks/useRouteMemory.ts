@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
 // Routes that should not be remembered
-const EXCLUDED_ROUTES = ['/login', '/register', '/auth'];
+const EXCLUDED_ROUTES = ['/login', '/register', '/auth', '/tasks-rewards'];
 
 export function useRouteMemory() {
   const location = useLocation();
