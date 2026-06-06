@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { generatePayslipPDF } from './PayslipGenerator';
+import { buildPayslipData } from './hooks/usePayslipData';
 import { getWeekStart } from '@/utils/weekCalculations';
 import { writeLockedPayrollSnapshot } from './hooks/usePayrollSummary';
 import { useEffect } from 'react';
