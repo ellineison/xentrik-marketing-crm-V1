@@ -28,8 +28,10 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
   onBack,
   onSubmitComplete,
 }) => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const { toast } = useToast();
+
   const { effectiveWord } = useEffectiveWord(assignment.quest_id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [slots, setSlots] = useState<ProgressSlot[]>([]);
