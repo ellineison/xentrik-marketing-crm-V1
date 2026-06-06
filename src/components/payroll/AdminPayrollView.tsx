@@ -15,7 +15,7 @@ import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
 import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
-import { getWeekStart } from '@/utils/weekCalculations';
+import { getWeekStart, getEffectivePayrollDate } from '@/utils/weekCalculations';
 
 interface Chatter {
   id: string;
@@ -36,7 +36,7 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
 }) => {
   const [chatters, setChatters] = useState<Chatter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [selectedWeek, setSelectedWeek] = useState(() => getEffectivePayrollDate(new Date()));
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Get sales lock status for the selected chatter and week
@@ -46,11 +46,12 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
     selectedChatterId || undefined, selectedWeek, isSalesLocked, isAdminConfirmed, chatterDept
   );
 
-  // Calculate week start and current week status
-  // Note: For admin view showing all users, we use standard cutoff (department passed in components)
-  const weekStart = getWeekStart(selectedWeek);
-  const currentWeekStart = getWeekStart(new Date());
+  // Calculate week start and current week status using the selected chatter's
+  // department so 10PM chatters get the correct shift-aware "current week".
+  const weekStart = getWeekStart(selectedWeek, chatterDept);
+  const currentWeekStart = getWeekStart(getEffectivePayrollDate(new Date(), chatterDept), chatterDept);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
+
 
   const handleDataRefresh = () => {
     setRefreshKey(prev => prev + 1);

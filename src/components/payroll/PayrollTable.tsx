@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
+import { getWeekStart as getWeekStartUtil, getDaysOfWeek, getEffectivePayrollDate } from '@/utils/weekCalculations';
 
 interface SalesEntry {
   id: string;
@@ -69,15 +69,23 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   );
   
   const currentWeekStart = useMemo(() => 
-    getWeekStartUtil(new Date(), chatterDepartment, chatterRole, chatterRoles),
+    getWeekStartUtil(getEffectivePayrollDate(new Date(), chatterDepartment), chatterDepartment, chatterRole, chatterRoles),
     [chatterDepartment, chatterRole, chatterRoles]
   );
+
   
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
 
   // Get days of week order based on department
   const DAYS_OF_WEEK = getDaysOfWeek(chatterDepartment);
+
+  // Shift-effective "today" column (PHT, post-midnight maps back for 10PM).
+  const effectiveTodayDow = useMemo(
+    () => isCurrentWeek ? getEffectivePayrollDate(new Date(), chatterDepartment).getDay() : -1,
+    [isCurrentWeek, chatterDepartment]
+  );
+
 
   console.log('Week calculation debug:', {
     today: new Date().toISOString().split('T')[0],
@@ -448,10 +456,15 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
             <TableRow>
               <TableHead className="min-w-[120px]">Model</TableHead>
               {DAYS_OF_WEEK.map(day => (
-                <TableHead key={day.value} className="text-center min-w-[80px]">
+                <TableHead
+                  key={day.value}
+                  className={`text-center min-w-[80px] ${day.value === effectiveTodayDow ? 'text-primary font-bold' : ''}`}
+                >
                   {day.label}
+                  {day.value === effectiveTodayDow && <span className="ml-1 text-[10px]">●</span>}
                 </TableHead>
               ))}
+
               <TableHead className="text-center min-w-[80px]">Total</TableHead>
               {isAdmin && !isSalesLocked && (
                 <TableHead className="w-[50px]"></TableHead>

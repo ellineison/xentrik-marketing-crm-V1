@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Gamepad2, Swords, Store, Settings } from 'lucide-react';
+import { Gamepad2, Swords, Store, Settings, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 import GameBoard from '@/components/gamification/GameBoard';
 import QuestsPanel from '@/components/gamification/QuestsPanel';
 import ChatterQuestsPage from '@/components/gamification/ChatterQuestsPage';
@@ -47,11 +49,12 @@ const TasksRewards: React.FC = () => {
 
   const activeTab = getActiveTab();
 
-  // Separate navigation items for admin vs non-admin
-  // Admin ONLY sees Control Panel
-  // Non-admin sees Game Board, Quests, Supply Depot
+  // Admins can monitor both views (Game Board, Quests, Supply Depot) AND manage via
+  // Control Panel. Participation/writes are blocked downstream in each chatter view.
   const adminNavItems = [
     { id: 'game-board', label: 'Game Board', icon: Gamepad2, path: '/tasks-rewards' },
+    { id: 'quests', label: 'Quests', icon: Swords, path: '/tasks-rewards/quests' },
+    { id: 'supply-depot', label: 'Supply Depot', icon: Store, path: '/tasks-rewards/supply-depot' },
     { id: 'control-panel', label: 'Control Panel', icon: Settings, path: '/tasks-rewards/control-panel' },
   ];
 
@@ -63,16 +66,21 @@ const TasksRewards: React.FC = () => {
 
   const visibleNavItems = isAdmin ? adminNavItems : playerNavItems;
 
+
   const renderContent = () => {
     if (isAdmin) {
-      if (activeTab === 'game-board') {
-        return <GameBoard isAdmin={isAdmin} />;
+      // Admins can monitor every tab. Read-only enforcement happens inside each component.
+      switch (activeTab) {
+        case 'control-panel':
+          return <QuestsPanel isAdmin={isAdmin} />;
+        case 'quests':
+          return <ChatterQuestsPage />;
+        case 'supply-depot':
+          return <SupplyDepot />;
+        case 'game-board':
+        default:
+          return <GameBoard isAdmin={isAdmin} />;
       }
-      if (activeTab !== 'control-panel') {
-        navigate('/tasks-rewards/control-panel', { replace: true });
-        return <QuestsPanel isAdmin={isAdmin} />;
-      }
-      return <QuestsPanel isAdmin={isAdmin} />;
     }
 
     // Non-admin logic
@@ -90,6 +98,7 @@ const TasksRewards: React.FC = () => {
     }
   };
 
+
   return (
     <div
       className="gamification-module flex min-h-screen w-full"
@@ -104,6 +113,19 @@ const TasksRewards: React.FC = () => {
         className="gamification-sidebar shrink-0 border-r-2 p-6 flex flex-col sticky top-0 h-screen overflow-y-auto"
         style={{ width: '20rem' }}
       >
+        {/* Back to CRM */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+            className="gap-2 text-foreground/80 hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to CRM
+          </Button>
+        </div>
+
         <div className="mb-6 flex items-center justify-center">
           {logoUrl && (
             <img
@@ -114,8 +136,10 @@ const TasksRewards: React.FC = () => {
           )}
         </div>
 
-        {/* Player Card */}
-        <PlayerCard />
+
+        {/* Player Card — hidden for admins (they are not players) */}
+        {!isAdmin && <PlayerCard />}
+
         
         <div className="space-y-2 flex-1">
           {visibleNavItems.map((item) => {
@@ -142,9 +166,15 @@ const TasksRewards: React.FC = () => {
       {/* Main Content Area */}
       <main className="gamification-content flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
         <div className="w-full max-w-none">
+          {isAdmin && activeTab !== 'control-panel' && activeTab !== 'game-board' && (
+            <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-foreground">
+              <span className="font-semibold">Admin preview:</span> you're viewing the chatter experience. Participation actions (claim, re-roll, evidence upload, purchases) are disabled.
+            </div>
+          )}
           {renderContent()}
         </div>
       </main>
+
     </div>
   );
 };

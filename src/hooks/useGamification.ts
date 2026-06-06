@@ -96,7 +96,9 @@ export interface QuestProgress {
 }
 
 export const useGamification = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [ranks, setRanks] = useState<GamificationRank[]>([]);
@@ -477,7 +479,15 @@ export const useGamification = () => {
 
   // Purchase item
   const purchaseItem = async (itemId: string) => {
+    if (isAdmin) {
+      toast({
+        title: "Admin preview",
+        description: "Admins can monitor the shop but cannot make purchases.",
+      });
+      return false;
+    }
     if (!user || !myStats) return false;
+
 
     const item = shopItems.find(i => i.id === itemId);
     if (!item) return false;

@@ -22,7 +22,9 @@ export interface MonthlyQuestSlot {
 const MONTHLY_SLOT_NUMBER = 200;
 
 export const useMonthlyQuestSlots = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [slots, setSlots] = useState<MonthlyQuestSlot[]>([]);
@@ -74,7 +76,8 @@ export const useMonthlyQuestSlots = () => {
 
   // Fetch this month's admin-assigned quest and populate user slot
   const populateSlotsFromAdminAssignments = useCallback(async () => {
-    if (!user) return;
+    if (!user || isAdmin) return;
+
 
     // Fetch user's department
     const { data: profile } = await supabase
@@ -144,6 +147,11 @@ export const useMonthlyQuestSlots = () => {
   // Re-roll the monthly quest
   const rerollSlot = async () => {
     if (!user) return false;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot re-roll quests." });
+      return false;
+    }
+
 
     const slot = slots[0];
     if (!slot) {
