@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Users, Edit3, Check, X, DollarSign, Send, Trash2 } from 'lucide-react';
-import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
+import { getWeekStart as getWeekStartUtil, getDaysOfWeek, getEffectivePayrollDate } from '@/utils/weekCalculations';
 import { ConfirmDeleteModal } from '@/components/files/modals/ConfirmDeleteModal';
 
 interface AttendanceEntry {
