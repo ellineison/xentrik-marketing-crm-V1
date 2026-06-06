@@ -137,8 +137,9 @@ const TasksRewards: React.FC = () => {
         </div>
 
 
-        {/* Player Card */}
-        <PlayerCard />
+        {/* Player Card — hidden for admins (they are not players) */}
+        {!isAdmin && <PlayerCard />}
+
         
         <div className="space-y-2 flex-1">
           {visibleNavItems.map((item) => {
