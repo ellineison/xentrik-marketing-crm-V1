@@ -101,6 +101,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
   const handleSlotUpload = async (slotIndex: number, file: File) => {
     if (!user) return;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot submit quest evidence." });
+      return;
+    }
+
 
     // Update slot to show uploading state
     setSlots(prev => prev.map((s, i) => 
