@@ -113,6 +113,19 @@ const TasksRewards: React.FC = () => {
         className="gamification-sidebar shrink-0 border-r-2 p-6 flex flex-col sticky top-0 h-screen overflow-y-auto"
         style={{ width: '20rem' }}
       >
+        {/* Back to CRM */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+            className="gap-2 text-foreground/80 hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to CRM
+          </Button>
+        </div>
+
         <div className="mb-6 flex items-center justify-center">
           {logoUrl && (
             <img
@@ -122,6 +135,7 @@ const TasksRewards: React.FC = () => {
             />
           )}
         </div>
+
 
         {/* Player Card */}
         <PlayerCard />
