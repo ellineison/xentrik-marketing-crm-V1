@@ -96,7 +96,9 @@ export interface QuestProgress {
 }
 
 export const useGamification = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [ranks, setRanks] = useState<GamificationRank[]>([]);
