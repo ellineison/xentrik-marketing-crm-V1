@@ -1,11 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
 
 export const LetsPlayButton: React.FC = () => {
+  const navigate = useNavigate();
+
   const handleClick = () => {
-    // Open Tasks & Rewards in a new tab using full URL
-    window.open(`${window.location.origin}/tasks-rewards`, '_blank');
+    // Open Tasks & Rewards in the SAME tab so the in-app "Back to CRM"
+    // button can reliably return the user to the main CRM via history/navigate.
+    navigate('/tasks-rewards');
   };
 
   return (

@@ -79,7 +79,7 @@ export const ChatterPayrollView: React.FC = () => {
                 </span>
               </CardTitle>
               <div className="flex items-center gap-3">
-                <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+                <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} department={userDepartment} role={userRole} roles={userRoles} />
                 {isSalesLocked && expectedSalary !== null && (
                   <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
                     <DollarSign className="h-4 w-4" />
