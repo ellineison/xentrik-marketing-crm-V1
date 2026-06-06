@@ -367,39 +367,27 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
     }
   };
 
-  const downloadPayslip = () => {
-    if (!chatterName || !isAdminConfirmed) return;
-
-    const weekEnd = addDays(weekStart, 6);
-    const totalSales = getWeekTotal();
-    const commissionAmount = (totalSales * confirmedCommissionRate) / 100;
-    
-    // Get hourly rate from the attendance table (we don't store it here anymore)
-    const hourlyPay = confirmedHours * 0; // Will be calculated elsewhere
-    const totalPayout = hourlyPay + commissionAmount + overtimePay - deductionAmount;
-
-    const payslipData = {
-      chatterName,
-      weekStart,
-      weekEnd,
-      salesData: salesData.map(entry => ({
-        model_name: entry.model_name,
-        day_of_week: entry.day_of_week,
-        earnings: entry.earnings,
-      })),
-      totalSales,
-      hoursWorked: confirmedHours,
-      hourlyRate: 0, // Will be fetched from profiles table
-      commissionRate: confirmedCommissionRate,
-      commissionAmount,
-      overtimePay,
-      overtimeNotes,
-      deductionAmount,
-      deductionNotes,
-      totalPayout,
-    };
-
-    generatePayslipPDF(payslipData);
+  const downloadPayslip = async () => {
+    if (!effectiveChatterId || !chatterName || !isAdminConfirmed) return;
+    try {
+      const payslipData = await buildPayslipData(effectiveChatterId, weekStart);
+      if (!payslipData) {
+        toast({
+          title: "Error",
+          description: "No payroll data found for this week",
+          variant: "destructive",
+        });
+        return;
+      }
+      generatePayslipPDF(payslipData);
+    } catch (error) {
+      console.error('Error generating payslip:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate payslip",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputBlur = async (modelName: string, dayOfWeek: number, inputValue: string) => {
