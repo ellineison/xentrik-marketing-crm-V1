@@ -69,14 +69,18 @@ const TasksRewards: React.FC = () => {
 
   const renderContent = () => {
     if (isAdmin) {
-      if (activeTab === 'game-board') {
-        return <GameBoard isAdmin={isAdmin} />;
+      // Admins can monitor every tab. Read-only enforcement happens inside each component.
+      switch (activeTab) {
+        case 'control-panel':
+          return <QuestsPanel isAdmin={isAdmin} />;
+        case 'quests':
+          return <ChatterQuestsPage />;
+        case 'supply-depot':
+          return <SupplyDepot />;
+        case 'game-board':
+        default:
+          return <GameBoard isAdmin={isAdmin} />;
       }
-      if (activeTab !== 'control-panel') {
-        navigate('/tasks-rewards/control-panel', { replace: true });
-        return <QuestsPanel isAdmin={isAdmin} />;
-      }
-      return <QuestsPanel isAdmin={isAdmin} />;
     }
 
     // Non-admin logic
@@ -93,6 +97,7 @@ const TasksRewards: React.FC = () => {
         return <GameBoard isAdmin={isAdmin} />;
     }
   };
+
 
   return (
     <div
