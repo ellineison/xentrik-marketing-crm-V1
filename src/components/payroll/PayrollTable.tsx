@@ -456,10 +456,15 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
             <TableRow>
               <TableHead className="min-w-[120px]">Model</TableHead>
               {DAYS_OF_WEEK.map(day => (
-                <TableHead key={day.value} className="text-center min-w-[80px]">
+                <TableHead
+                  key={day.value}
+                  className={`text-center min-w-[80px] ${day.value === effectiveTodayDow ? 'text-primary font-bold' : ''}`}
+                >
                   {day.label}
+                  {day.value === effectiveTodayDow && <span className="ml-1 text-[10px]">●</span>}
                 </TableHead>
               ))}
+
               <TableHead className="text-center min-w-[80px]">Total</TableHead>
               {isAdmin && !isSalesLocked && (
                 <TableHead className="w-[50px]"></TableHead>
