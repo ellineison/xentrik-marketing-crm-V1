@@ -19,7 +19,9 @@ export interface DailyQuestSlot {
 }
 
 export const useDailyQuestSlots = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [slots, setSlots] = useState<DailyQuestSlot[]>([]);
