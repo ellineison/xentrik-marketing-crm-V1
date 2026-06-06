@@ -19,8 +19,12 @@ interface PayslipData {
   commissionAmount: number;
   overtimePay: number;
   overtimeNotes: string;
+  bonusAmount?: number;
+  bonusNotes?: string;
   deductionAmount: number;
   deductionNotes: string;
+  expectedSalary?: number;
+  approvedSalary?: number | null;
   totalPayout: number;
 }
 
