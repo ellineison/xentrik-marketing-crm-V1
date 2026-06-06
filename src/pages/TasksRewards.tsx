@@ -49,11 +49,12 @@ const TasksRewards: React.FC = () => {
 
   const activeTab = getActiveTab();
 
-  // Separate navigation items for admin vs non-admin
-  // Admin ONLY sees Control Panel
-  // Non-admin sees Game Board, Quests, Supply Depot
+  // Admins can monitor both views (Game Board, Quests, Supply Depot) AND manage via
+  // Control Panel. Participation/writes are blocked downstream in each chatter view.
   const adminNavItems = [
     { id: 'game-board', label: 'Game Board', icon: Gamepad2, path: '/tasks-rewards' },
+    { id: 'quests', label: 'Quests', icon: Swords, path: '/tasks-rewards/quests' },
+    { id: 'supply-depot', label: 'Supply Depot', icon: Store, path: '/tasks-rewards/supply-depot' },
     { id: 'control-panel', label: 'Control Panel', icon: Settings, path: '/tasks-rewards/control-panel' },
   ];
 
@@ -64,6 +65,7 @@ const TasksRewards: React.FC = () => {
   ];
 
   const visibleNavItems = isAdmin ? adminNavItems : playerNavItems;
+
 
   const renderContent = () => {
     if (isAdmin) {
