@@ -204,9 +204,10 @@ export const generatePayslipPDF = (data: PayslipData) => {
   pdf.text(splitText, 20, yPosition);
   yPosition += splitText.length * 5 + 40;
 
-  // Signature Section
+  // Signature Section — anchor below the paragraph (not a fixed page offset)
+  // so added Expected/Approved/Bonus lines never push the paragraph into it.
   const pageHeight = pdf.internal.pageSize.height;
-  const signatureYPosition = pageHeight - 65;
+  const signatureYPosition = Math.min(yPosition + 5, pageHeight - 65);
   
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(10);
