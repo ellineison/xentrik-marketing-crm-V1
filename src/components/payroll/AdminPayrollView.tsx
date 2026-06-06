@@ -15,7 +15,7 @@ import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
 import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
-import { getWeekStart } from '@/utils/weekCalculations';
+import { getWeekStart, getEffectivePayrollDate } from '@/utils/weekCalculations';
 
 interface Chatter {
   id: string;
