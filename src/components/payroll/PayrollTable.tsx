@@ -8,11 +8,12 @@ import { PayrollConfirmationModal } from './PayrollConfirmationModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { generatePayslipPDF } from './PayslipGenerator';
+import { buildPayslipData } from './hooks/usePayslipData';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { format, addDays } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { getWeekStart as getWeekStartUtil, getDaysOfWeek } from '@/utils/weekCalculations';
+import { getWeekStart as getWeekStartUtil, getDaysOfWeek, getEffectivePayrollDate } from '@/utils/weekCalculations';
 
 interface SalesEntry {
   id: string;
@@ -69,15 +70,23 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
   );
   
   const currentWeekStart = useMemo(() => 
-    getWeekStartUtil(new Date(), chatterDepartment, chatterRole, chatterRoles),
+    getWeekStartUtil(getEffectivePayrollDate(new Date(), chatterDepartment), chatterDepartment, chatterRole, chatterRoles),
     [chatterDepartment, chatterRole, chatterRoles]
   );
+
   
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
   const isFutureWeek = weekStart.getTime() > currentWeekStart.getTime();
 
   // Get days of week order based on department
   const DAYS_OF_WEEK = getDaysOfWeek(chatterDepartment);
+
+  // Shift-effective "today" column (PHT, post-midnight maps back for 10PM).
+  const effectiveTodayDow = useMemo(
+    () => isCurrentWeek ? getEffectivePayrollDate(new Date(), chatterDepartment).getDay() : -1,
+    [isCurrentWeek, chatterDepartment]
+  );
+
 
   console.log('Week calculation debug:', {
     today: new Date().toISOString().split('T')[0],
@@ -359,39 +368,27 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
     }
   };
 
-  const downloadPayslip = () => {
-    if (!chatterName || !isAdminConfirmed) return;
-
-    const weekEnd = addDays(weekStart, 6);
-    const totalSales = getWeekTotal();
-    const commissionAmount = (totalSales * confirmedCommissionRate) / 100;
-    
-    // Get hourly rate from the attendance table (we don't store it here anymore)
-    const hourlyPay = confirmedHours * 0; // Will be calculated elsewhere
-    const totalPayout = hourlyPay + commissionAmount + overtimePay - deductionAmount;
-
-    const payslipData = {
-      chatterName,
-      weekStart,
-      weekEnd,
-      salesData: salesData.map(entry => ({
-        model_name: entry.model_name,
-        day_of_week: entry.day_of_week,
-        earnings: entry.earnings,
-      })),
-      totalSales,
-      hoursWorked: confirmedHours,
-      hourlyRate: 0, // Will be fetched from profiles table
-      commissionRate: confirmedCommissionRate,
-      commissionAmount,
-      overtimePay,
-      overtimeNotes,
-      deductionAmount,
-      deductionNotes,
-      totalPayout,
-    };
-
-    generatePayslipPDF(payslipData);
+  const downloadPayslip = async () => {
+    if (!effectiveChatterId || !chatterName || !isAdminConfirmed) return;
+    try {
+      const payslipData = await buildPayslipData(effectiveChatterId, weekStart);
+      if (!payslipData) {
+        toast({
+          title: "Error",
+          description: "No payroll data found for this week",
+          variant: "destructive",
+        });
+        return;
+      }
+      generatePayslipPDF(payslipData);
+    } catch (error) {
+      console.error('Error generating payslip:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate payslip",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInputBlur = async (modelName: string, dayOfWeek: number, inputValue: string) => {
@@ -448,10 +445,15 @@ export const PayrollTable: React.FC<PayrollTableProps> = ({
             <TableRow>
               <TableHead className="min-w-[120px]">Model</TableHead>
               {DAYS_OF_WEEK.map(day => (
-                <TableHead key={day.value} className="text-center min-w-[80px]">
+                <TableHead
+                  key={day.value}
+                  className={`text-center min-w-[80px] ${day.value === effectiveTodayDow ? 'text-primary font-bold' : ''}`}
+                >
                   {day.label}
+                  {day.value === effectiveTodayDow && <span className="ml-1 text-[10px]">●</span>}
                 </TableHead>
               ))}
+
               <TableHead className="text-center min-w-[80px]">Total</TableHead>
               {isAdmin && !isSalesLocked && (
                 <TableHead className="w-[50px]"></TableHead>

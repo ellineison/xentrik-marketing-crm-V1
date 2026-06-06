@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock, XCircle, Check, Download, AlertTriangle } from 'lucide-react';
+import { Lock, XCircle, Check, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { PayrollConfirmationModal } from './PayrollConfirmationModal';
-import { generatePayslipPDF } from './PayslipGenerator';
 import { getWeekStart } from '@/utils/weekCalculations';
+import { writeLockedPayrollSnapshot } from './hooks/usePayrollSummary';
 import { useEffect } from 'react';
 import {
   AlertDialog,
@@ -122,6 +122,13 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
         if (error) throw error;
       }
 
+      // Snapshot the locked Expected Salary so it never drifts after lock.
+      try {
+        await writeLockedPayrollSnapshot(effectiveChatterId, weekStartStr);
+      } catch (snapshotErr) {
+        console.error('Error writing payroll snapshot:', snapshotErr);
+      }
+
       onDataRefresh(); // Refresh data
       toast({
         title: "Sales & Attendance Confirmed",
@@ -218,6 +225,25 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
 
       if (error) throw error;
 
+      // Clear admin approval fields on the snapshot so an old Approved Salary
+      // is never displayed after a rejection. Locked snapshot is wiped too;
+      // the chatter's next lock will refresh it.
+      await supabase
+        .from('payroll_summaries')
+        .update({
+          overtime_pay: null,
+          overtime_notes: null,
+          bonus_amount: null,
+          bonus_notes: null,
+          deduction_amount: null,
+          deduction_notes: null,
+          approved_salary: null,
+          approved_at: null,
+          approved_by: null,
+        })
+        .eq('chatter_id', effectiveChatterId)
+        .eq('week_start_date', weekStartStr);
+
       onDataRefresh(); // Refresh data
       toast({
         title: "Payroll Rejected",
@@ -233,90 +259,9 @@ export const LockSalesButton: React.FC<LockSalesButtonProps> = ({
     }
   };
 
-  const downloadPayslip = async () => {
-    if (!effectiveChatterId) return;
+  // Download payslip lives in ApprovedPayrollStatus / PayrollTable — both gated
+  // on admin approval. Intentionally no download button rendered here.
 
-    try {
-      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-      
-      // Fetch sales data and payroll details
-      const { data: salesData, error: salesError } = await supabase
-        .from('sales_tracker')
-        .select('*')
-        .eq('chatter_id', effectiveChatterId)
-        .eq('week_start_date', weekStartStr);
-
-      if (salesError) throw salesError;
-
-      // Get chatter profile info
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('name, hourly_rate')
-        .eq('id', effectiveChatterId)
-        .single();
-
-      if (profileError) throw profileError;
-
-      if (!salesData?.length || !profileData) {
-        toast({
-          title: "Error",
-          description: "No payroll data found for this week",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const firstEntry = salesData[0];
-      const totalSales = salesData.reduce((sum, entry) => sum + (entry.earnings || 0), 0);
-      
-      // Calculate commission amount and total payout
-      const commissionRate = firstEntry.confirmed_commission_rate || 0;
-      const hoursWorked = firstEntry.confirmed_hours_worked || 0;
-      const hourlyRate = profileData.hourly_rate || 0;
-      const overtimePay = firstEntry.overtime_pay || 0;
-      const deductionAmount = firstEntry.deduction_amount || 0;
-      
-      const commissionAmount = (totalSales * commissionRate) / 100;
-      const hourlyPay = hoursWorked * hourlyRate;
-      const totalPayout = hourlyPay + commissionAmount + overtimePay - deductionAmount;
-
-      // Prepare payslip data
-      const payslipData = {
-        chatterName: profileData.name,
-        weekStart: weekStart,
-        weekEnd: new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000),
-        salesData: salesData.map(entry => ({
-          model_name: entry.model_name,
-          day_of_week: entry.day_of_week,
-          earnings: entry.earnings
-        })),
-        totalSales: totalSales,
-        hoursWorked: hoursWorked,
-        hourlyRate: hourlyRate,
-        commissionRate: commissionRate,
-        commissionAmount: commissionAmount,
-        overtimePay: overtimePay,
-        overtimeNotes: firstEntry.overtime_notes || '',
-        deductionAmount: deductionAmount,
-        deductionNotes: firstEntry.deduction_notes || '',
-        totalPayout: totalPayout
-      };
-
-      generatePayslipPDF(payslipData);
-
-      toast({
-        title: "Payslip Downloaded",
-        description: "Payslip has been generated and downloaded successfully.",
-      });
-    } catch (error) {
-      console.error('Error generating payslip:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate payslip",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Show component if sales are locked and awaiting approval, or if they can edit
   // No longer restricted to current week only

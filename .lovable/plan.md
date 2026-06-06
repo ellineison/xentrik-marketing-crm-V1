@@ -1,52 +1,76 @@
+# Separate Expected Salary from Approved Salary
 
-## Shift-Based Quest System — Architecture
+## Goal
 
-### Core Concept
-Department field on `profiles` ("6AM", "2PM", "10PM") = shift identity. No new team/shift tables needed.
+- **Expected Salary** = system-computed pay frozen at the moment the chatter locks payroll. Never drifts afterward.
+- **Approved Salary** = Expected Salary + overtime/bonus − deduction, written when admin clicks Pay Chatter.
+- After admin confirmation both values are shown together; Approved Salary uses blue tokens, Expected stays as-is.
 
-### Database Changes
+## Where each value lives
 
-**1. New table: `gamification_shift_quest_assignments`**
-- `id`, `quest_id` (FK → gamification_quests), `shift` (text: '6AM'/'2PM'/'10PM'), `date` (the day this applies), `created_by`, `created_at`
-- One row per quest × shift × date
-- Admin creates a quest → system inserts 3 rows (one per shift) for that date
+Today everything is overloaded onto `sales_tracker` rows: `sales_locked`, `admin_confirmed`, `confirmed_hours_worked`, `confirmed_commission_rate`, `overtime_pay`, `deduction_amount`, notes. Expected Salary is recomputed live in `useExpectedSalary` every render, so any post-lock edit to sales / attendance / `profiles.hourly_rate` silently changes it.
 
-**2. New table: `gamification_shift_quest_completions`**
-- `id`, `shift_assignment_id` (FK → above), `chatter_id`, `status` ('pending'/'verified'/'rejected'), `attachments`, `submitted_at`, `verified_by`, `verified_at`
-- Unique constraint on `(shift_assignment_id, chatter_id)` — one submission per user per shift task
+**Recommended approach: one new summary table, keyed by (chatter_id, week_start_date).** Cleaner than adding 6 more columns to every sales row, and avoids the "which row is the source of truth" problem when a chatter has many sales rows per week.
 
-### Quest Creation Flow (Admin)
-1. Admin creates a quest with `quest_type = 'shift'` in existing quest creation UI
-2. On assignment, system auto-creates 3 `shift_quest_assignments` rows (6AM, 2PM, 10PM) for the target date
-3. No team picker needed — all 3 shifts get the same task
+### New table: `payroll_summaries`
+- `chatter_id uuid`, `week_start_date date` (unique together)
+- Snapshot at lock: `locked_total_sales`, `locked_hours_worked`, `locked_hourly_rate`, `locked_commission_rate`, `locked_hourly_pay`, `locked_commission_amount`, `expected_salary`, `locked_at`
+- Snapshot at admin confirm: `overtime_pay`, `overtime_notes`, `deduction_amount`, `deduction_notes`, `bonus_amount`, `approved_salary`, `approved_at`, `approved_by`
+- `created_at`, `updated_at`
 
-### Player View
-1. Player opens Quests page → system reads their `profiles.department`
-2. If department ∈ {6AM, 2PM, 10PM}: fetch shift assignments matching their department + today's date
-3. Players in other departments (SocMed, etc.) simply don't see shift quests
-4. Submission creates a row in `shift_quest_completions` linked to the correct shift assignment
+RLS: chatter can read their own row; Admin/VA/HR can read & write all.
 
-### Admin Notifications
-- On submission insert, reuse existing `notifications` table to alert admins
-- Message: "[Player Name] submitted shift quest [Quest Title] for [6AM/2PM/10PM] shift"
+### What stays on `sales_tracker`
+- `sales_locked`, `admin_confirmed` flags continue to drive UI gating (no behavior change to existing screens).
+- The `confirmed_*`, `overtime_*`, `deduction_*` columns become legacy/back-compat. Keep them populated by the Approve modal for now so nothing else breaks; treat `payroll_summaries` as the source of truth going forward.
+- No historical rows are modified or migrated.
 
-### Duplicate Prevention
-- DB unique constraint `(shift_assignment_id, chatter_id)` prevents double submissions
-- DB unique constraint `(quest_id, shift, date)` prevents duplicate assignments
+## Flow changes
 
-### Timezone Handling
-- Shifts use calendar date strings (YYYY-MM-DD), same pattern as daily quests
-- The 10PM reset logic from `getEffectiveGameDate()` applies — after 10PM, tasks belong to next day
+### 1. Chatter locks payroll (`LockSalesButton`)
+After flipping `sales_locked=true`, run the existing Expected Salary formula once and **upsert** a `payroll_summaries` row with the snapshot fields. If a row already exists (re-lock after admin reject), overwrite the locked snapshot only and clear approved fields.
 
-### No Changes To
-- Existing daily/weekly/monthly quest system (untouched)
-- Existing gamification_quest_assignments table
-- Team assignments or creator tables
+### 2. `useExpectedSalary`
+Switch from live computation to: read `payroll_summaries.expected_salary` for that chatter+week. If no row yet (legacy weeks already locked under the old system) fall back to the current live calc so old weeks still display.
 
-### Implementation Steps
-1. Create migration (2 new tables + RLS)
-2. Add `'shift'` as a quest_type option in quest creation UI
-3. Build admin shift quest assignment logic (auto-create 3 rows)
-4. Build player-side shift quest display component
-5. Build submission flow with notification trigger
-6. Add shift quests section to Control Panel for admin review
+### 3. Approve modal (`PayrollConfirmationModal`)
+- Show locked Expected Salary, locked hours, locked commission rate, locked total sales as **read-only**.
+- Admin inputs only: overtime, bonus, deduction, notes.
+- Live preview: `Approved Salary = expected_salary + overtime + bonus − deduction`.
+- On submit: update `payroll_summaries` (approved fields + `approved_salary`, `approved_at`, `approved_by`) AND set `sales_tracker.admin_confirmed=true` for the week (keeps existing flows working). Also mirror overtime/deduction onto sales_tracker for back-compat.
+
+### 4. Display after confirmation (Chatter + Admin payroll views)
+Stacked, directly below each other:
+```
+Expected Salary: $___        (existing green styling)
+Approved Salary: $___        (blue tokens — add --salary-approved in index.css mapped to a blue HSL, or reuse an existing info/primary blue token)
+```
+Approved row renders only when `payroll_summaries.approved_salary IS NOT NULL`.
+
+## Safety / non-regression
+
+- No edits to existing `sales_tracker` rows beyond the flag writes already happening today.
+- Old locked-but-not-confirmed weeks keep working via the fallback path in `useExpectedSalary`.
+- Expected Salary becomes immutable post-lock by construction (read from snapshot, not recomputed).
+- Admin overrides are isolated to the approved fields; Expected column never changes.
+
+## Test checklist
+
+- [ ] Chatter locks fresh week → `payroll_summaries` row created with correct snapshot; UI shows Expected Salary equal to old live value.
+- [ ] After lock, edit a `sales_tracker.earnings` row → Expected Salary in UI does NOT change.
+- [ ] After lock, change `profiles.hourly_rate` → Expected Salary does NOT change.
+- [ ] Admin opens Approve modal → Expected, hours, commission %, total sales are read-only and match snapshot.
+- [ ] Admin enters overtime $50, deduction $20 → preview shows Approved = Expected + 50 − 20; on submit, `approved_salary` stored.
+- [ ] After confirm, both Expected and Approved render, Approved in blue, stacked.
+- [ ] Reject payroll (existing flow) clears `admin_confirmed` and approved fields; Expected snapshot preserved; chatter can re-lock and snapshot refreshes.
+- [ ] Legacy week locked before this change (no summary row) still displays via fallback.
+- [ ] Chatter RLS: can read only own summary; cannot insert/update.
+- [ ] Admin/VA/HR can read & update any summary; Chatter role cannot bypass.
+- [ ] 10PM shift week_start_date matches what `getWeekStart` computes for that department.
+
+## Technical notes
+
+- Migration: `CREATE TABLE public.payroll_summaries (...)` + GRANTs (`authenticated` SELECT/INSERT/UPDATE, `service_role` ALL) + RLS + `update_updated_at_column` trigger.
+- Files to touch (implementation phase only): `LockSalesButton.tsx`, `useExpectedSalary.ts`, `PayrollConfirmationModal.tsx`, `ChatterPayrollView.tsx`, `AdminPayrollView.tsx`, plus a small `useApprovedSalary` hook or extend `useExpectedSalary` to return both.
+- Blue token: add `--salary-approved: <blue HSL>` in `index.css` and a `text-salary-approved` utility in `tailwind.config.ts`, mirroring whatever pattern the existing green Expected Salary uses.
+- No changes to formula, week calculation, attendance, or commission tiers.

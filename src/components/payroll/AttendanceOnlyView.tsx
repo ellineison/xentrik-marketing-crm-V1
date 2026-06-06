@@ -41,7 +41,7 @@ export const AttendanceOnlyView: React.FC = () => {
             selectedChatterId={user?.id}
             selectedWeek={selectedWeek}
           />
-          <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+          <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} department={userDepartment} role={userRole} roles={userRoles} />
         </div>
       </div>
 

@@ -7,27 +7,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { text, modelName, emotion } = await req.json();
+    const { text, modelName, emotion, jobId } = await req.json();
     
-    console.log('🎤 Voice generation request:', { text, modelName, emotion });
+    console.log('🎤 Voice generation request:', { text, modelName, emotion, jobId });
 
     if (!text || !modelName || !emotion) {
       throw new Error('Missing required parameters: text, modelName, and emotion are required');
     }
 
-    // Get the user ID from the authorization header
+    // Authenticate user
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       throw new Error('Authorization header is required');
@@ -57,78 +55,112 @@ serve(async (req) => {
 
     console.log('🎯 Found voice source:', voiceSource.bucket_key);
 
-    // Create a job record in generated_voice_clones table
-    const jobId = `voice-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const { data: generatedRecord, error: insertError } = await supabase
-      .from('generated_voice_clones')
-      .insert({
-        bucket_key: '', // Will be updated after successful generation
-        model_name: modelName,
-        emotion: emotion,
-        generated_text: text,
-        generated_by: user.id,
-        audio_url: '', // Will be updated after successful generation
-        job_id: jobId,
-        status: 'Pending'
-      })
-      .select()
-      .single();
+    // Use the jobId from the client (no duplicate insert here)
+    const effectiveJobId = jobId || `voice-job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    if (insertError) {
-      console.error('❌ Failed to create job record:', insertError);
-      throw new Error('Failed to create generation job');
+    // Build the RunPod API URL - append /runsync for synchronous execution
+    const VOICE_API_BASE = Deno.env.get('VOICE_GENERATION_API_URL') || '';
+    if (!VOICE_API_BASE) {
+      throw new Error('VOICE_GENERATION_API_URL is not configured');
+    }
+    
+    // Ensure URL ends with /runsync
+    const VOICE_API_URL = VOICE_API_BASE.endsWith('/runsync') || VOICE_API_BASE.endsWith('/run')
+      ? VOICE_API_BASE 
+      : `${VOICE_API_BASE.replace(/\/$/, '')}/runsync`;
+
+    const RUNPOD_API_KEY = Deno.env.get('RUNPOD_API_KEY');
+    if (!RUNPOD_API_KEY) {
+      throw new Error('RUNPOD_API_KEY is not configured');
     }
 
-    console.log('📝 Created job record:', generatedRecord.id);
+    console.log('🔄 Calling RunPod API:', VOICE_API_URL);
 
-    // Make API call to the voice generation service
-    // Note: Replace this URL with your actual voice generation API endpoint
-    const VOICE_API_URL = Deno.env.get('VOICE_GENERATION_API_URL') || 'https://your-voice-api.com/generate';
-    
     const voiceApiResponse = await fetch(VOICE_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Add any required API keys here
+        'Authorization': `Bearer ${RUNPOD_API_KEY}`,
       },
       body: JSON.stringify({
-        text: text,
-        model_name: modelName,
-        emotion: emotion,
-        reference_audio: voiceSource.bucket_key,
-        max_completion_tokens: 1024,
-        temperature: 1.0,
-        top_p: 0.95,
-        top_k: 50
+        input: {
+          text: text,
+          model_name: modelName,
+          emotion: emotion,
+          reference_audio: voiceSource.bucket_key,
+          max_completion_tokens: 1024,
+          temperature: 1.0,
+          top_p: 0.95,
+          top_k: 50
+        }
       })
     });
 
     if (!voiceApiResponse.ok) {
-      throw new Error(`Voice API request failed: ${voiceApiResponse.status} ${voiceApiResponse.statusText}`);
+      const errorBody = await voiceApiResponse.text();
+      console.error('❌ RunPod API error:', voiceApiResponse.status, errorBody);
+      throw new Error(`Voice API request failed: ${voiceApiResponse.status} - ${errorBody}`);
     }
 
     const voiceApiResult = await voiceApiResponse.json();
-    console.log('🎵 Voice API response received');
+    console.log('🎵 RunPod API response received:', JSON.stringify(voiceApiResult).substring(0, 500));
 
-    if (!voiceApiResult.success) {
-      throw new Error('Voice generation failed');
+    // Handle RunPod async response format
+    if (voiceApiResult.status === 'FAILED') {
+      const errMsg = voiceApiResult.error || 'Voice generation failed on RunPod worker';
+      console.error('❌ RunPod job failed:', errMsg);
+      
+      // Update client-created record to Failed
+      if (effectiveJobId) {
+        await supabase
+          .from('generated_voice_clones')
+          .update({ status: 'Failed' })
+          .eq('job_id', effectiveJobId);
+      }
+      throw new Error(`Voice generation failed: ${errMsg}`);
+    }
+
+    // For /runsync, output is in voiceApiResult.output
+    const output = voiceApiResult.output || voiceApiResult;
+
+    if (!output.success && !output.audio) {
+      const errMsg = output.error || 'Voice generation returned no audio';
+      
+      if (effectiveJobId) {
+        await supabase
+          .from('generated_voice_clones')
+          .update({ status: 'Failed' })
+          .eq('job_id', effectiveJobId);
+      }
+      throw new Error(errMsg);
     }
 
     // Convert audio data to WAV blob
-    const [sampleRate, audioDataArray] = voiceApiResult.audio;
-    console.log(`🎶 Processing audio: ${audioDataArray.length} samples at ${sampleRate}Hz`);
+    const audioData = output.audio;
+    let wavBuffer: Uint8Array;
 
-    // Create WAV file buffer
-    const audioData = new Int16Array(audioDataArray);
-    const wavBuffer = createWavBuffer(audioData, sampleRate);
-    
-    // Generate unique filename
+    if (Array.isArray(audioData) && audioData.length === 2) {
+      // Format: [sampleRate, audioDataArray]
+      const [sampleRate, audioDataArray] = audioData;
+      console.log(`🎶 Processing audio: ${audioDataArray.length} samples at ${sampleRate}Hz`);
+      const int16Data = new Int16Array(audioDataArray);
+      wavBuffer = createWavBuffer(int16Data, sampleRate);
+    } else if (typeof audioData === 'string') {
+      // Base64 encoded WAV
+      const binaryStr = atob(audioData);
+      wavBuffer = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        wavBuffer[i] = binaryStr.charCodeAt(i);
+      }
+    } else {
+      throw new Error('Unexpected audio format from RunPod worker');
+    }
+
+    // Upload to Supabase storage
     const timestamp = Date.now();
     const bucketPath = `generated/${modelName}/${emotion}/${timestamp}.wav`;
     
-    // Upload to Supabase storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('voices')
       .upload(bucketPath, wavBuffer, {
         contentType: 'audio/wav',
@@ -142,37 +174,36 @@ serve(async (req) => {
 
     console.log('☁️ Audio uploaded successfully:', bucketPath);
 
-    // Get public URL
     const { data: urlData } = supabase.storage
       .from('voices')
       .getPublicUrl(bucketPath);
 
-    // Update the record with success status
-    const { error: updateError } = await supabase
-      .from('generated_voice_clones')
-      .update({
-        bucket_key: bucketPath,
-        audio_url: urlData.publicUrl,
-        status: 'Success',
-        generated_text: text, // Save the original input text, not the API's generated_text
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', generatedRecord.id);
+    // Update the client-created record with success
+    if (effectiveJobId) {
+      const { error: updateError } = await supabase
+        .from('generated_voice_clones')
+        .update({
+          bucket_key: bucketPath,
+          audio_url: urlData.publicUrl,
+          status: 'Success',
+          generated_text: text,
+          updated_at: new Date().toISOString()
+        })
+        .eq('job_id', effectiveJobId);
 
-    if (updateError) {
-      console.error('❌ Failed to update record:', updateError);
-      // Don't throw here, audio is already generated successfully
+      if (updateError) {
+        console.error('❌ Failed to update record:', updateError);
+      }
     }
 
     console.log('✅ Voice generation completed successfully');
 
     return new Response(JSON.stringify({
       success: true,
-      jobId: jobId,
-      recordId: generatedRecord.id,
+      jobId: effectiveJobId,
       audioUrl: urlData.publicUrl,
       bucketPath: bucketPath,
-      generatedText: text // Return the original input text, not the API's generated_text
+      generatedText: text
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -190,13 +221,11 @@ serve(async (req) => {
   }
 });
 
-// Helper function to create WAV file buffer
 function createWavBuffer(audioData: Int16Array, sampleRate: number): Uint8Array {
   const length = audioData.length;
   const buffer = new ArrayBuffer(44 + length * 2);
   const view = new DataView(buffer);
   
-  // WAV header
   const writeString = (offset: number, string: string) => {
     for (let i = 0; i < string.length; i++) {
       view.setUint8(offset + i, string.charCodeAt(i));
@@ -217,7 +246,6 @@ function createWavBuffer(audioData: Int16Array, sampleRate: number): Uint8Array 
   writeString(36, 'data');
   view.setUint32(40, length * 2, true);
   
-  // Audio data
   let offset = 44;
   for (let i = 0; i < length; i++) {
     view.setInt16(offset, audioData[i], true);

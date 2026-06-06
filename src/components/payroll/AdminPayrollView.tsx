@@ -7,7 +7,7 @@ import { AttendanceTable } from './AttendanceTable';
 import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
 import { useSalesLockStatus } from './hooks/useSalesLockStatus';
-import { useExpectedSalary } from './hooks/useExpectedSalary';
+import { usePayrollSummary } from './hooks/usePayrollSummary';
 import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
 import AdminPayrollTable from './AdminPayrollTable';
@@ -15,7 +15,7 @@ import ManagerPayrollTable from './ManagerPayrollTable';
 import EmployeePayrollTable from './EmployeePayrollTable';
 import { AttendanceExportButton } from './AttendanceExportButton';
 import { supabase } from '@/integrations/supabase/client';
-import { getWeekStart } from '@/utils/weekCalculations';
+import { getWeekStart, getEffectivePayrollDate } from '@/utils/weekCalculations';
 
 interface Chatter {
   id: string;
@@ -36,21 +36,22 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
 }) => {
   const [chatters, setChatters] = useState<Chatter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [selectedWeek, setSelectedWeek] = useState(() => getEffectivePayrollDate(new Date()));
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Get sales lock status for the selected chatter and week
   const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(selectedChatterId, selectedWeek, refreshKey);
   const chatterDept = chatters.find(c => c.id === selectedChatterId)?.department || null;
-  const { expectedSalary } = useExpectedSalary(
-    selectedChatterId || undefined, selectedWeek, isSalesLocked, isAdminConfirmed, chatterDept
+  const { expectedSalary, approvedSalary } = usePayrollSummary(
+    selectedChatterId || undefined, selectedWeek, isSalesLocked, chatterDept, undefined, undefined, refreshKey
   );
 
-  // Calculate week start and current week status
-  // Note: For admin view showing all users, we use standard cutoff (department passed in components)
-  const weekStart = getWeekStart(selectedWeek);
-  const currentWeekStart = getWeekStart(new Date());
+  // Calculate week start and current week status using the selected chatter's
+  // department so 10PM chatters get the correct shift-aware "current week".
+  const weekStart = getWeekStart(selectedWeek, chatterDept);
+  const currentWeekStart = getWeekStart(getEffectivePayrollDate(new Date(), chatterDept), chatterDept);
   const isCurrentWeek = weekStart.getTime() === currentWeekStart.getTime();
+
 
   const handleDataRefresh = () => {
     setRefreshKey(prev => prev + 1);
@@ -120,13 +121,23 @@ export const AdminPayrollView: React.FC<AdminPayrollViewProps> = ({
                   </span>
                 </CardTitle>
                 <div className="flex items-center gap-3">
-                  <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} />
+                  <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} department={selectedChatter?.department} />
                   {isSalesLocked && expectedSalary !== null && (
-                    <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
-                      <DollarSign className="h-4 w-4" />
-                      <span className="text-sm font-semibold">
-                        Expected Salary: ${expectedSalary.toFixed(2)}
-                      </span>
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="text-sm font-semibold">
+                          Expected Salary: ${expectedSalary.toFixed(2)}
+                        </span>
+                      </div>
+                      {approvedSalary !== null && (
+                        <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-md border border-blue-500/20">
+                          <DollarSign className="h-4 w-4" />
+                          <span className="text-sm font-semibold">
+                            Approved Salary: ${approvedSalary.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

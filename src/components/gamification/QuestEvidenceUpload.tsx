@@ -28,8 +28,10 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
   onBack,
   onSubmitComplete,
 }) => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
   const { toast } = useToast();
+
   const { effectiveWord } = useEffectiveWord(assignment.quest_id);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [slots, setSlots] = useState<ProgressSlot[]>([]);
@@ -99,6 +101,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
   const handleSlotUpload = async (slotIndex: number, file: File) => {
     if (!user) return;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot submit quest evidence." });
+      return;
+    }
+
 
     // Update slot to show uploading state
     setSlots(prev => prev.map((s, i) => 
@@ -180,6 +187,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
   const uploadPendingFiles = async () => {
     if (!user || pendingFiles.length === 0) return;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot submit quest evidence." });
+      return;
+    }
+
     
     setIsBatchUploading(true);
     
@@ -279,6 +291,11 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
 
   const handleSubmit = async () => {
     if (!user || !quest) return;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot submit quests for review." });
+      return;
+    }
+
     
     if (!canSubmit) {
       toast({

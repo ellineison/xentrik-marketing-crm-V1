@@ -19,7 +19,9 @@ export interface DailyQuestSlot {
 }
 
 export const useDailyQuestSlots = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [slots, setSlots] = useState<DailyQuestSlot[]>([]);
@@ -72,7 +74,8 @@ export const useDailyQuestSlots = () => {
 
   // Fetch today's admin-assigned quests and populate user slots
   const populateSlotsFromAdminAssignments = useCallback(async () => {
-    if (!user) return;
+    if (!user || isAdmin) return; // Admins never get personal slots
+
 
     // Fetch user's department
     const { data: profile } = await supabase
@@ -223,6 +226,11 @@ export const useDailyQuestSlots = () => {
   // Re-roll a quest slot - picks from ALL active daily quests
   const rerollSlot = async (slotNumber: number) => {
     if (!user) return false;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot re-roll quests." });
+      return false;
+    }
+
 
     const slot = slots.find(s => s.slot_number === slotNumber);
     if (!slot) {
