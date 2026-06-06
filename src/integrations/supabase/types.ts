@@ -1470,6 +1470,81 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_summaries: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_salary: number | null
+          bonus_amount: number | null
+          bonus_notes: string | null
+          chatter_id: string
+          created_at: string
+          deduction_amount: number | null
+          deduction_notes: string | null
+          expected_salary: number
+          id: string
+          locked_at: string | null
+          locked_commission_amount: number
+          locked_commission_rate: number
+          locked_hourly_pay: number
+          locked_hourly_rate: number
+          locked_hours_worked: number
+          locked_total_sales: number
+          overtime_notes: string | null
+          overtime_pay: number | null
+          updated_at: string
+          week_start_date: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_salary?: number | null
+          bonus_amount?: number | null
+          bonus_notes?: string | null
+          chatter_id: string
+          created_at?: string
+          deduction_amount?: number | null
+          deduction_notes?: string | null
+          expected_salary?: number
+          id?: string
+          locked_at?: string | null
+          locked_commission_amount?: number
+          locked_commission_rate?: number
+          locked_hourly_pay?: number
+          locked_hourly_rate?: number
+          locked_hours_worked?: number
+          locked_total_sales?: number
+          overtime_notes?: string | null
+          overtime_pay?: number | null
+          updated_at?: string
+          week_start_date: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_salary?: number | null
+          bonus_amount?: number | null
+          bonus_notes?: string | null
+          chatter_id?: string
+          created_at?: string
+          deduction_amount?: number | null
+          deduction_notes?: string | null
+          expected_salary?: number
+          id?: string
+          locked_at?: string | null
+          locked_commission_amount?: number
+          locked_commission_rate?: number
+          locked_hourly_pay?: number
+          locked_hourly_rate?: number
+          locked_hours_worked?: number
+          locked_total_sales?: number
+          overtime_notes?: string | null
+          overtime_pay?: number | null
+          updated_at?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -1822,6 +1897,7 @@ export type Database = {
           user_roles: string[]
         }[]
       }
+      is_payroll_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       creator_type: "Real" | "AI"
