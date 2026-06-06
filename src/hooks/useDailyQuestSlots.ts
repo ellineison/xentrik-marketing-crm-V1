@@ -226,6 +226,11 @@ export const useDailyQuestSlots = () => {
   // Re-roll a quest slot - picks from ALL active daily quests
   const rerollSlot = async (slotNumber: number) => {
     if (!user) return false;
+    if (isAdmin) {
+      toast({ title: "Admin preview", description: "Admins cannot re-roll quests." });
+      return false;
+    }
+
 
     const slot = slots.find(s => s.slot_number === slotNumber);
     if (!slot) {
