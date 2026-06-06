@@ -22,7 +22,9 @@ export interface MonthlyQuestSlot {
 const MONTHLY_SLOT_NUMBER = 200;
 
 export const useMonthlyQuestSlots = () => {
-  const { user } = useAuth();
+  const { user, userRole, userRoles } = useAuth();
+  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+
   const { toast } = useToast();
   
   const [slots, setSlots] = useState<MonthlyQuestSlot[]>([]);
