@@ -5,7 +5,7 @@ import { AttendanceTable } from './AttendanceTable';
 import { WeekNavigator } from './WeekNavigator';
 import { GoogleSheetsLinkManager } from './GoogleSheetsLinkManager';
 import { useSalesLockStatus } from './hooks/useSalesLockStatus';
-import { useExpectedSalary } from './hooks/useExpectedSalary';
+import { usePayrollSummary } from './hooks/usePayrollSummary';
 import { useAuth } from '@/context/AuthContext';
 import { LockSalesButton } from './LockSalesButton';
 import { ApprovedPayrollStatus } from './ApprovedPayrollStatus';
@@ -49,8 +49,8 @@ export const ChatterPayrollView: React.FC = () => {
   
   // Get sales lock status for the current user and week
   const { isSalesLocked, isAdminConfirmed } = useSalesLockStatus(user?.id, selectedWeek, refreshKey);
-  const { expectedSalary, isLoading: isExpectedSalaryLoading } = useExpectedSalary(
-    user?.id, selectedWeek, isSalesLocked, isAdminConfirmed, userDepartment, userRole, userRoles
+  const { expectedSalary, approvedSalary } = usePayrollSummary(
+    user?.id, selectedWeek, isSalesLocked, userDepartment, userRole, userRoles, refreshKey
   );
 
   const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
@@ -81,11 +81,21 @@ export const ChatterPayrollView: React.FC = () => {
               <div className="flex items-center gap-3">
                 <WeekNavigator selectedWeek={selectedWeek} onWeekChange={setSelectedWeek} department={userDepartment} role={userRole} roles={userRoles} />
                 {isSalesLocked && expectedSalary !== null && (
-                  <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
-                    <DollarSign className="h-4 w-4" />
-                    <span className="text-sm font-semibold">
-                      Expected Salary: ${expectedSalary.toFixed(2)}
-                    </span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-md border border-green-500/20">
+                      <DollarSign className="h-4 w-4" />
+                      <span className="text-sm font-semibold">
+                        Expected Salary: ${expectedSalary.toFixed(2)}
+                      </span>
+                    </div>
+                    {approvedSalary !== null && (
+                      <div className="flex items-center gap-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-md border border-blue-500/20">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="text-sm font-semibold">
+                          Approved Salary: ${approvedSalary.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
