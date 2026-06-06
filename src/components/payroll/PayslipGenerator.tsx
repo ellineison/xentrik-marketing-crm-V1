@@ -162,30 +162,13 @@ export const generatePayslipPDF = (data: PayslipData) => {
     yPosition += 3;
   }
 
-  // Expected Salary (system-computed, locked snapshot)
+  // Total payout (reflects Approved Salary when present)
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(10);
-  if (data.expectedSalary !== undefined && data.expectedSalary !== null) {
-    pdf.setTextColor(22, 128, 56); // green
-    pdf.text(`Expected Salary: $${data.expectedSalary.toFixed(2)}`, 20, yPosition);
-    yPosition += 8;
-  }
-
-  // Approved Salary (final, admin-approved) — highlighted blue
-  if (data.approvedSalary !== undefined && data.approvedSalary !== null) {
-    pdf.setTextColor(37, 99, 235); // blue
-    pdf.text(
-      `Approved Salary (Final Payout): $${data.approvedSalary.toFixed(2)}`,
-      20,
-      yPosition
-    );
-    yPosition += 8;
-  }
-
-  // Total payout
   pdf.setTextColor(0, 0, 0);
   pdf.text(`Total Payout: $${data.totalPayout.toFixed(2)}`, 20, yPosition);
   yPosition += 15;
+
 
   // Yellow border before payslip text
   pdf.setFillColor(255, 255, 0); // Yellow
