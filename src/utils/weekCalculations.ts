@@ -1,9 +1,71 @@
 /**
  * Week calculation utilities with department-specific cutoffs
- * 
+ *
  * Standard departments: Thursday-Wednesday cutoff (week starts on Thursday, day_of_week = 4)
  * 10PM Department: Wednesday-Tuesday cutoff (week starts on Wednesday, day_of_week = 3)
+ *
+ * All "current date" decisions are normalized to Asia/Manila (PHT, UTC+8) so payroll
+ * grouping is independent of the user's browser timezone. For the 10PM shift
+ * (10:00 PM PHT → 6:00 AM PHT next day), any time between 00:00 and 05:59 PHT is
+ * treated as belonging to the *previous* calendar day (the night the shift began).
  */
+
+/**
+ * Get PHT (Asia/Manila) calendar parts for an instant.
+ */
+export const getPHTParts = (now: Date = new Date()): { year: number; month: number; day: number; hour: number; weekday: number } => {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hour12: false,
+    weekday: 'short',
+  });
+  const parts = fmt.formatToParts(now);
+  const get = (t: string) => parts.find(p => p.type === t)?.value ?? '';
+  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return {
+    year: Number(get('year')),
+    month: Number(get('month')),
+    day: Number(get('day')),
+    hour: Number(get('hour')) % 24,
+    weekday: weekdayMap[get('weekday')] ?? new Date().getDay(),
+  };
+};
+
+/**
+ * Return the shift-effective "today" for payroll purposes, as a local Date
+ * (set to noon to avoid DST edge cases) whose calendar fields reflect PHT.
+ *
+ * - For '10PM' department between 00:00 and 05:59 PHT, returns *yesterday* in PHT
+ *   (the shift began the previous calendar evening).
+ * - For all other times / departments, returns today in PHT.
+ *
+ * Using this in place of `new Date()` makes week/day grouping correct regardless
+ * of the user's browser timezone and prevents post-midnight entries from being
+ * filed under the wrong calendar date or week.
+ */
+export const getEffectivePayrollDate = (now: Date = new Date(), department?: string | null): Date => {
+  const { year, month, day, hour } = getPHTParts(now);
+  // Build a local-time Date at noon so .getDay()/.getDate() reflect PHT calendar day
+  // regardless of browser timezone.
+  const local = new Date(year, month - 1, day, 12, 0, 0, 0);
+  if (department === '10PM' && hour < 6) {
+    local.setDate(local.getDate() - 1);
+  }
+  return local;
+};
+
+/**
+ * Return the day_of_week (0-6) that the chatter is currently "on shift" for, in PHT.
+ * For 10PM dept this collapses the 00:00-05:59 window back onto the previous day.
+ */
+export const getEffectiveDayOfWeek = (now: Date = new Date(), department?: string | null): number => {
+  return getEffectivePayrollDate(now, department).getDay();
+};
+
 
 /**
  * Get the week start date based on department and role
