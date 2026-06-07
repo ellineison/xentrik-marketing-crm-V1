@@ -153,8 +153,8 @@ const TasksRewards: React.FC = () => {
         </div>
 
 
-        {/* Player Card — hidden for admins (they are not players) */}
-        {!isAdmin && <PlayerCard />}
+        {/* Player Card — visible for any player (Chatter, DCR, etc.); hidden for Admin-only */}
+        {isPlayer && <PlayerCard />}
 
         
         <div className="space-y-2 flex-1">
@@ -182,7 +182,7 @@ const TasksRewards: React.FC = () => {
       {/* Main Content Area */}
       <main className="gamification-content flex-1 overflow-y-auto p-6 md:p-8 lg:p-10">
         <div className="w-full max-w-none">
-          {isAdmin && activeTab !== 'control-panel' && activeTab !== 'game-board' && (
+          {isAdminOnly && activeTab !== 'control-panel' && activeTab !== 'game-board' && (
             <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 px-4 py-2 text-sm text-foreground">
               <span className="font-semibold">Admin preview:</span> you're viewing the chatter experience. Participation actions (claim, re-roll, evidence upload, purchases) are disabled.
             </div>
