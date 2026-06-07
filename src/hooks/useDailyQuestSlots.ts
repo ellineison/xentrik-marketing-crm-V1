@@ -181,13 +181,22 @@ export const useDailyQuestSlots = () => {
       return;
     }
 
-    // Assign missing admin quests to empty slots (up to 4)
+    // Assign missing admin quests to empty slots.
+    // IMPORTANT: cap total slots at the number of admin-assigned daily quests for this
+    // shift. Otherwise a re-roll (which UPDATEs a slot's quest_id) makes the original
+    // admin quest look "missing" and we would keep backfilling it into a new slot,
+    // growing the user's slot count past the intended limit.
+    const adminQuestCap = Math.min(4, orderedAdminQuestIds.length);
     const inserts: any[] = [];
     let slotNumber = 1;
 
     for (const questId of orderedAdminQuestIds) {
-      // Don’t insert duplicates if the user already has this quest in a slot
+      // Don't insert duplicates if the user already has this quest in a slot
       if (existingQuestIds.has(questId)) continue;
+
+      // Stop once total slot count would meet the admin-assigned cap.
+      // This prevents re-rolls from inflating the visible quest count.
+      if ((existingSlots?.length || 0) + inserts.length >= adminQuestCap) break;
 
       // Find the next empty slot
       while (filledSlots.has(slotNumber) && slotNumber <= 4) {
@@ -208,11 +217,6 @@ export const useDailyQuestSlots = () => {
       filledSlots.add(slotNumber);
       existingQuestIds.add(questId);
       slotNumber++;
-
-      // Stop once we’ve filled all missing admin quests
-      if (missingAdminQuestIds.length > 0 && inserts.length >= missingAdminQuestIds.length) {
-        break;
-      }
     }
 
     if (inserts.length > 0) {
