@@ -70,11 +70,19 @@ const ChatterQuestsPage: React.FC = () => {
       return;
     }
 
-    // Find all assignments (both admin and personal) for the user's quests that are active today
-    // Admin assignments have assigned_by = null, personal ones have assigned_by = user.id
+    // Get the user's department so we pick the admin assignment for THEIR shift.
+    // (After per-shift assignments, a quest can have one admin row per shift.)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department')
+      .eq('id', user.id)
+      .single();
+    const userDepartment = profile?.department || null;
+
+    // Find all assignments (admin + personal) for the user's quests active today
     const { data: assignments, error: aErr } = await supabase
       .from('gamification_quest_assignments')
-      .select('id, quest_id, assigned_by')
+      .select('id, quest_id, assigned_by, department')
       .in('quest_id', questIds)
       .lte('start_date', today)
       .gte('end_date', today);
@@ -89,17 +97,27 @@ const ChatterQuestsPage: React.FC = () => {
       return;
     }
 
-    // For each quest, prefer admin assignment if exists, else use personal assignment
+    // For each quest, prefer the admin assignment matching the user's department,
+    // then any admin assignment (NULL dept = global), then a personal assignment.
     const questAssignmentMap = new Map<string, string>();
     for (const qId of questIds) {
-      // Find admin assignment first (assigned_by is null)
-      const adminAssignment = assignments.find(a => a.quest_id === qId && a.assigned_by === null);
-      if (adminAssignment) {
-        questAssignmentMap.set(qId, adminAssignment.id);
+      const adminForShift = assignments.find(
+        a => a.quest_id === qId && a.assigned_by === null && a.department === userDepartment
+      );
+      if (adminForShift) {
+        questAssignmentMap.set(qId, adminForShift.id);
         continue;
       }
-      // Fall back to personal assignment (assigned_by = user.id)
-      const personalAssignment = assignments.find(a => a.quest_id === qId && a.assigned_by === user.id);
+      const adminGlobal = assignments.find(
+        a => a.quest_id === qId && a.assigned_by === null && a.department == null
+      );
+      if (adminGlobal) {
+        questAssignmentMap.set(qId, adminGlobal.id);
+        continue;
+      }
+      const personalAssignment = assignments.find(
+        a => a.quest_id === qId && a.assigned_by === user.id
+      );
       if (personalAssignment) {
         questAssignmentMap.set(qId, personalAssignment.id);
       }
