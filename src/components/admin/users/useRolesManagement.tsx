@@ -11,11 +11,15 @@ export const useRolesManagement = (
   const [pendingRoleChange, setPendingRoleChange] = useState<PrimaryRole | null>(null);
   const [showAdminAlert, setShowAdminAlert] = useState(false);
 
-  // Update state when initial values change (when modal opens with new user)
+  // Re-sync whenever the selected user's roles actually change (by content, not just length).
+  // Using length alone caused stale checkboxes when switching between users with the same
+  // number of additional roles (e.g. Third [Chatter, DCR] -> Nash [Chatter, VA]).
+  const additionalRolesKey = [...initialAdditionalRoles].sort().join('|');
   useEffect(() => {
     setPrimaryRole(initialPrimaryRole);
     setAdditionalRoles([...initialAdditionalRoles]); // Create fresh copy
-  }, [initialPrimaryRole, initialAdditionalRoles.length]); // Only depend on array length, not contents
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPrimaryRole, additionalRolesKey]);
 
   const handlePrimaryRoleChange = (newRole: PrimaryRole) => {
     // If changing to Admin, show confirmation dialog
