@@ -28,8 +28,10 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
   onBack,
   onSubmitComplete,
 }) => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { isPlayer } = useGameRole();
+  // DCR submits evidence as a player; only Admin-only users hit the preview gate.
+  const isAdmin = !isPlayer;
   const { toast } = useToast();
 
   const { effectiveWord } = useEffectiveWord(assignment.quest_id);

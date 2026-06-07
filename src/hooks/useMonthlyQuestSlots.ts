@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Quest } from '@/hooks/useGamification';
+import { useGameRole } from '@/hooks/useGameRole';
 import { format, startOfMonth } from 'date-fns';
 
 export interface MonthlyQuestSlot {
