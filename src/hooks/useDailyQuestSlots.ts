@@ -125,13 +125,13 @@ export const useDailyQuestSlots = () => {
       return;
     }
 
-    // Filter to only daily quests AND matching department (NULL department defaults to 2PM)
+    // Filter to only daily quests AND matching department.
+    // A NULL department means the assignment applies to every shift (legacy/global).
     const dailyAssignments = (todayAssignments || []).filter(
       (a: any) => a.quest?.quest_type === 'daily'
     ).filter((a: any) => {
-      // NULL department defaults to 2PM shift
-      const assignmentDept = (a as any).department || '2PM';
-      return assignmentDept === userDepartment;
+      const assignmentDept = (a as any).department;
+      return assignmentDept == null || assignmentDept === userDepartment;
     });
 
     if (dailyAssignments.length === 0) {
