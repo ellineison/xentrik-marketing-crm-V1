@@ -28,8 +28,6 @@ const TasksRewards: React.FC = () => {
   const canManageQuests = !isLoading && canManageQuestsRaw;
   const isPlayer = !isLoading && isPlayerRaw;
   const isAdminOnly = !isLoading && isAdminOnlyRaw;
-  // Kept for places that still expect a single admin flag (Control Panel visibility).
-  const isAdmin = canManageQuests;
 
   useEffect(() => {
     const loadLogo = async () => {
