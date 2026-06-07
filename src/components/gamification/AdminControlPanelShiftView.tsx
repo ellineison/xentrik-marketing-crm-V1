@@ -61,10 +61,8 @@ const AdminControlPanelShiftView: React.FC<AdminControlPanelShiftViewProps> = ({
   }
 
   const getShiftAssignments = (shift: string) => {
-    return assignments.filter((a) => {
-      const effectiveDept = a.department || '2PM';
-      return effectiveDept === shift;
-    });
+    // NULL department = global assignment, show in every shift column
+    return assignments.filter((a) => a.department == null || a.department === shift);
   };
 
   return (
