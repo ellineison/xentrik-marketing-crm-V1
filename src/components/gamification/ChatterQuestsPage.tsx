@@ -218,21 +218,33 @@ const ChatterQuestsPage: React.FC = () => {
       return personalAssignment as any as QuestAssignment;
     }
 
-    // Next, check for an admin-created assignment (assigned_by is null or different user)
-    const { data: adminAssignment, error: aErr } = await supabase
+    // Next, look up the admin-created assignment for the user's shift.
+    // A quest can now have one admin row per department (6AM / 2PM / 10PM)
+    // plus legacy global rows with department = NULL.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department')
+      .eq('id', user.id)
+      .single();
+    const userDepartment = profile?.department || null;
+
+    const { data: adminAssignments, error: aErr } = await supabase
       .from('gamification_quest_assignments')
       .select(`*, quest:gamification_quests (*)`)
       .eq('quest_id', questId)
       .eq('start_date', period.start)
       .eq('end_date', period.end)
-      .is('assigned_by', null)
-      .maybeSingle();
+      .is('assigned_by', null);
 
     if (aErr) {
       console.error('Error looking up admin assignment:', aErr);
     }
 
-    // If admin assignment exists, use it (this is the normal case for non-rerolled quests)
+    const adminAssignment =
+      (adminAssignments || []).find((a: any) => a.department === userDepartment) ||
+      (adminAssignments || []).find((a: any) => a.department == null) ||
+      null;
+
     if (adminAssignment?.id) {
       return adminAssignment as any as QuestAssignment;
     }
