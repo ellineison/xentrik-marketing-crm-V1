@@ -95,9 +95,14 @@ export interface QuestProgress {
   attachment_url: string;
 }
 
+import { useGameRole } from '@/hooks/useGameRole';
+
 export const useGamification = () => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { canManageQuests, isPlayer, isAdminOnly } = useGameRole();
+  // Legacy alias — kept for the few branches below that still read it.
+  // Treats DCR as a player (not admin) so they can purchase / participate.
+  const isAdmin = isAdminOnly;
 
   const { toast } = useToast();
   
@@ -161,11 +166,11 @@ export const useGamification = () => {
 
   // Fetch leaderboard - all chatters with their stats
   const fetchLeaderboard = useCallback(async () => {
-    // First, get all profiles with "Chatter" in their roles array
+    // Include all player profiles — Chatter OR DCR (DCR plays like a Chatter).
     const { data: chatterProfiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, name, profile_image, roles')
-      .contains('roles', ['Chatter']);
+      .overlaps('roles', ['Chatter', 'DCR']);
 
     if (profilesError) {
       console.error('Error fetching chatter profiles:', profilesError);

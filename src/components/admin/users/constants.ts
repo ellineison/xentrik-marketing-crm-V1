@@ -8,6 +8,7 @@ export const ADDITIONAL_ROLES: string[] = [
   "Chatter", 
   "VA", 
   "Admin", 
+  "DCR",
   "Developer",
   "Creator",
   "Marketing Team",
