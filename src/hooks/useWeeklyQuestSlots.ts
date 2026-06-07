@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Quest } from '@/hooks/useGamification';
+import { useGameRole } from '@/hooks/useGameRole';
 import { format, startOfWeek } from 'date-fns';
 
 export interface WeeklyQuestSlot {
@@ -22,8 +23,9 @@ export interface WeeklyQuestSlot {
 const WEEKLY_SLOT_NUMBER = 100;
 
 export const useWeeklyQuestSlots = () => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { isPlayer } = useGameRole();
+  const isAdmin = !isPlayer;
 
   const { toast } = useToast();
   
