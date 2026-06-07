@@ -29,7 +29,7 @@ const OtherRolesUsersTable: React.FC<OtherRolesUsersTableProps> = ({
     
     // Include users with other additional roles (or Creator + other roles)
     return user.roles && user.roles.length > 0 && 
-           user.roles.some(role => ["Chatter", "VA", "Developer"].includes(role));
+           user.roles.some(role => ["Chatter", "DCR", "VA", "Developer"].includes(role));
   });
 
   return (
