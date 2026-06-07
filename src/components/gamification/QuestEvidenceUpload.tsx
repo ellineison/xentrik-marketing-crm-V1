@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2, Upload, X, ChevronLeft, Camera, FileImage, CheckCircle, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useGameRole } from '@/hooks/useGameRole';
 import { useToast } from '@/hooks/use-toast';
 import { QuestAssignment } from '@/hooks/useGamification';
 import { useEffectiveWord } from '@/hooks/useEffectiveWord';
