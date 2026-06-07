@@ -167,28 +167,28 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
     const quest = quests.find(q => q.id === selectedQuestForAssign);
     if (!quest) return;
 
-    // Check assignment limits scoped to selected team/department: max 4 daily, 1 weekly, 1 monthly
-    const scopeMatches = (a: any) =>
-      assignDepartment === 'all'
-        ? (a.department === null || a.department === undefined)
-        : a.department === assignDepartment;
+    const SHIFTS = ['6AM', '2PM', '10PM'] as const;
+    const targetShifts: string[] =
+      assignDepartment === 'all' ? [...SHIFTS] : [assignDepartment];
 
-    const countByType = (type: 'daily' | 'weekly' | 'monthly') =>
-      activeAssignments.filter(a => a.quest?.quest_type === type && scopeMatches(a)).length;
+    // Per-shift limits (a legacy NULL/global row counts toward every shift)
+    const limits = { daily: 4, weekly: 1, monthly: 1 } as const;
+    const limit = limits[quest.quest_type];
 
-    const limits = { daily: 4, weekly: 1, monthly: 1 };
-    const currentCounts = {
-      daily: countByType('daily'),
-      weekly: countByType('weekly'),
-      monthly: countByType('monthly'),
-    };
+    const countForShift = (shift: string) =>
+      activeAssignments.filter(a =>
+        a.quest?.quest_type === quest.quest_type &&
+        ((a as any).department == null || (a as any).department === shift)
+      ).length;
 
-    if (currentCounts[quest.quest_type] >= limits[quest.quest_type]) {
-      const scopeLabel = assignDepartment === 'all' ? 'Global' : `Team ${assignDepartment}`;
-      toast({ 
-        title: "Assignment Limit Reached", 
-        description: `${scopeLabel} already has ${limits[quest.quest_type]} ${quest.quest_type} quest${limits[quest.quest_type] > 1 ? 's' : ''} assigned`,
-        variant: "destructive" 
+    const blockedShifts = targetShifts.filter(s => countForShift(s) >= limit);
+    const availableShifts = targetShifts.filter(s => countForShift(s) < limit);
+
+    if (availableShifts.length === 0) {
+      toast({
+        title: "Assignment Limit Reached",
+        description: `All selected shifts already have ${limit} ${quest.quest_type} quest${limit > 1 ? 's' : ''} assigned`,
+        variant: "destructive"
       });
       return;
     }
@@ -216,29 +216,40 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
 
     try {
       setIsAssigning(true);
-      // Admin assignments have assigned_by = null to distinguish from personal assignments
-      // Personal assignments (from re-rolls) have assigned_by = user.id
-      const insertData: any = {
+      // One row per shift so each team gets its own assignment and per-shift limits apply.
+      const rows = availableShifts.map(shift => {
+        const row: any = {
           quest_id: selectedQuestForAssign,
           start_date: startDateStr,
           end_date: endDateStr,
-          assigned_by: null, // NULL = admin/global assignment, visible to all players
-          department: assignDepartment === 'all' ? null : assignDepartment
+          assigned_by: null, // NULL = admin/global assignment
+          department: shift,
         };
-
-      // Add custom word if provided (for Word of the Day / Ability Rotation quests)
-      if (assignCustomWord.trim()) {
-        insertData.custom_word = assignCustomWord.trim();
-        insertData.custom_word_description = assignCustomWordDescription.trim() || null;
-      }
+        if (assignCustomWord.trim()) {
+          row.custom_word = assignCustomWord.trim();
+          row.custom_word_description = assignCustomWordDescription.trim() || null;
+        }
+        return row;
+      });
 
       const { error } = await supabase
         .from('gamification_quest_assignments')
-        .insert(insertData);
+        .insert(rows);
 
       if (error) throw error;
 
-      toast({ title: "Success", description: `Quest assigned successfully${assignDepartment !== 'all' ? ` to ${assignDepartment} department` : ''}!` });
+      const assignedLabel =
+        availableShifts.length === SHIFTS.length
+          ? 'all departments'
+          : availableShifts.join(', ');
+      const skippedNote = blockedShifts.length > 0
+        ? ` (skipped ${blockedShifts.join(', ')} — limit reached)`
+        : '';
+
+      toast({
+        title: "Success",
+        description: `Quest assigned to ${assignedLabel}${skippedNote}!`
+      });
       setSelectedQuestForAssign('');
       setAssignDepartment('all');
       setAssignCustomWord('');
