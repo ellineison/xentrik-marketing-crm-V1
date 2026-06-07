@@ -96,7 +96,6 @@ export interface QuestProgress {
   attachment_url: string;
 }
 
-import { useGameRole } from '@/hooks/useGameRole';
 
 export const useGamification = () => {
   const { user } = useAuth();
