@@ -167,18 +167,27 @@ const QuestsPanel: React.FC<QuestsPanelProps> = ({ isAdmin }) => {
     const quest = quests.find(q => q.id === selectedQuestForAssign);
     if (!quest) return;
 
-    // Check assignment limits: max 4 daily, 1 weekly, 1 monthly
-    const currentDailyCount = filterQuestsByType('daily').length;
-    const currentWeeklyCount = filterQuestsByType('weekly').length;
-    const currentMonthlyCount = filterQuestsByType('monthly').length;
+    // Check assignment limits scoped to selected team/department: max 4 daily, 1 weekly, 1 monthly
+    const scopeMatches = (a: any) =>
+      assignDepartment === 'all'
+        ? (a.department === null || a.department === undefined)
+        : a.department === assignDepartment;
+
+    const countByType = (type: 'daily' | 'weekly' | 'monthly') =>
+      activeAssignments.filter(a => a.quest?.quest_type === type && scopeMatches(a)).length;
 
     const limits = { daily: 4, weekly: 1, monthly: 1 };
-    const currentCounts = { daily: currentDailyCount, weekly: currentWeeklyCount, monthly: currentMonthlyCount };
+    const currentCounts = {
+      daily: countByType('daily'),
+      weekly: countByType('weekly'),
+      monthly: countByType('monthly'),
+    };
 
     if (currentCounts[quest.quest_type] >= limits[quest.quest_type]) {
+      const scopeLabel = assignDepartment === 'all' ? 'Global' : `Team ${assignDepartment}`;
       toast({ 
         title: "Assignment Limit Reached", 
-        description: `You can only assign ${limits[quest.quest_type]} ${quest.quest_type} quest${limits[quest.quest_type] > 1 ? 's' : ''} at a time`,
+        description: `${scopeLabel} already has ${limits[quest.quest_type]} ${quest.quest_type} quest${limits[quest.quest_type] > 1 ? 's' : ''} assigned`,
         variant: "destructive" 
       });
       return;
