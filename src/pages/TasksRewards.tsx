@@ -9,6 +9,7 @@ import ChatterQuestsPage from '@/components/gamification/ChatterQuestsPage';
 import SupplyDepot from '@/components/gamification/SupplyDepot';
 import PlayerCard from '@/components/gamification/PlayerCard';
 import { useSupabaseAuth } from '@/context/SupabaseAuthContext';
+import { useGameRole } from '@/hooks/useGameRole';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import '@/styles/gamification.css';
@@ -19,11 +20,16 @@ const BUCKET_NAME = 'logos';
 const TasksRewards: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userRole, userRoles, isLoading } = useSupabaseAuth();
+  const { isLoading } = useSupabaseAuth();
+  const { canManageQuests: canManageQuestsRaw, isPlayer: isPlayerRaw, isAdminOnly: isAdminOnlyRaw } = useGameRole();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  
-  // Wait for auth to finish loading before determining admin status
-  const isAdmin = !isLoading && (userRole === 'Admin' || userRoles?.includes('Admin'));
+
+  // Wait for auth to finish loading before applying role gating
+  const canManageQuests = !isLoading && canManageQuestsRaw;
+  const isPlayer = !isLoading && isPlayerRaw;
+  const isAdminOnly = !isLoading && isAdminOnlyRaw;
+  // Kept for places that still expect a single admin flag (Control Panel visibility).
+  const isAdmin = canManageQuests;
 
   useEffect(() => {
     const loadLogo = async () => {
