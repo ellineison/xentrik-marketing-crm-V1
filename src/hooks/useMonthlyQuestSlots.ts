@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Quest } from '@/hooks/useGamification';
+import { useGameRole } from '@/hooks/useGameRole';
 import { format, startOfMonth } from 'date-fns';
 
 export interface MonthlyQuestSlot {
@@ -22,8 +23,9 @@ export interface MonthlyQuestSlot {
 const MONTHLY_SLOT_NUMBER = 200;
 
 export const useMonthlyQuestSlots = () => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { isPlayer } = useGameRole();
+  const isAdmin = !isPlayer;
 
   const { toast } = useToast();
   
@@ -118,9 +120,9 @@ export const useMonthlyQuestSlots = () => {
       return;
     }
 
-    // Filter to only monthly quests matching user's department (NULL department defaults to 2PM)
+    // Filter to monthly quests matching user's department (NULL = applies to every shift)
     const monthlyAssignment = (monthlyAssignments || []).find(
-      (a: any) => a.quest?.quest_type === 'monthly' && ((a.department || '2PM') === userDepartment)
+      (a: any) => a.quest?.quest_type === 'monthly' && (a.department == null || a.department === userDepartment)
     );
 
     if (!monthlyAssignment) {

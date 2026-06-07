@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Quest } from '@/hooks/useGamification';
+import { useGameRole } from '@/hooks/useGameRole';
 import { getEffectiveGameDate } from '@/utils/gameDate';
 
 export interface DailyQuestSlot {
@@ -19,8 +20,10 @@ export interface DailyQuestSlot {
 }
 
 export const useDailyQuestSlots = () => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { isPlayer } = useGameRole();
+  // DCR plays like a Chatter; only Admin-only users are blocked from personal slots.
+  const isAdmin = !isPlayer;
 
   const { toast } = useToast();
   
@@ -122,13 +125,13 @@ export const useDailyQuestSlots = () => {
       return;
     }
 
-    // Filter to only daily quests AND matching department (NULL department defaults to 2PM)
+    // Filter to only daily quests AND matching department.
+    // A NULL department means the assignment applies to every shift (legacy/global).
     const dailyAssignments = (todayAssignments || []).filter(
       (a: any) => a.quest?.quest_type === 'daily'
     ).filter((a: any) => {
-      // NULL department defaults to 2PM shift
-      const assignmentDept = (a as any).department || '2PM';
-      return assignmentDept === userDepartment;
+      const assignmentDept = (a as any).department;
+      return assignmentDept == null || assignmentDept === userDepartment;
     });
 
     if (dailyAssignments.length === 0) {
@@ -178,13 +181,22 @@ export const useDailyQuestSlots = () => {
       return;
     }
 
-    // Assign missing admin quests to empty slots (up to 4)
+    // Assign missing admin quests to empty slots.
+    // IMPORTANT: cap total slots at the number of admin-assigned daily quests for this
+    // shift. Otherwise a re-roll (which UPDATEs a slot's quest_id) makes the original
+    // admin quest look "missing" and we would keep backfilling it into a new slot,
+    // growing the user's slot count past the intended limit.
+    const adminQuestCap = Math.min(4, orderedAdminQuestIds.length);
     const inserts: any[] = [];
     let slotNumber = 1;
 
     for (const questId of orderedAdminQuestIds) {
-      // Don’t insert duplicates if the user already has this quest in a slot
+      // Don't insert duplicates if the user already has this quest in a slot
       if (existingQuestIds.has(questId)) continue;
+
+      // Stop once total slot count would meet the admin-assigned cap.
+      // This prevents re-rolls from inflating the visible quest count.
+      if ((existingSlots?.length || 0) + inserts.length >= adminQuestCap) break;
 
       // Find the next empty slot
       while (filledSlots.has(slotNumber) && slotNumber <= 4) {
@@ -205,11 +217,6 @@ export const useDailyQuestSlots = () => {
       filledSlots.add(slotNumber);
       existingQuestIds.add(questId);
       slotNumber++;
-
-      // Stop once we’ve filled all missing admin quests
-      if (missingAdminQuestIds.length > 0 && inserts.length >= missingAdminQuestIds.length) {
-        break;
-      }
     }
 
     if (inserts.length > 0) {
