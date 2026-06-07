@@ -70,29 +70,31 @@ const TasksRewards: React.FC = () => {
     { id: 'supply-depot', label: 'Supply Depot', icon: Store, path: '/tasks-rewards/supply-depot' },
   ];
 
-  const visibleNavItems = isAdmin ? adminNavItems : playerNavItems;
+  // Control Panel tab is visible to any quest manager (Admin or DCR).
+  const visibleNavItems = canManageQuests ? adminNavItems : playerNavItems;
 
 
   const renderContent = () => {
-    if (isAdmin) {
-      // Admins can monitor every tab. Read-only enforcement happens inside each component.
+    // Quest managers (Admin or DCR) can reach every tab incl. Control Panel.
+    if (canManageQuests) {
       switch (activeTab) {
         case 'control-panel':
-          return <QuestsPanel isAdmin={isAdmin} />;
+          return <QuestsPanel isAdmin={canManageQuests} />;
         case 'quests':
           return <ChatterQuestsPage />;
         case 'supply-depot':
           return <SupplyDepot />;
         case 'game-board':
         default:
-          return <GameBoard isAdmin={isAdmin} />;
+          // DCR sees the player game board; admin-only sees the admin overview.
+          return <GameBoard isAdmin={isAdminOnly} />;
       }
     }
 
-    // Non-admin logic
+    // Non-manager logic (Chatter, Employee, etc.)
     switch (activeTab) {
       case 'control-panel':
-        // Non-admins cannot access control panel - redirect to game board
+        // Non-managers cannot access control panel - redirect to game board
         navigate('/tasks-rewards', { replace: true });
         return <GameBoard isAdmin={false} />;
       case 'quests':
@@ -100,7 +102,7 @@ const TasksRewards: React.FC = () => {
       case 'supply-depot':
         return <SupplyDepot />;
       default:
-        return <GameBoard isAdmin={isAdmin} />;
+        return <GameBoard isAdmin={false} />;
     }
   };
 
