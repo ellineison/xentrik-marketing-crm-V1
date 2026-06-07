@@ -82,17 +82,43 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAdmin }) => {
 
       if (questIds.length === 0) return;
 
-      // Find assignments for these quests
+      // Resolve the user's department so we pick the admin assignment for THEIR shift
+      // (a quest can have one admin row per shift after per-shift assignments).
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('department')
+        .eq('id', user.id)
+        .single();
+      const userDepartment = profile?.department || null;
+
+      // Find assignments (admin + personal) for these quests
       const { data: assignments } = await supabase
         .from('gamification_quest_assignments')
-        .select('id, quest_id')
+        .select('id, quest_id, assigned_by, department')
         .in('quest_id', questIds)
         .lte('start_date', today)
         .gte('end_date', today);
 
       if (!assignments || assignments.length === 0) return;
 
-      const assignmentIds = assignments.map(a => a.id);
+      // Pick one assignment per quest: shift-matching admin > global admin > personal
+      const questAssignmentMap: Record<string, string> = {};
+      for (const qId of questIds) {
+        const adminForShift = assignments.find(
+          a => a.quest_id === qId && a.assigned_by === null && a.department === userDepartment
+        );
+        const adminGlobal = assignments.find(
+          a => a.quest_id === qId && a.assigned_by === null && a.department == null
+        );
+        const personal = assignments.find(
+          a => a.quest_id === qId && a.assigned_by === user.id
+        );
+        const chosen = adminForShift || adminGlobal || personal;
+        if (chosen) questAssignmentMap[qId] = chosen.id;
+      }
+
+      const assignmentIds = Object.values(questAssignmentMap);
+      if (assignmentIds.length === 0) return;
 
       // Fetch progress for these assignments
       const { data: progressData } = await supabase
@@ -103,15 +129,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ isAdmin }) => {
 
       if (!progressData) return;
 
-      // Build map: quest_id -> progress count
       const progressMap: Record<string, number> = {};
       for (const qId of questIds) {
-        const assignment = assignments.find(a => a.quest_id === qId);
-        if (assignment) {
-          progressMap[qId] = progressData.filter(p => p.quest_assignment_id === assignment.id).length;
-        } else {
-          progressMap[qId] = 0;
-        }
+        const aId = questAssignmentMap[qId];
+        progressMap[qId] = aId
+          ? progressData.filter(p => p.quest_assignment_id === aId).length
+          : 0;
       }
 
       setQuestProgress(progressMap);
