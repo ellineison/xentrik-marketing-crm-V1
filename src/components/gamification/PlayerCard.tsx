@@ -44,9 +44,12 @@ const PlayerCard: React.FC = () => {
   const currentRank = getCurrentRank();
   const crownColor = currentRank ? getRankCrownColor(currentRank.name) : '#ffffff';
 
-  // Determine display role - show "Sales Rep" for Chatter role
+  // Determine display role — show "Sales Rep" for Chatter or DCR (DCR plays like Chatter)
   const getDisplayRole = (): string => {
-    if (userRoles.includes('Chatter') || userRole === 'Chatter') {
+    if (userRoles?.includes('DCR') || userRole === 'DCR') {
+      return 'Sales Rep';
+    }
+    if (userRoles?.includes('Chatter') || userRole === 'Chatter') {
       return 'Sales Rep';
     }
     return userRole || 'Employee';

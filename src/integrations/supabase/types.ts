@@ -1898,6 +1898,7 @@ export type Database = {
         }[]
       }
       is_payroll_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_quest_manager: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       creator_type: "Real" | "AI"

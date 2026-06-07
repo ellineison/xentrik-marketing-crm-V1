@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Quest } from '@/hooks/useGamification';
+import { useGameRole } from '@/hooks/useGameRole';
 import { getEffectiveGameDate } from '@/utils/gameDate';
 
 export interface DailyQuestSlot {
@@ -19,8 +20,10 @@ export interface DailyQuestSlot {
 }
 
 export const useDailyQuestSlots = () => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { isPlayer } = useGameRole();
+  // DCR plays like a Chatter; only Admin-only users are blocked from personal slots.
+  const isAdmin = !isPlayer;
 
   const { toast } = useToast();
   

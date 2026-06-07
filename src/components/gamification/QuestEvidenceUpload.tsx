@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2, Upload, X, ChevronLeft, Camera, FileImage, CheckCircle, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
+import { useGameRole } from '@/hooks/useGameRole';
 import { useToast } from '@/hooks/use-toast';
 import { QuestAssignment } from '@/hooks/useGamification';
 import { useEffectiveWord } from '@/hooks/useEffectiveWord';
@@ -28,8 +29,10 @@ const QuestEvidenceUpload: React.FC<QuestEvidenceUploadProps> = ({
   onBack,
   onSubmitComplete,
 }) => {
-  const { user, userRole, userRoles } = useAuth();
-  const isAdmin = userRole === 'Admin' || userRoles?.includes('Admin');
+  const { user } = useAuth();
+  const { isPlayer } = useGameRole();
+  // DCR submits evidence as a player; only Admin-only users hit the preview gate.
+  const isAdmin = !isPlayer;
   const { toast } = useToast();
 
   const { effectiveWord } = useEffectiveWord(assignment.quest_id);
