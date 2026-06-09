@@ -66,20 +66,28 @@ export const SupabaseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .single();
         
       let hasCreatorRole = false;
-      
+
+      // Always sync additional roles from the profile so role-based gates
+      // (e.g. DCR in the Game module) work for non-Creator users too.
+      if (profileData?.roles && Array.isArray(profileData.roles)) {
+        setUserRoles(profileData.roles);
+        localStorage.setItem('userRoles', JSON.stringify(profileData.roles));
+      } else {
+        setUserRoles([]);
+        localStorage.removeItem('userRoles');
+      }
+
       if (profileData?.roles && Array.isArray(profileData.roles) && profileData.roles.includes('Creator')) {
         hasCreatorRole = true;
         setIsCreator(true);
         localStorage.setItem('isCreator', 'true');
         setCreatorId(userId); // Set the creator ID to the user's ID
         localStorage.setItem('creatorId', userId);
-        setUserRoles(profileData.roles);
-        localStorage.setItem('userRoles', JSON.stringify(profileData.roles));
-        
+
         // Ensure creator record exists and is approved
         await ensureCreatorRecord(userId);
       }
-      
+
       if (profileData?.role) {
         setUserRole(profileData.role);
         localStorage.setItem('userRole', profileData.role);
